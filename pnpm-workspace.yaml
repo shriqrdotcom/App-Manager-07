@@ -33,6 +33,10 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
+  # All SDK 57 expo/@expo packages were published 2026-07-17; remove once 24 h have passed.
+  - '@expo/*'
+  - 'expo'
+  - 'expo-*'
 
 packages:
   - artifacts/*

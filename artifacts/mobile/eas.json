@@ -1,0 +1,17 @@
+{
+  "cli": {
+    "version": ">= 16.18.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://dashboard.exzibo.online"
+      }
+    }
+  }
+}
