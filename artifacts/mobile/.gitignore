@@ -39,3 +39,6 @@ yarn-error.*
 .vercel
 
 .env
+
+# Replit prompt attachment uploads
+attached_assets/
