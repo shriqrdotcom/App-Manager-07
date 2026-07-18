@@ -33,10 +33,31 @@ minimumReleaseAgeExclude:
   # this setting guards against does not apply to our own packages.
   - '@replit/*'
   - stripe-replit-sync
-  # All SDK 57 expo/@expo packages were published 2026-07-17; remove once 24 h have passed.
+  # All SDK 57 expo/@expo packages below were published 2026-07-17; remove after 2026-07-18T10:56Z.
+  # Using explicit names — glob patterns for unscoped packages are not reliably supported across
+  # all pnpm versions (e.g. EAS Build servers may use a different pnpm release).
   - '@expo/*'
-  - 'expo'
-  - 'expo-*'
+  - expo
+  - expo-blur
+  - expo-constants
+  - expo-dev-client
+  - expo-dev-launcher
+  - expo-font
+  - expo-glass-effect
+  - expo-haptics
+  - expo-image
+  - expo-image-picker
+  - expo-linear-gradient
+  - expo-linking
+  - expo-location
+  - expo-network
+  - expo-router
+  - expo-secure-store
+  - expo-splash-screen
+  - expo-status-bar
+  - expo-symbols
+  - expo-system-ui
+  - expo-web-browser
 
 packages:
   - artifacts/*
