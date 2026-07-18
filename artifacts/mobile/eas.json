@@ -10,7 +10,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://dashboard.exzibo.online"
+        "EXPO_PUBLIC_BACKEND_URL": "https://dashboard.exzibo.online",
+        "PNPM_VERSION": "10.26.1"
       }
     }
   }
