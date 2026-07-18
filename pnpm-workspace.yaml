@@ -40,9 +40,13 @@ minimumReleaseAgeExclude:
   - expo
   - expo-blur
   - expo-constants
+  - expo-asset
   - expo-dev-client
   - expo-dev-launcher
+  - expo-dev-menu
   - expo-font
+  - expo-modules-autolinking
+  - expo-modules-core
   - expo-glass-effect
   - expo-haptics
   - expo-image
