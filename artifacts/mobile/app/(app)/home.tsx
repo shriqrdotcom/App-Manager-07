@@ -6,10 +6,12 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/providers/AppProvider';
 import { useColors } from '@/hooks/useColors';
+import type { RestaurantRole } from '@/types/bootstrap';
 
 const ROLE_LABELS: Record<string, string> = {
   owner: 'Owner',
@@ -18,11 +20,18 @@ const ROLE_LABELS: Record<string, string> = {
   staff: 'Staff',
 };
 
+/** Roles that may access the Menu screen */
+const MENU_ROLES: RestaurantRole[] = ['owner', 'admin', 'manager'];
+
 export default function Home() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { bootstrap, selectedRestaurant, logout, switchRestaurant } = useApp();
   const hasMultipleRestaurants = (bootstrap?.restaurants.length ?? 0) > 1;
+
+  const role = selectedRestaurant?.role;
+  const canAccessMenu = role !== undefined && MENU_ROLES.includes(role);
 
   const handleLogout = async () => {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -32,6 +41,11 @@ export default function Home() {
   const handleSwitch = async () => {
     await Haptics.selectionAsync();
     await switchRestaurant();
+  };
+
+  const handleMenuPress = async () => {
+    await Haptics.selectionAsync();
+    router.push('/(app)/menu');
   };
 
   return (
@@ -112,25 +126,37 @@ export default function Home() {
         </View>
       )}
 
-      {/* Coming soon placeholder */}
-      <View
-        style={[
-          styles.comingSoonCard,
-          { backgroundColor: colors.muted, borderColor: colors.border },
-        ]}
-      >
-        <Feather name="clock" size={22} color={colors.mutedForeground} />
-        <View style={styles.comingSoonText}>
-          <Text style={[styles.comingSoonTitle, { color: colors.foreground }]}>
-            Menu management will be added next
-          </Text>
-          <Text
-            style={[styles.comingSoonSub, { color: colors.mutedForeground }]}
+      {/* Menu action — owner / admin / manager only */}
+      {canAccessMenu && (
+        <TouchableOpacity
+          onPress={handleMenuPress}
+          activeOpacity={0.75}
+          style={[
+            styles.actionCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View
+            style={[
+              styles.actionIconWrap,
+              { backgroundColor: colors.primary + '1A' },
+            ]}
           >
-            Create, edit, and publish your menu items from this screen.
-          </Text>
-        </View>
-      </View>
+            <Feather name="menu" size={20} color={colors.primary} />
+          </View>
+          <View style={styles.actionText}>
+            <Text style={[styles.actionTitle, { color: colors.foreground }]}>
+              Menu
+            </Text>
+            <Text
+              style={[styles.actionSub, { color: colors.mutedForeground }]}
+            >
+              Browse categories and items
+            </Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -200,24 +226,30 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 13,
   },
-  comingSoonCard: {
+  actionCard: {
     flexDirection: 'row',
-    borderRadius: 12,
+    alignItems: 'center',
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 18,
+    padding: 16,
     gap: 14,
-    alignItems: 'flex-start',
   },
-  comingSoonText: {
+  actionIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionText: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
-  comingSoonTitle: {
+  actionTitle: {
     fontSize: 15,
     fontWeight: '600',
   },
-  comingSoonSub: {
+  actionSub: {
     fontSize: 13,
-    lineHeight: 19,
   },
 });
