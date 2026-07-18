@@ -27,11 +27,6 @@
 # ============================================================================
 minimumReleaseAge: 1440
 
-# pnpm 11 requires explicit opt-in for packages that run build scripts.
-# esbuild downloads its platform binary via a postinstall script.
-onlyBuiltDependencies:
-  - esbuild
-
 minimumReleaseAgeExclude:
   # Exclude @replit scoped packages from the minimum release age check.
   # These are published by Replit and trusted — the supply-chain attack vector
