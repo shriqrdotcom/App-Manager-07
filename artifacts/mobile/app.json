@@ -31,6 +31,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b83e1161-1f19-4391-becc-dd1e87b9e7f9"
+      }
+    },
+    "owner": "app-manager-07s-team"
   }
 }

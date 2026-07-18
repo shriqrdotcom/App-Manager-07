@@ -34,6 +34,7 @@ minimumReleaseAgeExclude:
   - '@replit/*'
   - stripe-replit-sync
 
+
 packages:
   - artifacts/*
   - lib/*
@@ -73,6 +74,14 @@ onlyBuiltDependencies:
   - esbuild
   - msw
   - unrs-resolver
+
+# pnpm 11 renamed onlyBuiltDependencies to allowBuilds (map of name → bool).
+# Keep both: pnpm 10 reads onlyBuiltDependencies, pnpm 11 reads allowBuilds.
+allowBuilds:
+  esbuild: true
+  "@swc/core": true
+  msw: true
+  unrs-resolver: true
 
 overrides:
   # replit uses linux-x64 only, we can exclude all other platforms
