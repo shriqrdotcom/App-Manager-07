@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
@@ -76,13 +76,13 @@ export default function AddOrderScreen() {
     const dish = DISHES.find((d) => d.id === id); return s + (dish ? dish.price * n : 0);
   }, 0);
 
-  const add = (id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
-  const dec = (id: string) => setCart((c) => {
+  const add = useCallback((id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 })), []);
+  const dec = useCallback((id: string) => setCart((c) => {
     const n = (c[id] ?? 0) - 1;
     const next = { ...c };
     if (n <= 0) delete next[id]; else next[id] = n;
     return next;
-  });
+  }), []);
 
   const placeOrder = () => {
     setError(null);
