@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '@/src/constants/colors';
 import { ScreenTitle, Card } from '@/src/components/ui';
 
@@ -87,6 +89,7 @@ const TYPE_ICON: Record<OrderType, keyof typeof Feather.glyphMap> = {
 function fmt(n: number) { return `₹${n.toLocaleString('en-IN')}`; }
 
 export default function Orders() {
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<Status>('new');
 
   const data = useMemo(() => MOCK.filter((o) => o.status === filter), [filter]);
@@ -104,70 +107,84 @@ export default function Orders() {
   }), [counts]);
 
   return (
-    <FlatList
-      testID="orders-screen"
-      style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 24 }}
-      data={data}
-      keyExtractor={(o) => o.id}
-      ListHeaderComponent={
-        <>
-          <ScreenTitle
-            testID="orders-title"
-            right={
-              <View style={styles.headerActions}>
-                <TouchableOpacity style={styles.iconBtn} testID="orders-search"><Feather name="search" size={18} color={colors.foreground} /></TouchableOpacity>
-                <TouchableOpacity style={styles.iconBtn} testID="orders-filter"><Feather name="sliders" size={18} color={colors.foreground} /></TouchableOpacity>
-              </View>
-            }
-          >
-            Orders
-          </ScreenTitle>
-          <View style={styles.liveRow}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Dinner service · live</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <FlatList
+        testID="orders-screen"
+        style={{ backgroundColor: colors.background }}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        data={data}
+        keyExtractor={(o) => o.id}
+        ListHeaderComponent={
+          <>
+            <ScreenTitle
+              testID="orders-title"
+              right={
+                <View style={styles.headerActions}>
+                  <TouchableOpacity style={styles.iconBtn} testID="orders-search"><Feather name="search" size={18} color={colors.foreground} /></TouchableOpacity>
+                  <TouchableOpacity style={styles.iconBtn} testID="orders-filter"><Feather name="sliders" size={18} color={colors.foreground} /></TouchableOpacity>
+                </View>
+              }
+            >
+              Orders
+            </ScreenTitle>
+            <View style={styles.liveRow}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>Dinner service · live</Text>
+            </View>
+
+            {/* Summary cards */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.summaryRow}>
+              <SummaryCard color={colors.info}    label="Active"       value={String(summary.active)} />
+              <SummaryCard color={colors.warning} label="Pending"      value={String(summary.pending)} />
+              <SummaryCard color={colors.purple}  label="Avg prep"     value={summary.avgPrep} />
+              <SummaryCard color={colors.success} label="Revenue"      value={summary.revenue} />
+            </ScrollView>
+
+            {/* Status chips */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+              {FILTERS.map((f) => {
+                const active = filter === f.key;
+                return (
+                  <TouchableOpacity
+                    key={f.key}
+                    testID={`orders-filter-${f.key}`}
+                    onPress={() => setFilter(f.key)}
+                    activeOpacity={0.8}
+                    style={[styles.chip, active && { backgroundColor: '#2A2B2C', borderColor: '#3A3B3C' }]}
+                  >
+                    <View style={[styles.chipDot, { backgroundColor: f.color }]} />
+                    <Text style={[styles.chipLabel, active && { color: colors.foreground }]}>{f.label}</Text>
+                    <View style={styles.chipCount}>
+                      <Text style={styles.chipCountText}>{counts[f.key]}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </>
+        }
+        renderItem={({ item }) => <OrderCard order={item} />}
+        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Feather name="inbox" size={28} color={colors.mutedForeground} />
+            <Text style={styles.emptyText}>No orders in this view</Text>
           </View>
+        }
+      />
 
-          {/* Summary cards */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.summaryRow}>
-            <SummaryCard color={colors.info}    label="Active"       value={String(summary.active)} />
-            <SummaryCard color={colors.warning} label="Pending"      value={String(summary.pending)} />
-            <SummaryCard color={colors.purple}  label="Avg prep"     value={summary.avgPrep} />
-            <SummaryCard color={colors.success} label="Revenue"      value={summary.revenue} />
-          </ScrollView>
-
-          {/* Status chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-            {FILTERS.map((f) => {
-              const active = filter === f.key;
-              return (
-                <TouchableOpacity
-                  key={f.key}
-                  testID={`orders-filter-${f.key}`}
-                  onPress={() => setFilter(f.key)}
-                  activeOpacity={0.8}
-                  style={[styles.chip, active && { backgroundColor: '#2A2B2C', borderColor: '#3A3B3C' }]}
-                >
-                  <View style={[styles.chipDot, { backgroundColor: f.color }]} />
-                  <Text style={[styles.chipLabel, active && { color: colors.foreground }]}>{f.label}</Text>
-                  <View style={styles.chipCount}>
-                    <Text style={styles.chipCountText}>{counts[f.key]}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </>
-      }
-      renderItem={({ item }) => <OrderCard order={item} />}
-      ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-      ListEmptyComponent={
-        <View style={styles.empty}>
-          <Feather name="inbox" size={28} color={colors.mutedForeground} />
-          <Text style={styles.emptyText}>No orders in this view</Text>
-        </View>
-      }
-    />
+      {/* Floating create-order button */}
+      <TouchableOpacity
+        style={[styles.fab, { bottom: 90 + insets.bottom }]}
+        onPress={() => router.push('/add-order')}
+        activeOpacity={0.85}
+        testID="orders-add-fab"
+        accessibilityLabel="Create manual order"
+        accessibilityRole="button"
+      >
+        <Feather name="file-plus" size={24} color={colors.background} />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -348,4 +365,11 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: 13, fontWeight: '700' },
   empty: { alignItems: 'center', gap: 8, paddingTop: 32 },
   emptyText: { color: colors.mutedForeground, fontSize: 13 },
+
+  fab: {
+    position: 'absolute', right: 20, width: 56, height: 56, borderRadius: 16,
+    backgroundColor: colors.foreground, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
 });

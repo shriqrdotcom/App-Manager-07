@@ -32,6 +32,15 @@ A React Native / Expo port of the GitHub repo `shriqrdotcom/App-Manager-07` (Exz
 - **`/add-booking` full-screen page** with back button and header. Sections: Guest details · Date & time · Seating · Additional details. All 15 required features are implemented — booking type toggle (Table / Private room), name, mobile with country-code picker, date picker (30-day list), time text input, stepper for guests (1–30), seating-area chips → available table/room chips, status (Pending/Confirmed), source (Phone/Walk-in/WhatsApp/Other), special request, private staff note, per-field validation errors, disabled submit while pending, KeyboardAvoidingView, Cancel + Create actions.
 - On success the page pops back to Bookings and the list refetches via `useFocusEffect` — new booking appears immediately.
 
+## Manual order creation
+- **Second FAB** on the Orders screen (56×56, `file-plus` icon, `accessibilityLabel="Create manual order"`) — same shape and position as the booking FAB, different icon.
+- **`/add-order` full-screen page** with:
+  1. **Customer Details** card — customer name + table number inputs (both required, validated).
+  2. **What's on your mind?** — horizontal category ring (circular tinted tiles: Biryani, Pizzas, Burgers, Rolls, Momos, Drinks, Desserts), active tile gets a dark ring. Layout follows the reference image.
+  3. **Menu grid** — 2-column white cards with dish photo, yellow price pill, veg indicator, green rating pill, dish name, strikethrough old price + current price, ADD button that turns into a `+ / -` quantity stepper. Source + prep-time labels. Layout follows the reference image.
+- Sticky bottom summary bar: `N items · ₹total` + **Place Order** button (disabled until at least 1 item).
+- Validates customer name, table, and non-empty cart; success toast then routes back to Orders.
+
 ## Deviations from original repo
 - Better-Auth + Google OAuth → simple JWT email/password (documented in `test_credentials.md`).
 - Postgres + Drizzle → MongoDB + Motor.
