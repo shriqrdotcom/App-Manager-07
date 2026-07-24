@@ -1,35 +1,19 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import dayjs from 'dayjs';
+
 import colors from '@/src/constants/colors';
 import { ScreenTitle, Card } from '@/src/components/ui';
+import { api, Booking, BookingStatus } from '@/src/api/client';
+import { useApp } from '@/src/providers/AppProvider';
 
-type BStatus = 'pending' | 'confirmed' | 'arrived' | 'seated' | 'completed';
-type Booking = {
-  id: string;
-  name: string; time: string; guests: number;
-  seat: string; phone: string;
-  status: BStatus; note?: string; date: string;
-};
-
-const BOOKINGS: Booking[] = [
-  { id: '1', name: 'Farah Sheikh', time: '19:30', guests: 4, seat: 'T-04', phone: '+91 90101 30022', status: 'completed', note: 'Anniversary', date: '22' },
-  { id: '2', name: 'Manish Aggarwal', time: '20:00', guests: 2, seat: 'T-11', phone: '+91 98220 90011', status: 'arrived', date: '22' },
-  { id: '3', name: 'Ishaan Verma', time: '20:15', guests: 4, seat: 'T-06', phone: '+91 96500 12345', status: 'confirmed', note: 'Vegetarian menu', date: '22' },
-  { id: '4', name: 'Neha Rao', time: '21:00', guests: 6, seat: 'T-02', phone: '+91 90211 55432', status: 'pending', date: '22' },
-  { id: '5', name: 'Karan Malik', time: '13:00', guests: 3, seat: 'T-08', phone: '+91 92345 67890', status: 'confirmed', date: '23' },
-];
-
-const DATES = [
-  { label: 'TODAY', num: '22', count: 4 },
-  { label: 'TOMORROW', num: '23', count: 1 },
-  { label: 'THU', num: '24', count: 3 },
-  { label: 'FRI', num: '25', count: 2 },
-  { label: 'SAT', num: '26', count: 5 },
-  { label: 'SUN', num: '27', count: 2 },
-];
-
-const STATUS_STYLE: Record<BStatus, { bg: string; color: string; label: string }> = {
+const STATUS_STYLE: Record<BookingStatus, { bg: string; color: string; label: string }> = {
   pending:   { bg: '#F59E0B22', color: '#F59E0B', label: 'Pending' },
   confirmed: { bg: '#3B82F622', color: '#60A5FA', label: 'Confirmed' },
   arrived:   { bg: '#8B5CF622', color: '#A78BFA', label: 'Arrived' },
@@ -37,25 +21,74 @@ const STATUS_STYLE: Record<BStatus, { bg: string; color: string; label: string }
   completed: { bg: '#22C55E22', color: '#4ADE80', label: 'Completed' },
 };
 
-export default function Booking() {
+// Build a 7-day window centred on today
+function buildDates() {
+  const today = dayjs();
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = today.add(i, 'day');
+    return {
+      iso: d.format('YYYY-MM-DD'),
+      num: d.format('DD'),
+      label: i === 0 ? 'TODAY' : i === 1 ? 'TOMORROW' : d.format('ddd').toUpperCase(),
+    };
+  });
+}
+
+export default function BookingScreen() {
+  const insets = useSafeAreaInsets();
+  const { selectedRestaurant } = useApp();
   const [tab, setTab] = useState<'tables' | 'rooms'>('tables');
-  const [dateNum, setDateNum] = useState('22');
+  const [dateIso, setDateIso] = useState(dayjs().format('YYYY-MM-DD'));
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const data = useMemo(() => BOOKINGS.filter((b) => b.date === dateNum), [dateNum]);
+  const dates = useMemo(buildDates, []);
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2200);
-  };
+  const fetchBookings = useCallback(async () => {
+    if (!selectedRestaurant) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.listBookings(selectedRestaurant.id, dateIso);
+      setBookings(data);
+    } catch (e: any) {
+      setError(e?.message ?? 'Failed to load bookings');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRestaurant, dateIso]);
+
+  // Refetch whenever screen gains focus or date/restaurant changes
+  useFocusEffect(useCallback(() => { void fetchBookings(); }, [fetchBookings]));
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2200); };
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    dates.forEach((d) => { c[d.iso] = 0; });
+    bookings.forEach((b) => { if (b.date in c) c[b.date]++; });
+    return c;
+  }, [bookings, dates]);
+
+  // For date strip counts we'd need all dates; keep single-date count on active
+  const shown = useMemo(
+    () => bookings.filter((b) => (tab === 'tables' ? b.booking_type === 'table' : b.booking_type === 'room')),
+    [bookings, tab],
+  );
+
+  const openAddBooking = () => router.push('/add-booking');
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <FlatList
         testID="booking-screen"
-        data={data}
+        data={shown}
         keyExtractor={(b) => b.id}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        onRefresh={fetchBookings}
+        refreshing={loading}
         ListHeaderComponent={
           <>
             <ScreenTitle
@@ -70,7 +103,6 @@ export default function Booking() {
               Bookings
             </ScreenTitle>
 
-            {/* Tabs */}
             <View style={styles.tabsWrap}>
               <View style={styles.tabsRow}>
                 <TouchableOpacity
@@ -92,41 +124,68 @@ export default function Booking() {
               </View>
             </View>
 
-            {/* Date strip */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateRow}>
-              {DATES.map((d) => {
-                const active = d.num === dateNum;
+              {dates.map((d) => {
+                const active = d.iso === dateIso;
                 return (
                   <TouchableOpacity
-                    key={d.num}
-                    onPress={() => setDateNum(d.num)}
+                    key={d.iso}
+                    onPress={() => setDateIso(d.iso)}
                     testID={`booking-date-${d.num}`}
                     style={[styles.dateChip, active && styles.dateChipActive]}
                     activeOpacity={0.85}
                   >
-                    <Text style={[styles.dateLabel, active && { color: colors.background }]}>{d.label}</Text>
+                    <Text style={[styles.dateLabel, active && { color: colors.background }]} numberOfLines={1}>{d.label}</Text>
                     <Text style={[styles.dateNum, active && { color: colors.background }]}>{d.num}</Text>
                     <View style={[styles.dateCountPill, active && { backgroundColor: '#00000022' }]}>
-                      <Text style={[styles.dateCount, active && { color: colors.background }]}>{d.count}</Text>
+                      <Text style={[styles.dateCount, active && { color: colors.background }]}>{counts[d.iso] ?? 0}</Text>
                     </View>
                   </TouchableOpacity>
                 );
               })}
             </ScrollView>
+
+            {error && (
+              <View style={styles.errorBar} testID="booking-error">
+                <Feather name="alert-circle" size={14} color={colors.destructive} />
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity onPress={fetchBookings}><Text style={styles.retry}>Retry</Text></TouchableOpacity>
+              </View>
+            )}
           </>
         }
         renderItem={({ item }) => <BookingCard b={item} onAction={showToast} />}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Feather name="calendar" size={28} color={colors.mutedForeground} />
-            <Text style={styles.emptyText}>No bookings for this date</Text>
-          </View>
+          loading ? (
+            <View style={styles.center}><ActivityIndicator color={colors.foreground} /></View>
+          ) : (
+            <View style={styles.empty}>
+              <Feather name="calendar" size={28} color={colors.mutedForeground} />
+              <Text style={styles.emptyText}>No {tab === 'tables' ? 'table' : 'private room'} bookings for this date</Text>
+              <TouchableOpacity onPress={openAddBooking} activeOpacity={0.85} style={styles.emptyBtn} testID="booking-empty-add">
+                <Feather name="plus" size={14} color={colors.background} />
+                <Text style={styles.emptyBtnText}>Add booking</Text>
+              </TouchableOpacity>
+            </View>
+          )
         }
       />
 
+      {/* Floating add button */}
+      <TouchableOpacity
+        style={[styles.fab, { bottom: 90 + insets.bottom }]}
+        onPress={openAddBooking}
+        activeOpacity={0.85}
+        testID="booking-add-fab"
+        accessibilityLabel="Add booking"
+        accessibilityRole="button"
+      >
+        <Feather name="plus" size={26} color={colors.background} />
+      </TouchableOpacity>
+
       {toast && (
-        <View style={styles.toast} testID="booking-toast">
+        <View style={[styles.toast, { bottom: 160 + insets.bottom }]} testID="booking-toast">
           <Feather name="check-circle" size={14} color={colors.success} />
           <Text style={styles.toastText}>{toast}</Text>
         </View>
@@ -137,13 +196,13 @@ export default function Booking() {
 
 function BookingCard({ b, onAction }: { b: Booking; onAction: (msg: string) => void }) {
   const s = STATUS_STYLE[b.status];
-  const initials = b.name.split(' ').slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
+  const initials = b.guest_name.split(' ').slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
 
   const primaryAction = () => {
-    if (b.status === 'pending') return { label: 'Confirm', onPress: () => onAction(`${b.name} confirmed`) };
-    if (b.status === 'confirmed') return { label: 'Mark arrived', onPress: () => onAction(`${b.name} → arrived`) };
-    if (b.status === 'arrived') return { label: 'Seat guest', onPress: () => onAction(`${b.name} seated`) };
-    if (b.status === 'seated') return { label: 'Complete', onPress: () => onAction(`${b.name} → completed`) };
+    if (b.status === 'pending')   return { label: 'Confirm',      msg: `${b.guest_name} confirmed` };
+    if (b.status === 'confirmed') return { label: 'Mark arrived', msg: `${b.guest_name} → arrived` };
+    if (b.status === 'arrived')   return { label: 'Seat guest',   msg: `${b.guest_name} seated` };
+    if (b.status === 'seated')    return { label: 'Complete',     msg: `${b.guest_name} → completed` };
     return null;
   };
   const pa = primaryAction();
@@ -156,7 +215,7 @@ function BookingCard({ b, onAction }: { b: Booking; onAction: (msg: string) => v
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.bookingName} numberOfLines={1}>{b.name}</Text>
+            <Text style={styles.bookingName} numberOfLines={1}>{b.guest_name}</Text>
             <View style={styles.metaLine}>
               <Feather name="clock" size={11} color={colors.mutedForeground} />
               <Text style={styles.metaText}>{b.time}</Text>
@@ -175,21 +234,21 @@ function BookingCard({ b, onAction }: { b: Booking; onAction: (msg: string) => v
 
       <View style={styles.phoneRow}>
         <Feather name="phone" size={12} color={colors.mutedForeground} />
-        <Text style={styles.phoneText}>{b.phone}</Text>
-        <TouchableOpacity style={styles.callBtn} testID={`booking-call-${b.id}`} onPress={() => onAction(`Calling ${b.name}…`)}>
+        <Text style={styles.phoneText}>{b.phone_code} {b.phone}</Text>
+        <TouchableOpacity style={styles.callBtn} testID={`booking-call-${b.id}`} onPress={() => onAction(`Calling ${b.guest_name}…`)}>
           <Text style={styles.callBtnText}>Call</Text>
         </TouchableOpacity>
       </View>
 
-      {b.note && (
+      {b.special_request && (
         <View style={styles.noteBox}>
           <Feather name="star" size={11} color={colors.warning} />
-          <Text style={styles.noteText}>{b.note}</Text>
+          <Text style={styles.noteText}>{b.special_request}</Text>
         </View>
       )}
 
       {pa && (
-        <TouchableOpacity style={styles.wideBtn} onPress={pa.onPress} activeOpacity={0.85} testID={`booking-primary-${b.id}`}>
+        <TouchableOpacity style={styles.wideBtn} onPress={() => onAction(pa.msg)} activeOpacity={0.85} testID={`booking-primary-${b.id}`}>
           <Text style={styles.wideBtnText}>{pa.label}</Text>
         </TouchableOpacity>
       )}
@@ -216,7 +275,7 @@ const styles = StyleSheet.create({
 
   dateRow: { paddingHorizontal: 20, gap: 10, paddingBottom: 14 },
   dateChip: {
-    width: 68, alignItems: 'center', paddingVertical: 10,
+    width: 76, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 8,
     backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border,
     borderRadius: 12, gap: 4, flexShrink: 0,
   },
@@ -255,11 +314,33 @@ const styles = StyleSheet.create({
   wideBtn: { backgroundColor: colors.foreground, borderRadius: 999, paddingVertical: 12, alignItems: 'center' },
   wideBtnText: { color: colors.background, fontWeight: '700', fontSize: 13 },
 
-  empty: { alignItems: 'center', gap: 8, paddingTop: 32 },
-  emptyText: { color: colors.mutedForeground, fontSize: 13 },
+  center: { paddingTop: 48, alignItems: 'center' },
+  empty: { alignItems: 'center', gap: 10, paddingTop: 40, paddingHorizontal: 20 },
+  emptyText: { color: colors.mutedForeground, fontSize: 13, textAlign: 'center' },
+  emptyBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8,
+    backgroundColor: colors.foreground, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999,
+  },
+  emptyBtnText: { color: colors.background, fontWeight: '700', fontSize: 13 },
+
+  errorBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 20, marginBottom: 8,
+    backgroundColor: '#3B1D1D', borderWidth: 1, borderColor: '#7F1D1D',
+    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10,
+  },
+  errorText: { color: '#F87171', fontSize: 12.5, flex: 1 },
+  retry: { color: colors.foreground, fontSize: 12.5, fontWeight: '700', textDecorationLine: 'underline' },
+
+  fab: {
+    position: 'absolute', right: 20, width: 56, height: 56, borderRadius: 16,
+    backgroundColor: colors.foreground, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
 
   toast: {
-    position: 'absolute', bottom: 24, alignSelf: 'center',
+    position: 'absolute', alignSelf: 'center',
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#26272A', borderWidth: 1, borderColor: colors.border,
     borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,

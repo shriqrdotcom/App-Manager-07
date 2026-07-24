@@ -58,6 +58,46 @@ export type Restaurant = { id: string; name: string; role: string };
 export type Bootstrap = { user: UserPublic; restaurants: Restaurant[] };
 export type AuthResponse = { access_token: string; token_type: string; user: UserPublic };
 
+export type BookingStatus = 'pending' | 'confirmed' | 'arrived' | 'seated' | 'completed';
+export type BookingType = 'table' | 'room';
+export type BookingSource = 'phone' | 'walk-in' | 'whatsapp' | 'other';
+
+export type Booking = {
+  id: string;
+  restaurant_id: string;
+  guest_name: string;
+  phone_code: string;
+  phone: string;
+  date: string;   // YYYY-MM-DD
+  time: string;   // HH:MM
+  guests: number;
+  booking_type: BookingType;
+  seating_area: string;
+  seat: string;
+  status: BookingStatus;
+  source: BookingSource;
+  special_request?: string | null;
+  staff_note?: string | null;
+  created_at: string;
+};
+
+export type BookingCreate = {
+  restaurant_id: string;
+  guest_name: string;
+  phone_code: string;
+  phone: string;
+  date: string;
+  time: string;
+  guests: number;
+  booking_type: BookingType;
+  seating_area: string;
+  seat: string;
+  status: 'pending' | 'confirmed';
+  source: BookingSource;
+  special_request?: string;
+  staff_note?: string;
+};
+
 export const api = {
   setToken,
   getToken,
@@ -73,4 +113,15 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }, false),
   bootstrap: () => request<Bootstrap>('/api/bootstrap', {}, true),
+
+  listBookings: (restaurantId: string, date?: string) => {
+    const qs = new URLSearchParams({ restaurant_id: restaurantId });
+    if (date) qs.set('date', date);
+    return request<Booking[]>(`/api/bookings?${qs.toString()}`, {}, true);
+  },
+  createBooking: (payload: BookingCreate) =>
+    request<Booking>('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }, true),
 };

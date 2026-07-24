@@ -24,6 +24,13 @@ A React Native / Expo port of the GitHub repo `shriqrdotcom/App-Manager-07` (Exz
 - `POST /auth/login` → `{ access_token, user }`
 - `GET /auth/me` → current user (Bearer)
 - `GET /bootstrap` → `{ user, restaurants[] }` (Bearer)
+- `GET /bookings?restaurant_id=&date=YYYY-MM-DD` → `Booking[]` (Bearer, membership required)
+- `POST /bookings` → creates a booking. Enforces double-booking check (same restaurant + seat + date, within 90-min window). Returns **409** on conflict with `detail`.
+
+## Manual booking creation
+- **Floating "+" button** on the Bookings screen (56×56, bottom-right, above bottom nav & safe-area, accessibility label "Add booking").
+- **`/add-booking` full-screen page** with back button and header. Sections: Guest details · Date & time · Seating · Additional details. All 15 required features are implemented — booking type toggle (Table / Private room), name, mobile with country-code picker, date picker (30-day list), time text input, stepper for guests (1–30), seating-area chips → available table/room chips, status (Pending/Confirmed), source (Phone/Walk-in/WhatsApp/Other), special request, private staff note, per-field validation errors, disabled submit while pending, KeyboardAvoidingView, Cancel + Create actions.
+- On success the page pops back to Bookings and the list refetches via `useFocusEffect` — new booking appears immediately.
 
 ## Deviations from original repo
 - Better-Auth + Google OAuth → simple JWT email/password (documented in `test_credentials.md`).

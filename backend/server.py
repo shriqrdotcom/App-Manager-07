@@ -13,7 +13,6 @@ import bcrypt
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -68,6 +67,43 @@ class RestaurantOut(BaseModel):
 class BootstrapResponse(BaseModel):
     user: UserPublic
     restaurants: List[RestaurantOut]
+
+
+# ---- Booking models ----
+class BookingCreate(BaseModel):
+    restaurant_id: str
+    guest_name: str = Field(min_length=1)
+    phone_code: str = Field(min_length=1)
+    phone: str = Field(min_length=1)
+    date: str  # ISO YYYY-MM-DD
+    time: str  # HH:MM (24h)
+    guests: int = Field(ge=1, le=50)
+    booking_type: str  # 'table' | 'room'
+    seating_area: str  # e.g. 'Main hall', 'Terrace', 'Bar', 'Private wing'
+    seat: str  # table or room identifier
+    status: str  # 'pending' | 'confirmed'
+    source: str  # 'phone' | 'walk-in' | 'whatsapp' | 'other'
+    special_request: Optional[str] = None
+    staff_note: Optional[str] = None
+
+
+class BookingOut(BaseModel):
+    id: str
+    restaurant_id: str
+    guest_name: str
+    phone_code: str
+    phone: str
+    date: str
+    time: str
+    guests: int
+    booking_type: str
+    seating_area: str
+    seat: str
+    status: str
+    source: str
+    special_request: Optional[str] = None
+    staff_note: Optional[str] = None
+    created_at: str
 
 
 # ---- Helpers ----
@@ -177,6 +213,77 @@ async def bootstrap(user: dict = Depends(get_current_user)):
     return BootstrapResponse(user=user_public(user), restaurants=restaurants)
 
 
+# ---- Bookings ----
+async def _user_can_access_restaurant(user_id: str, restaurant_id: str) -> bool:
+    m = await db.memberships.find_one({"user_id": user_id, "restaurant_id": restaurant_id})
+    return m is not None
+
+
+def _time_to_minutes(t: str) -> int:
+    hh, mm = t.split(":")
+    return int(hh) * 60 + int(mm)
+
+
+@api_router.get("/bookings", response_model=List[BookingOut])
+async def list_bookings(
+    restaurant_id: str,
+    date: Optional[str] = None,
+    user: dict = Depends(get_current_user),
+):
+    if not await _user_can_access_restaurant(user["id"], restaurant_id):
+        raise HTTPException(status_code=403, detail="No access to this restaurant")
+    q: dict = {"restaurant_id": restaurant_id}
+    if date:
+        q["date"] = date
+    cursor = db.bookings.find(q, {"_id": 0}).sort("time", 1)
+    return [BookingOut(**b) async for b in cursor]
+
+
+@api_router.post("/bookings", response_model=BookingOut, status_code=201)
+async def create_booking(payload: BookingCreate, user: dict = Depends(get_current_user)):
+    if not await _user_can_access_restaurant(user["id"], payload.restaurant_id):
+        raise HTTPException(status_code=403, detail="No access to this restaurant")
+
+    # Basic validation
+    try:
+        dt = datetime.strptime(f"{payload.date} {payload.time}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date or time")
+    if payload.booking_type not in ("table", "room"):
+        raise HTTPException(status_code=400, detail="booking_type must be table or room")
+    if payload.status not in ("pending", "confirmed"):
+        raise HTTPException(status_code=400, detail="status must be pending or confirmed")
+    if payload.source not in ("phone", "walk-in", "whatsapp", "other"):
+        raise HTTPException(status_code=400, detail="invalid source")
+
+    # Conflict check: same restaurant + same table/room + same date + within 90 minutes
+    same_slot = db.bookings.find({
+        "restaurant_id": payload.restaurant_id,
+        "seat": payload.seat,
+        "date": payload.date,
+    }, {"_id": 0})
+    target = _time_to_minutes(payload.time)
+    async for b in same_slot:
+        try:
+            other = _time_to_minutes(b["time"])
+        except Exception:
+            continue
+        if abs(other - target) < 90 and b.get("status") != "completed":
+            raise HTTPException(
+                status_code=409,
+                detail=f"{payload.seat} already booked at {b['time']} on {payload.date}",
+            )
+
+    doc = {
+        "id": str(uuid.uuid4()),
+        **payload.dict(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.bookings.insert_one(doc)
+    doc.pop("_id", None)
+    return BookingOut(**doc)
+
+
 # ---- Seed data ----
 async def seed_demo():
     # Demo user
@@ -223,6 +330,30 @@ async def seed_demo():
                 "restaurant_id": existing_id,
                 "role": r["role"],
             })
+
+    # Seed a few bookings for demo diner (today + tomorrow)
+    dd = await db.restaurants.find_one({"slug": "demo-diner"}, {"_id": 0})
+    if dd:
+        already = await db.bookings.count_documents({"restaurant_id": dd["id"]})
+        if already == 0:
+            today = datetime.now(timezone.utc).date()
+            tomorrow = today + timedelta(days=1)
+            seed_bookings = [
+                {"guest_name": "Farah Sheikh",   "phone_code": "+91", "phone": "9010130022", "time": "19:30", "guests": 4, "booking_type": "table", "seating_area": "Main hall", "seat": "T-04", "status": "confirmed", "source": "phone",    "special_request": "Anniversary",       "date": today.isoformat()},
+                {"guest_name": "Manish Aggarwal","phone_code": "+91", "phone": "9822090011", "time": "20:00", "guests": 2, "booking_type": "table", "seating_area": "Bar",       "seat": "T-11", "status": "confirmed", "source": "walk-in",  "special_request": None,                "date": today.isoformat()},
+                {"guest_name": "Ishaan Verma",   "phone_code": "+91", "phone": "9650012345", "time": "20:15", "guests": 4, "booking_type": "table", "seating_area": "Terrace",   "seat": "T-06", "status": "confirmed", "source": "whatsapp", "special_request": "Vegetarian menu",   "date": today.isoformat()},
+                {"guest_name": "Neha Rao",       "phone_code": "+91", "phone": "9021155432", "time": "21:00", "guests": 6, "booking_type": "table", "seating_area": "Main hall", "seat": "T-02", "status": "pending",   "source": "phone",    "special_request": None,                "date": today.isoformat()},
+                {"guest_name": "Karan Malik",    "phone_code": "+91", "phone": "9234567890", "time": "13:00", "guests": 3, "booking_type": "table", "seating_area": "Terrace",   "seat": "T-08", "status": "confirmed", "source": "phone",    "special_request": None,                "date": tomorrow.isoformat()},
+            ]
+            for b in seed_bookings:
+                await db.bookings.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "restaurant_id": dd["id"],
+                    "staff_note": None,
+                    **b,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                })
+            logger.info("Seeded demo bookings for Demo Diner")
 
 
 @app.on_event("startup")
