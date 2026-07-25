@@ -69,7 +69,7 @@ export default function MainTabSwipeWrapper({ children }: MainTabSwipeWrapperPro
       }
     })
     .onEnd((event) => {
-      const direction = event.translationX < 0 ? 1 : -1;
+      const direction = event.translationX > 0 ? 1 : -1;
       const targetIndex = tabIndex + direction;
       const hasClearDistance = Math.abs(event.translationX) >= SWIPE_DISTANCE;
       const hasClearVelocity =
