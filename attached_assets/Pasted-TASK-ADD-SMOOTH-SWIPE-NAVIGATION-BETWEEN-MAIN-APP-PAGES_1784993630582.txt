@@ -1,0 +1,71 @@
+TASK: ADD SMOOTH SWIPE NAVIGATION BETWEEN MAIN APP PAGES
+
+Add WhatsApp-style horizontal swipe navigation between these five main pages:
+
+Orders → Booking → Edit → Analytics → Settings
+
+EXACT GESTURE BEHAVIOUR
+
+- Swipe toward the right to move to the next page:
+  Orders → Booking → Edit → Analytics → Settings
+- Swipe toward the left to return to the previous page.
+- Do not loop from Settings to Orders or from Orders to Settings.
+- Keep normal bottom-navigation tapping fully functional.
+- When a page changes by swipe, immediately update the selected bottom-navigation icon and label.
+- Do not show swipe instructions, tooltips, banners, messages or onboarding hints.
+
+SMOOTH UX
+
+- The page should follow the user’s finger during the gesture.
+- Use a smooth, fast transition with no flashing, blank screens or delay.
+- Complete the navigation only after a clear swipe distance or velocity.
+- If the swipe is too small, smoothly return to the current page.
+- Prevent repeated navigation from one gesture.
+- Preserve each page’s scroll position and loaded data.
+- Do not unnecessarily remount screens or repeat API requests.
+
+GESTURE CONFLICT PROTECTION
+
+The app contains vertical lists and horizontal controls. Swipe navigation must not interfere with them.
+
+- Prioritize vertical scrolling when vertical movement is stronger.
+- Do not switch pages while the user is interacting with:
+  - Buttons
+  - Inputs
+  - Quantity controls
+  - Charts
+  - Date selectors
+  - Horizontal tabs, category lists or filters
+  - Sliders or other interactive elements
+- Allow horizontal lists to scroll normally.
+- Enable page swiping only on the five main tab screens.
+- Disable it on New Order, Add Booking, edit forms, detail pages, modals and authentication screens.
+
+IMPLEMENTATION
+
+- Inspect and reuse the existing Expo Router/navigation structure.
+- Add the gesture handling through one shared main-tab wrapper instead of duplicating code on every page.
+- Use Expo-compatible `react-native-gesture-handler` and Reanimated support where appropriate.
+- Do not change the UI design, fixed bottom navigation, backend, authentication, APIs or database.
+- Do not commit or push until I approve.
+
+TESTING
+
+Test every transition in both directions:
+
+- Orders ↔ Booking
+- Booking ↔ Edit
+- Edit ↔ Analytics
+- Analytics ↔ Settings
+
+Also confirm:
+
+- Bottom-navigation selection always matches the visible page.
+- Tapping bottom-navigation items still works.
+- Vertical scrolling remains smooth.
+- Horizontal filters and category lists still work.
+- No accidental page changes occur during normal interaction.
+- No page flicker, duplicated API calls or gesture lag occurs.
+- The feature works smoothly on a physical Android phone and Expo Go.
+
+Show the updated mobile preview after implementation and report the files changed, test results and any remaining issue.
