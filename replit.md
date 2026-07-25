@@ -15,25 +15,27 @@ A React Native / Expo frontend restaurant management app (runs on web via Expo R
 The "Start application" workflow runs:
 
 ```bash
-cd frontend && yarn expo start --web --port 5000 --host lan
+cd frontend && EXPO_TOKEN="" yarn expo start --web --port 5000 --host lan
 ```
 
 Metro bundles the Expo app for web and serves it on port 5000.  
 The Replit preview opens automatically once Metro is ready.
 
-## Required Environment Variables
+## Environment Variables
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `EXPO_PUBLIC_BACKEND_URL` | Shared env | Production backend base URL (e.g. `https://dashboard.exzibo.online`) |
-| `EXPO_PUBLIC_ENABLE_DEMO_LOGIN` | Shared env | Set to `false` — demo login disabled |
-| `EXPO_TOKEN` | Secret | Expo publish token |
+| `EXPO_PUBLIC_BACKEND_URL` | Secret | Production backend base URL (e.g. `https://dashboard.exzibo.online`) |
+| `EXPO_PUBLIC_ENABLE_DEMO_LOGIN` | Shared env | `false` — disables the old demo login |
+| `EXPO_PUBLIC_PREVIEW_DEMO` | Shared env | `true` — **preview only**: bypasses Google OAuth and shows the dashboard for UI testing |
+| `EXPO_TOKEN` | Secret | Expo token (currently invalid, so workflow overrides it for local dev) |
 
 ## Authentication
 
-- Sign-in uses **Better Auth** with **Google OAuth**.
+- In normal mode, sign-in uses **Better Auth** with **Google OAuth**.
 - The session is restored automatically on app launch via `authClient.useSession()`.
 - The app fetches the user's restaurants from `GET /api/mobile/v1/bootstrap`.
+- In preview demo mode (`EXPO_PUBLIC_PREVIEW_DEMO=true`), the login screen is skipped and a demo restaurant/user is injected so the dashboard pages can be navigated.
 
 ## Installing / Reinstalling
 

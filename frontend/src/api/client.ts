@@ -1,5 +1,6 @@
 import { authClient } from '@/src/auth/client';
 import { config } from '@/src/config';
+import type { Booking } from '@/src/types/booking';
 
 export class ApiError extends Error {
   constructor(
@@ -78,3 +79,61 @@ export async function apiFetch<T>(
     throw new ApiError('Received an unexpected response from the server.');
   }
 }
+
+// Preview-only demo bookings so the Booking screen renders data without a real backend endpoint.
+const DEMO_BOOKINGS: Booking[] = [
+  {
+    id: 'demo-bk-1',
+    guest_name: 'Sarah Miller',
+    guests: 4,
+    phone_code: '+1',
+    phone: '555-0123',
+    date: new Date().toISOString().split('T')[0],
+    time: '18:30',
+    seat: 'Table 4',
+    booking_type: 'table',
+    status: 'confirmed',
+    special_request: 'Birthday celebration, gluten-free dessert',
+  },
+  {
+    id: 'demo-bk-2',
+    guest_name: 'James & Anna',
+    guests: 2,
+    phone_code: '+1',
+    phone: '555-0199',
+    date: new Date().toISOString().split('T')[0],
+    time: '19:00',
+    seat: 'Table 7',
+    booking_type: 'table',
+    status: 'pending',
+  },
+  {
+    id: 'demo-bk-3',
+    guest_name: 'Riverstone Group',
+    guests: 12,
+    phone_code: '+1',
+    phone: '555-0147',
+    date: new Date().toISOString().split('T')[0],
+    time: '20:00',
+    seat: 'Private Room A',
+    booking_type: 'room',
+    status: 'arrived',
+  },
+];
+
+export const api = {
+  /**
+   * Booking list API is not defined in the original `feature/mobile-menu-read` branch.
+   * In preview demo mode it returns sample bookings; otherwise it returns an empty list
+   * so the screen can still render without inventing a real endpoint.
+   */
+  listBookings: async (_restaurantId: string, _date: string): Promise<Booking[]> => {
+    if (process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true') {
+      return DEMO_BOOKINGS;
+    }
+    return [];
+  },
+};
+
+export type { Booking } from '@/src/types/booking';
+export { BookingStatus } from '@/src/types/booking';
