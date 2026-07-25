@@ -103,9 +103,16 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
       // prev page (lower index) slides into view from the left.
       const raw = -(activeSV.value * W) + e.translationX;
 
-      // Clamp so the drag cannot cross more than one page boundary.
-      const lo = -((activeSV.value + 1) * W); // hard stop at next page
-      const hi = -((activeSV.value - 1) * W); // hard stop at prev page
+      // Clamp so the drag cannot cross more than one page boundary,
+      // and cannot drag past the very first or very last page.
+      const lo =
+        activeSV.value < n - 1
+          ? -((activeSV.value + 1) * W) // hard stop at next page
+          : -(activeSV.value * W);       // at last page: no movement past end
+      const hi =
+        activeSV.value > 0
+          ? -((activeSV.value - 1) * W) // hard stop at prev page
+          : -(activeSV.value * W);       // at first page: no movement past start
       offset.value = Math.max(lo, Math.min(hi, raw));
     })
     .onEnd((e) => {
