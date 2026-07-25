@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "exzibo-manager",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emergent.appmanager.ld40cy"
