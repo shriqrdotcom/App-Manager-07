@@ -5,7 +5,7 @@ const TOKEN_KEY = 'exzibo_access_token';
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? '';
 
-// On web, SecureStore is not available. Fallback to a simple in-memory / localStorage.
+// On web, SecureStore is not available. Fallback to localStorage.
 async function setToken(token: string) {
   if (Platform.OS === 'web') {
     try { window.localStorage.setItem(TOKEN_KEY, token); } catch {}
@@ -56,7 +56,6 @@ async function request<T>(path: string, options: RequestInit = {}, auth = true):
 export type UserPublic = { id: string; email: string; name: string };
 export type Restaurant = { id: string; name: string; role: string };
 export type Bootstrap = { user: UserPublic; restaurants: Restaurant[] };
-export type AuthResponse = { access_token: string; token_type: string; user: UserPublic };
 
 export type BookingStatus = 'pending' | 'confirmed' | 'arrived' | 'seated' | 'completed';
 export type BookingType = 'table' | 'room';
@@ -102,17 +101,6 @@ export const api = {
   setToken,
   getToken,
   clearToken,
-  register: (email: string, password: string, name: string) =>
-    request<AuthResponse>('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    }, false),
-  login: (email: string, password: string) =>
-    request<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    }, false),
-  bootstrap: () => request<Bootstrap>('/api/bootstrap', {}, true),
 
   listBookings: (restaurantId: string, date?: string) => {
     const qs = new URLSearchParams({ restaurant_id: restaurantId });

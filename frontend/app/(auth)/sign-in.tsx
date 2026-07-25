@@ -44,8 +44,6 @@ export default function SignIn() {
     } finally { setLoading(false); }
   };
 
-  const fillDemo = () => { setEmail('demo@exzibo.com'); setPassword('demo1234'); setMode('signin'); };
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -143,13 +141,6 @@ export default function SignIn() {
               {mode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </Text>
           </TouchableOpacity>
-
-          <View style={styles.divider} />
-
-          <TouchableOpacity testID="signin-fill-demo" style={styles.demoBtn} onPress={fillDemo} activeOpacity={0.7}>
-            <Feather name="zap" size={14} color={colors.foreground} />
-            <Text style={styles.demoText}>Use demo credentials</Text>
-          </TouchableOpacity>
         </View>
 
         <Text style={styles.footer}>Access is granted by your restaurant administrator.</Text>
@@ -201,8 +192,5 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: colors.background, fontSize: 15, fontWeight: '700' },
   linkBtn: { alignItems: 'center', paddingVertical: 6 },
   linkText: { color: colors.foreground, fontSize: 13.5, fontWeight: '500' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 4 },
-  demoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
-  demoText: { color: colors.foreground, fontSize: 13, fontWeight: '500' },
   footer: { fontSize: 12, color: colors.mutedForeground, textAlign: 'center', lineHeight: 18 },
 });

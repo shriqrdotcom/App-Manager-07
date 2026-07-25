@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { api, Bootstrap, Restaurant, UserPublic } from '../api/client';
+import { api, Bootstrap, Restaurant } from '../api/client';
 
 type AppState =
   | 'session-loading'
@@ -33,72 +33,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const doBootstrap = useCallback(async () => {
-    setState('bootstrap-loading');
-    setErrorMessage(null);
-    try {
-      const data = await api.bootstrap();
-      setBootstrap(data);
-      if (data.restaurants.length === 0) {
-        setState('no-restaurants');
-      } else if (data.restaurants.length === 1) {
-        setSelectedRestaurant(data.restaurants[0]);
-        setState('home');
-      } else {
-        setSelectedRestaurant(null);
-        setState('select-restaurant');
-      }
-    } catch (e: any) {
-      // Token invalid → treat as signed-out. Otherwise network error.
-      const msg = e?.message ?? 'Network error';
-      if (/401|invalid|expired|missing/i.test(msg)) {
-        await api.clearToken();
-        setState('signed-out');
-      } else {
-        setErrorMessage(msg);
-        setState('network-error');
-      }
-    }
-  }, []);
-
+  // On startup: no active backend — always start at sign-in
   useEffect(() => {
     (async () => {
-      const token = await api.getToken();
-      if (!token) {
-        setState('signed-out');
-        return;
-      }
-      await doBootstrap();
+      // Clear any previously stored token from the old backend
+      await api.clearToken();
+      setState('signed-out');
     })();
-  }, [doBootstrap]);
+  }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    setState('auth-in-progress');
-    setErrorMessage(null);
-    try {
-      const res = await api.login(email, password);
-      await api.setToken(res.access_token);
-      await doBootstrap();
-    } catch (e: any) {
-      setErrorMessage(e?.message ?? 'Sign in failed');
-      setState('signed-out');
-      throw e;
-    }
-  }, [doBootstrap]);
+  // login and register are stubs — authentication backend not yet connected
+  const login = useCallback(async (_email: string, _password: string) => {
+    throw new Error('Authentication backend not yet configured.');
+  }, []);
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    setState('auth-in-progress');
-    setErrorMessage(null);
-    try {
-      const res = await api.register(email, password, name);
-      await api.setToken(res.access_token);
-      await doBootstrap();
-    } catch (e: any) {
-      setErrorMessage(e?.message ?? 'Sign up failed');
-      setState('signed-out');
-      throw e;
-    }
-  }, [doBootstrap]);
+  const register = useCallback(async (_email: string, _password: string, _name: string) => {
+    throw new Error('Authentication backend not yet configured.');
+  }, []);
 
   const logout = useCallback(async () => {
     await api.clearToken();
@@ -124,6 +75,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState(v ? 'auth-in-progress' : 'signed-out');
   }, []);
 
+  const retryBootstrap = useCallback(async () => {
+    setState('signed-out');
+  }, []);
+
   const value: AppContextValue = {
     state,
     bootstrap,
@@ -134,7 +89,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     logout,
     selectRestaurant,
     switchRestaurant,
-    retryBootstrap: doBootstrap,
+    retryBootstrap,
     setAuthInProgress,
   };
 
