@@ -37,6 +37,7 @@ function DemoAppProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     (): AppContextValue => ({
       state: 'home',
+      errorMessage: null,
       bootstrap: DEMO_BOOTSTRAP,
       selectedRestaurant: DEMO_BOOTSTRAP.restaurants[0]!,
       selectRestaurant: async () => {},

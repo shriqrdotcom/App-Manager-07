@@ -1,6 +1,6 @@
 import { authClient } from '@/src/auth/client';
 import { config } from '@/src/config';
-import type { Booking } from '@/src/types/booking';
+import type { Booking, CreateBookingInput } from '@/src/types/booking';
 
 export class ApiError extends Error {
   constructor(
@@ -133,7 +133,31 @@ export const api = {
     }
     return [];
   },
+
+  /**
+   * Booking creation API is not defined in the original `feature/mobile-menu-read` branch.
+   * In preview demo mode it echoes the input with a generated ID; otherwise it throws
+   * so the app does not invent a real endpoint.
+   */
+  createBooking: async (input: CreateBookingInput): Promise<Booking> => {
+    if (process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true') {
+      return {
+        id: `demo-bk-${Date.now()}`,
+        guest_name: input.guest_name,
+        guests: input.guests,
+        phone_code: input.phone_code,
+        phone: input.phone,
+        date: input.date,
+        time: input.time,
+        seat: input.seat,
+        booking_type: input.booking_type,
+        status: input.status,
+        special_request: input.special_request,
+      };
+    }
+    throw new ApiError('Booking creation endpoint is not available.');
+  },
 };
 
-export type { Booking } from '@/src/types/booking';
-export { BookingStatus } from '@/src/types/booking';
+export type { Booking, CreateBookingInput } from '@/src/types/booking';
+export { BookingStatus, BookingType, BookingSource } from '@/src/types/booking';

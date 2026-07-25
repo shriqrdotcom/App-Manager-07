@@ -25,6 +25,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
     useState<BootstrapRestaurant | null>(null);
   const [bootstrapLoading, setBootstrapLoading] = useState(false);
   const [networkError, setNetworkError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [authInProgress, setAuthInProgress] = useState(false);
 
   // Track current user to avoid stale bootstrap on re-renders
@@ -66,6 +67,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   const loadBootstrap = useCallback(async () => {
     setBootstrapLoading(true);
     setNetworkError(false);
+    setErrorMessage(null);
     try {
       const bs = await fetchBootstrap();
       setBootstrap(bs);
@@ -76,6 +78,9 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
         await authClient.signOut();
       } else {
         setNetworkError(true);
+        setErrorMessage(
+          err instanceof Error ? err.message : 'Unable to load your account. Please try again.',
+        );
       }
     } finally {
       setBootstrapLoading(false);
@@ -99,6 +104,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
       setBootstrap(null);
       setSelectedRestaurant(null);
       setNetworkError(false);
+      setErrorMessage(null);
       setBootstrapLoading(false);
     }
   }, [sessionLoading, session?.user?.id, loadBootstrap]);
@@ -144,6 +150,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
     setBootstrap(null);
     setSelectedRestaurant(null);
     setNetworkError(false);
+    setErrorMessage(null);
   }, []);
 
   const retryBootstrap = useCallback(() => {
@@ -153,6 +160,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     (): AppContextValue => ({
       state,
+      errorMessage,
       bootstrap,
       selectedRestaurant,
       selectRestaurant,
@@ -163,6 +171,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      errorMessage,
       bootstrap,
       selectedRestaurant,
       selectRestaurant,

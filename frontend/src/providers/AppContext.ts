@@ -13,6 +13,7 @@ export type AppState =
 
 export interface AppContextValue {
   state: AppState;
+  errorMessage: string | null;
   bootstrap: BootstrapResponse | null;
   selectedRestaurant: BootstrapRestaurant | null;
   selectRestaurant: (id: string) => Promise<void>;
