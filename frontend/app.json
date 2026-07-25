@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Exzibo Manager",
-    "slug": "frontend",
+    "slug": "exzibo-manager",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
