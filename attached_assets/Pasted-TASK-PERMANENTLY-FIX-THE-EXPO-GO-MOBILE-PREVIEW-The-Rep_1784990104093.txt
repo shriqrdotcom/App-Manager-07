@@ -1,0 +1,103 @@
+TASK: PERMANENTLY FIX THE EXPO GO MOBILE PREVIEW
+
+The Replit web preview works, but the app does not open on my physical Android phone. Expo Go shows “Something went wrong.”
+
+Do not guess and do not claim the problem is fixed only because a QR code was generated.
+
+1. Inspect the exact error
+
+- Read the Metro terminal logs while my phone opens the project.
+- Ask me to tap “View error log” in Expo Go and provide the error if the terminal does not show it.
+- Identify the first real runtime exception, missing module or compatibility error.
+- Fix that exact root cause.
+
+2. Verify Expo Go compatibility
+
+Check:
+
+- Current Expo SDK version
+- React Native version
+- Expo Router version
+- All Expo package versions
+- Whether `expo-dev-client` is installed
+- Whether any dependency requires native code unavailable in Expo Go
+- Android compatibility of imported libraries
+
+Run:
+
+- `npx expo-doctor`
+- `npx expo install --check`
+- TypeScript checks
+- `npx expo config --type public`
+- `npx expo export --platform android`
+
+Do not blindly upgrade the entire project.
+
+If an essential package is unsupported by Expo Go, report the exact package and configure a development build instead. Do not pretend Expo Go can run it.
+
+3. Fix the mobile connection
+
+Start the correct Expo project directory with:
+
+`npx expo start --go --tunnel --clear`
+
+Requirements:
+
+- Force Expo Go mode, not development-client mode.
+- Use a public tunnel URL, not localhost, LAN or a private Replit address.
+- Remove stale `.expo` connection data and Metro cache.
+- Ensure the generated URL starts with the correct Expo Go-compatible scheme.
+- Do not reuse an expired QR code.
+- Keep the Expo process running while the phone connects.
+
+4. Preserve the application
+
+Do not modify:
+
+- UI design
+- Authentication architecture
+- Backend APIs
+- Database
+- Git history
+
+Keep:
+
+`EXPO_PUBLIC_ENABLE_DEMO_LOGIN=false`
+
+Do not create FastAPI, MongoDB, JWT, demo login, fake credentials or mock backend services.
+
+5. Make the fix permanent
+
+Update the Replit Run configuration so it always:
+
+- Opens the correct Expo app directory
+- Uses the existing package manager
+- Starts Expo Go with tunnel mode
+- Keeps Metro running
+- Generates a fresh mobile QR code after every restart
+
+Do not manually edit `node_modules` or use temporary file-copy hacks.
+
+6. Validation
+
+After making the fixes:
+
+1. Start the project through Replit’s normal Run button.
+2. Wait for the tunnel to become ready.
+3. Ask me to scan the new QR code.
+4. Monitor Metro while the phone connects.
+5. Confirm the Android bundle completes.
+6. Confirm no runtime exception appears.
+7. Do not mark the task complete until I confirm that the real app screen is visible on my phone.
+
+Finally report only:
+
+- Exact root cause
+- Exact Expo Go error
+- Files changed
+- Packages fixed
+- Expo SDK compatibility result
+- Final Run command
+- Android bundle status
+- Physical-device test status
+- Remaining blocker
