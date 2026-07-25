@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "Exzibo Manager",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#121313"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.emergent.appmanager.ld40cy"
@@ -30,10 +30,14 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-image.png",
-          "imageWidth": 200,
+          "image": "./assets/images/splash-logo-light.png",
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#F7F8FA",
+          "dark": {
+            "image": "./assets/images/splash-logo-dark.png",
+            "backgroundColor": "#121313"
+          }
         }
       ]
     ],
