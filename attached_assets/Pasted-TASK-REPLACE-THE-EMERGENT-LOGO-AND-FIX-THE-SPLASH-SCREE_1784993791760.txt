@@ -1,0 +1,54 @@
+TASK: REPLACE THE EMERGENT LOGO AND FIX THE SPLASH SCREEN
+
+The current loading screen shows Emergent’s logo and the generic name “frontend”. Replace all Emergent branding with branding owned by this app.
+
+1. Inspect `app.json`, `app.config.*` and the assets folder.
+2. Remove every splash-screen and app-icon reference to the Emergent logo.
+3. Delete the old Emergent asset only after confirming it is not used anywhere else.
+4. Replace “frontend” with the existing official app name from this project. Do not invent a different brand.
+5. Preserve the existing slug, URL scheme, Android package name and iOS bundle identifier.
+
+Create clean production assets:
+
+- Main app icon: 1024×1024 PNG.
+- Android adaptive-icon foreground: transparent PNG.
+- Light splash logo: transparent PNG.
+- Dark splash logo: transparent PNG.
+
+Use the app’s existing official logo when available. If no official logo exists, create a simple, original geometric monogram based on the current app name. Do not use Emergent, Expo or Replit branding. Avoid text, gradients, tiny details and an AI-generated appearance.
+
+Configure `expo-splash-screen` so:
+
+- Light device theme uses a white or soft-light background with a dark logo.
+- Dark device theme uses `#121313` or `#141414` with a light logo.
+- `userInterfaceStyle` is set to `automatic`.
+- The logo is centred, uses `contain`, and is approximately 150–180 px wide.
+- The splash fades smoothly into the app without a white flash.
+- The splash remains visible only until required app resources are ready.
+
+Also update:
+
+- `expo.icon`
+- Android `adaptiveIcon`
+- The `expo-splash-screen` plugin light and dark configurations
+- Root background and status-bar appearance where required
+
+Do not modify the app UI, navigation, authentication, backend, APIs or database.
+
+After fixing:
+
+1. Clear the Expo and Metro caches.
+2. Restart the project.
+3. Confirm Expo Go displays the new app icon and correct app name.
+4. Verify the real light and dark splash screens using a preview or production build.
+5. Confirm there is no Emergent logo, “frontend” label, white flash, stretching or clipping.
+
+Do not commit or push until I approve.
+
+Finally report:
+- Assets replaced
+- Configuration files changed
+- Light-theme result
+- Dark-theme result
+- Expo Go result
+- Preview-build result
