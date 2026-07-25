@@ -1,100 +1,203 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { api, Bootstrap, Restaurant } from '../api/client';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { authClient } from '@/src/auth/client';
+import { fetchBootstrap } from '@/src/api/bootstrap';
+import { ApiError } from '@/src/api/client';
+import {
+  clearStoredRestaurantId,
+  getStoredRestaurantId,
+  storeRestaurantId,
+} from '@/src/storage/restaurant';
+import type { BootstrapResponse, BootstrapRestaurant } from '@/src/types/bootstrap';
 
-type AppState =
+export type AppState =
   | 'session-loading'
   | 'signed-out'
   | 'auth-in-progress'
   | 'bootstrap-loading'
-  | 'network-error'
   | 'no-restaurants'
   | 'select-restaurant'
-  | 'home';
+  | 'home'
+  | 'network-error';
 
-type AppContextValue = {
+interface AppContextValue {
   state: AppState;
-  bootstrap: Bootstrap | null;
-  selectedRestaurant: Restaurant | null;
-  errorMessage: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => Promise<void>;
+  bootstrap: BootstrapResponse | null;
+  selectedRestaurant: BootstrapRestaurant | null;
   selectRestaurant: (id: string) => Promise<void>;
   switchRestaurant: () => Promise<void>;
-  retryBootstrap: () => Promise<void>;
-  setAuthInProgress: (v: boolean) => void;
-};
+  logout: () => Promise<void>;
+  retryBootstrap: () => void;
+  setAuthInProgress: (value: boolean) => void;
+}
 
-const AppContext = createContext<AppContextValue | undefined>(undefined);
+const AppContext = createContext<AppContextValue | null>(null);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<AppState>('session-loading');
-  const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export function AppProvider({ children }: { children: ReactNode }) {
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
 
-  // On startup: no active backend — always start at sign-in
+  const [bootstrap, setBootstrap] = useState<BootstrapResponse | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] =
+    useState<BootstrapRestaurant | null>(null);
+  const [bootstrapLoading, setBootstrapLoading] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
+  const [authInProgress, setAuthInProgress] = useState(false);
+
+  // Track current user to avoid stale bootstrap on re-renders
+  const currentUserIdRef = useRef<string | undefined>(undefined);
+
+  const resolveRestaurant = useCallback(
+    async (bs: BootstrapResponse) => {
+      const storedId = await getStoredRestaurantId();
+      const available = bs.restaurants;
+
+      if (available.length === 0) {
+        setSelectedRestaurant(null);
+        return;
+      }
+
+      if (available.length === 1) {
+        const only = available[0]!;
+        await storeRestaurantId(only.id);
+        setSelectedRestaurant(only);
+        return;
+      }
+
+      if (storedId) {
+        const match = available.find((r) => r.id === storedId);
+        if (match) {
+          setSelectedRestaurant(match);
+          return;
+        }
+        // Access was removed — clear stale selection
+        await clearStoredRestaurantId();
+      }
+
+      // Multiple restaurants, none selected → show selection screen
+      setSelectedRestaurant(null);
+    },
+    [],
+  );
+
+  const loadBootstrap = useCallback(async () => {
+    setBootstrapLoading(true);
+    setNetworkError(false);
+    try {
+      const bs = await fetchBootstrap();
+      setBootstrap(bs);
+      await resolveRestaurant(bs);
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.isAuthError) {
+        // Session is invalid — sign out so auth flow restarts
+        await authClient.signOut();
+      } else {
+        setNetworkError(true);
+      }
+    } finally {
+      setBootstrapLoading(false);
+    }
+  }, [resolveRestaurant]);
+
+  // React to session changes
   useEffect(() => {
-    (async () => {
-      // Clear any previously stored token from the old backend
-      await api.clearToken();
-      setState('signed-out');
-    })();
-  }, []);
+    if (sessionLoading) return;
 
-  // login and register are stubs — authentication backend not yet connected
-  const login = useCallback(async (_email: string, _password: string) => {
-    throw new Error('Authentication backend not yet configured.');
-  }, []);
+    // Clear auth-in-progress when session resolves (success or cancel)
+    setAuthInProgress(false);
 
-  const register = useCallback(async (_email: string, _password: string, _name: string) => {
-    throw new Error('Authentication backend not yet configured.');
+    const userId = session?.user?.id;
+
+    if (userId && userId !== currentUserIdRef.current) {
+      currentUserIdRef.current = userId;
+      void loadBootstrap();
+    } else if (!userId) {
+      currentUserIdRef.current = undefined;
+      setBootstrap(null);
+      setSelectedRestaurant(null);
+      setNetworkError(false);
+      setBootstrapLoading(false);
+    }
+  }, [sessionLoading, session?.user?.id, loadBootstrap]);
+
+  const state: AppState = useMemo((): AppState => {
+    if (sessionLoading) return 'session-loading';
+    if (authInProgress) return 'auth-in-progress';
+    if (!session?.user) return 'signed-out';
+    if (networkError) return 'network-error';
+    if (bootstrapLoading || !bootstrap) return 'bootstrap-loading';
+    if (bootstrap.restaurants.length === 0) return 'no-restaurants';
+    if (!selectedRestaurant) return 'select-restaurant';
+    return 'home';
+  }, [
+    sessionLoading,
+    authInProgress,
+    session?.user,
+    networkError,
+    bootstrapLoading,
+    bootstrap,
+    selectedRestaurant,
+  ]);
+
+  const selectRestaurant = useCallback(
+    async (id: string) => {
+      if (!bootstrap) return;
+      const restaurant = bootstrap.restaurants.find((r) => r.id === id);
+      if (!restaurant) return;
+      await storeRestaurantId(restaurant.id);
+      setSelectedRestaurant(restaurant);
+    },
+    [bootstrap],
+  );
+
+  const switchRestaurant = useCallback(async () => {
+    await clearStoredRestaurantId();
+    setSelectedRestaurant(null);
   }, []);
 
   const logout = useCallback(async () => {
-    await api.clearToken();
+    await authClient.signOut();
+    await clearStoredRestaurantId();
     setBootstrap(null);
     setSelectedRestaurant(null);
-    setState('signed-out');
+    setNetworkError(false);
   }, []);
 
-  const selectRestaurant = useCallback(async (id: string) => {
-    const r = bootstrap?.restaurants.find((x) => x.id === id);
-    if (r) {
-      setSelectedRestaurant(r);
-      setState('home');
-    }
-  }, [bootstrap]);
+  const retryBootstrap = useCallback(() => {
+    void loadBootstrap();
+  }, [loadBootstrap]);
 
-  const switchRestaurant = useCallback(async () => {
-    setSelectedRestaurant(null);
-    setState('select-restaurant');
-  }, []);
-
-  const setAuthInProgress = useCallback((v: boolean) => {
-    setState(v ? 'auth-in-progress' : 'signed-out');
-  }, []);
-
-  const retryBootstrap = useCallback(async () => {
-    setState('signed-out');
-  }, []);
-
-  const value: AppContextValue = {
-    state,
-    bootstrap,
-    selectedRestaurant,
-    errorMessage,
-    login,
-    register,
-    logout,
-    selectRestaurant,
-    switchRestaurant,
-    retryBootstrap,
-    setAuthInProgress,
-  };
+  const value = useMemo(
+    (): AppContextValue => ({
+      state,
+      bootstrap,
+      selectedRestaurant,
+      selectRestaurant,
+      switchRestaurant,
+      logout,
+      retryBootstrap,
+      setAuthInProgress,
+    }),
+    [
+      state,
+      bootstrap,
+      selectedRestaurant,
+      selectRestaurant,
+      switchRestaurant,
+      logout,
+      retryBootstrap,
+    ],
+  );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
+}
 
 export function useApp(): AppContextValue {
   const ctx = useContext(AppContext);

@@ -1,0 +1,1 @@
+- [Better Auth CORS in Replit preview](better-auth-cors-replit.md) — Production backend must send `Access-Control-Allow-Origin` for the Replit preview origin (or `*`) or Better Auth session fetches and bootstrap calls fail silently in the web preview.
