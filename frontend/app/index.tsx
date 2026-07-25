@@ -27,7 +27,7 @@ export default function Index() {
     case 'select-restaurant':
       return <Redirect href="/(app)/select-restaurant" />;
     case 'home':
-      return <Redirect href="/(app)/orders" />;
+      return <Redirect href="/(app)/tabs" />;
     default:
       return <LoadingScreen />;
   }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
 import colors from '@/src/constants/colors';
 
@@ -28,7 +29,10 @@ export default function SelectRestaurant() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => selectRestaurant(item.id)}
+            onPress={async () => {
+                await selectRestaurant(item.id);
+                router.replace('/(app)/tabs');
+              }}
             activeOpacity={0.75}
             testID={`restaurant-card-${item.id}`}
           >

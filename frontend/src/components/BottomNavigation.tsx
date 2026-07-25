@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { usePathname, router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../constants/colors';
 
 const ACTIVE_BG = '#26272A';
@@ -10,7 +10,12 @@ const ACTIVE_COLOR = '#F5F5F5';
 const INACTIVE_COLOR = '#7A7A7E';
 const ICON_SIZE = 20;
 
-type Tab = { key: string; label: string; href: string; icon: keyof typeof Feather.glyphMap };
+type Tab = {
+  key: string;
+  label: string;
+  href: string;
+  icon: keyof typeof Feather.glyphMap;
+};
 
 const TABS: Tab[] = [
   { key: 'orders',    label: 'Orders',    href: '/(app)/orders',    icon: 'shopping-bag' },
@@ -20,21 +25,50 @@ const TABS: Tab[] = [
   { key: 'settings',  label: 'Settings',  href: '/(app)/settings',  icon: 'sliders' },
 ];
 
-export default function BottomNavigation() {
+type Props = {
+  /**
+   * When provided (pager mode), this index drives the active indicator.
+   * When omitted, falls back to matching the current pathname.
+   */
+  activeIndex?: number;
+  /**
+   * When provided (pager mode), pressing a tab calls this instead of
+   * router.navigate so the pager animates and the Stack URL stays stable.
+   */
+  onTabPress?: (index: number) => void;
+};
+
+export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
+  function isActive(tab: Tab, index: number): boolean {
+    if (activeIndex !== undefined) return index === activeIndex;
+    return pathname?.endsWith(tab.href.split('/').pop() ?? '') ?? false;
+  }
+
+  function handlePress(tab: Tab, index: number) {
+    if (onTabPress) {
+      onTabPress(index);
+    } else {
+      router.navigate(tab.href as Parameters<typeof router.navigate>[0]);
+    }
+  }
+
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]} testID="bottom-nav">
+    <View
+      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      testID="bottom-nav"
+    >
       <View style={styles.bar}>
-        {TABS.map((tab) => {
-          const active = pathname?.endsWith(tab.href.split('/').pop() || '') ?? false;
+        {TABS.map((tab, index) => {
+          const active = isActive(tab, index);
           const color = active ? ACTIVE_COLOR : INACTIVE_COLOR;
           return (
             <TouchableOpacity
               key={tab.key}
               testID={`tab-${tab.key}`}
-              onPress={() => router.navigate(tab.href as any)}
+              onPress={() => handlePress(tab, index)}
               activeOpacity={0.75}
               style={styles.tab}
               accessibilityRole="button"
@@ -61,8 +95,12 @@ const styles = StyleSheet.create({
   bar: { flexDirection: 'row', paddingTop: 8, paddingHorizontal: 8 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 4, gap: 4 },
   iconWrap: {
-    minWidth: 56, height: 30, borderRadius: 999,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14,
+    minWidth: 56,
+    height: 30,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
   },
   label: { fontSize: 10.5, fontWeight: '600' },
 });
