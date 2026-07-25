@@ -27,7 +27,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd frontend && EXPO_TOKEN=\"\" yarn expo start --web --port 5000 --host lan"
+args = "cd frontend && yarn expo start --web --port 5000 --tunnel --clear"
 waitForPort = 5000
 
 [[ports]]
