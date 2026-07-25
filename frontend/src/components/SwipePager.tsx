@@ -5,9 +5,9 @@
  * are preserved across tab switches. A single Pan gesture drives the entire
  * strip; one gesture can move at most one page.
  *
- * Direction convention (matching the app spec):
- *   swipe RIGHT (finger moves right) → next page (higher index)
- *   swipe LEFT  (finger moves left)  → prev page (lower index)
+ * Direction convention:
+ *   swipe LEFT  (finger moves left)  → next page (higher index)
+ *   swipe RIGHT (finger moves right) → prev page (lower index)
  */
 import React, { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
@@ -99,9 +99,9 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
     .onUpdate((e) => {
       if (isLocked.value) return;
 
-      // Negate translationX: right-swipe (positive tx) shifts strip leftward →
-      // next page (higher index) slides into view from the right.
-      const raw = -(activeSV.value * W) - e.translationX;
+      // Content follows the finger: right-swipe (positive tx) shifts strip rightward →
+      // prev page (lower index) slides into view from the left.
+      const raw = -(activeSV.value * W) + e.translationX;
 
       // Clamp so the drag cannot cross more than one page boundary.
       const lo = -((activeSV.value + 1) * W); // hard stop at next page
@@ -112,8 +112,8 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
       if (isLocked.value) return;
 
       const cur = activeSV.value;
-      // right swipe → next (+1)  |  left swipe → prev (−1)
-      const dir = e.translationX > 0 ? 1 : -1;
+      // left swipe → next (+1)  |  right swipe → prev (−1)
+      const dir = e.translationX < 0 ? 1 : -1;
       const target = cur + dir;
 
       const committed =
