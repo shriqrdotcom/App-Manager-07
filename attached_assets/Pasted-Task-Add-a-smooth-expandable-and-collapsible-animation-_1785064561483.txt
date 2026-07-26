@@ -1,0 +1,359 @@
+Task: Add a smooth expandable and collapsible animation to the top action control
+
+Update the existing top-right action control that contains:
+
+Share
+
+Notifications
+
+More options
+
+
+Currently, the control always appears as one large horizontal pill. Make it collapsible so that its default closed state becomes a compact circular three-dot button, similar to the second reference image.
+
+Do not redesign the header or change the existing actions. Only improve how this control opens and closes.
+
+
+---
+
+1. Closed state
+
+By default, show only one compact circular button containing the horizontal three-dot icon.
+
+Closed-state design:
+
+Circular or softly rounded-square shape
+
+Approximately 44–48 px
+
+Positioned in the same top-right location
+
+Dark premium surface matching the existing header
+
+White three-dot icon
+
+No text
+
+No extra outline
+
+No heavy shadow
+
+Minimum 44 × 44 touch target
+
+Respect the safe area and device cutout
+
+
+The closed control should look integrated into the app rather than like a floating unrelated button.
+
+
+---
+
+2. Open state
+
+When the user taps the three-dot button, expand it into the existing horizontal pill containing:
+
+1. Share
+
+
+2. Notifications
+
+
+3. More options
+
+
+
+Keep the existing icon order, appearance and functionality.
+
+The expanded pill should:
+
+Grow toward the left
+
+Keep its right edge anchored in the same position
+
+Preserve the current dark colour
+
+Keep all icons vertically centred
+
+Maintain equal spacing between actions
+
+Avoid moving the surrounding header content
+
+Never overlap the status bar, Dynamic Island, notch or screen edge
+
+
+The three-dot icon must remain visible in the expanded state and act as the close button.
+
+
+---
+
+3. iPhone-style opening animation
+
+Create a fast, smooth and polished animation similar to a native iPhone control.
+
+When opening:
+
+The circular button should smoothly stretch horizontally into the pill.
+
+Animate the width and border radius together.
+
+The share and notification icons should appear only after the container has started expanding.
+
+Fade the extra icons from 0 to 1.
+
+Add a very small scale transition from approximately 0.88 to 1.
+
+Add a subtle horizontal movement from right to left as the icons enter.
+
+Keep the three-dot icon stable so the animation feels anchored.
+
+Do not suddenly replace one component with another.
+
+Do not use a slow slide, bounce-heavy animation or dramatic elastic effect.
+
+
+Recommended timing:
+
+Container expansion: approximately 220–280 ms
+
+Icon entrance: approximately 140–190 ms
+
+Begin icon entrance slightly after expansion starts
+
+Use an iOS-style ease-out curve or a controlled spring
+
+
+Recommended spring behaviour:
+
+Fast response
+
+Low overshoot
+
+Minimal bounce
+
+Smooth deceleration
+
+No visible shaking
+
+
+A suitable spring configuration can use approximately:
+
+Damping: 20–24
+
+Stiffness: 220–280
+
+Mass: 0.7–0.9
+
+
+Adjust these values when necessary to achieve a natural native result.
+
+
+---
+
+4. Closing animation
+
+When the user taps the three-dot icon while the control is open:
+
+Fade and slightly shrink the share and notification icons first.
+
+Collapse the pill smoothly from left to right.
+
+Keep the right edge anchored.
+
+Return the shape to the compact circular three-dot button.
+
+Complete the full close animation within approximately 200–250 ms.
+
+Do not leave empty space after the icons disappear.
+
+Do not cause the header to jump or reflow.
+
+
+The closing animation should feel slightly faster than the opening animation.
+
+
+---
+
+5. Interaction behaviour
+
+Use the following behaviour:
+
+Tap the closed three-dot button → open the control.
+
+Tap the three-dot button again → close the control.
+
+Tap Share → run the existing Share action.
+
+Tap Notifications → open the existing Notifications page or action.
+
+After Share or Notifications is selected, automatically close the control.
+
+Tap outside the expanded control → close it.
+
+Press the Android back button while it is open → close it before leaving the screen.
+
+Do not allow repeated rapid taps to create duplicate animations or broken states.
+
+
+Use only two clear states:
+
+collapsed
+
+expanded
+
+
+Do not keep multiple conflicting boolean states.
+
+
+---
+
+6. Animation implementation
+
+Use the animation library already available in the project.
+
+For an Expo or React Native project, prefer React Native Reanimated for smooth UI-thread animation.
+
+Animate:
+
+Width
+
+Border radius
+
+Icon opacity
+
+Icon scale
+
+Icon translation
+
+Optional subtle background elevation
+
+
+Avoid animating expensive layout properties through normal JavaScript state on every frame.
+
+Do not remount the complete header during the animation. Keep the component mounted and animate its presentation.
+
+Use native-driver or UI-thread-compatible animations wherever supported.
+
+
+---
+
+7. Performance requirements
+
+The animation must:
+
+Run smoothly at approximately 60 FPS
+
+Respond immediately to the first tap
+
+Remain smooth on normal Android devices
+
+Avoid flickering
+
+Avoid a blank frame
+
+Avoid delayed icon rendering
+
+Avoid layout shifts
+
+Avoid moving the page content
+
+Avoid excessive re-renders
+
+Work correctly after navigating away and returning
+
+
+Cancel or safely complete the current animation when the user taps repeatedly.
+
+
+---
+
+8. Visual details
+
+Maintain the existing premium dark interface.
+
+Use:
+
+Background matching the current action pill
+
+White icons
+
+Existing notification red dot
+
+Subtle border only when already used in the design
+
+Consistent icon weight and size
+
+Equal internal padding
+
+Smooth transition between circular and pill shapes
+
+
+Do not add:
+
+Bright colours
+
+Gradients
+
+Strong glow
+
+Heavy blur
+
+Large shadows
+
+Text labels
+
+New buttons
+
+Unnecessary visual effects
+
+
+The notification red dot must remain correctly attached to the bell icon throughout the animation and must not jump or become clipped.
+
+
+---
+
+9. Accessibility
+
+Add proper accessibility support:
+
+Closed button label: Open quick actions
+
+Expanded three-dot button label: Close quick actions
+
+Share button label: Share
+
+Notification button label: Notifications
+
+Correct expanded or collapsed accessibility state
+
+Minimum 44 × 44 touch target for every action
+
+
+Respect the device’s reduced-motion preference. When reduced motion is enabled, use a simple quick fade and size transition without spring movement.
+
+
+---
+
+10. Important restrictions
+
+Do not change:
+
+The header layout
+
+The existing icon designs
+
+Share functionality
+
+Notification functionality
+
+The three-dot menu functionality
+
+Theme behaviour
+
+Safe-area handling
+
+Status-bar appearance
+
+Any other screen or component
+
+
+Only convert the existing large action pill into a smoothly animated, expandable and collapsible iPhone-style quick-action control.
