@@ -1,0 +1,83 @@
+
+
+
+
+Make the **Notifications** option on the Settings page fully functional.
+
+
+
+When the user taps **Notifications**, smoothly open a new **Notification Settings** page. Keep the existing dark theme, typography, spacing, icons, rounded cards, dividers, and overall visual style. Do not redesign the Settings page or change any other feature.
+
+
+
+At the top of the new page, add:
+
+
+
+* A back button
+
+* Page title: **Notifications**
+
+* A main **Allow Notifications** toggle
+
+
+
+Below it, add individual notification controls for:
+
+
+
+* New orders
+
+* Order cancellations
+
+* Order status updates
+
+* New bookings
+
+* Booking cancellations
+
+* Booking reminders
+
+* Menu and stock alerts
+
+* Payment updates
+
+* Staff and account updates
+
+* System announcements
+
+
+
+Make every toggle properly interactive. When the main **Allow Notifications** toggle is turned off, automatically disable all individual notification options and visually show them as inactive. When it is turned back on, restore the user’s previous selections.
+
+
+
+This is currently a frontend-only feature, so do not connect it to the website, backend, push-notification service, or API yet. Save the selected settings locally on the device so they remain selected after closing and reopening the app. Use the project’s existing local-storage solution; if none exists, use a suitable Expo-compatible persistent storage method.
+
+
+
+Make sure:
+
+
+
+* The page opens and closes with a smooth native transition.
+
+* Toggle animations are smooth and responsive.
+
+* The screen respects the device safe area.
+
+* There is no blank screen, flashing, layout jump, or unnecessary loading delay.
+
+* Repeated taps do not open the page multiple times.
+
+* The page works correctly after app restart.
+
+* All controls have proper touch areas and accessibility labels.
+
+* The screen works smoothly on both small and large Android devices.
+
+* No existing navigation, UI, or functionality is broken.
+
+
+
+Complete only the frontend navigation, design, toggle behaviour, and local persistence for the **Notifications** feature.

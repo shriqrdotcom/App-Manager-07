@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
 import colors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
@@ -17,6 +18,7 @@ type SettingRow = {
 
 export default function Settings() {
   const { bootstrap, selectedRestaurant, logout } = useApp();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export default function Settings() {
   };
 
   const accountRows: SettingRow[] = [
-    { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => openRow('Notifications') },
+    { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => router.push('/(app)/notification-settings') },
     { key: 'theme',         icon: 'droplet',  color: '#8B5CF6', label: 'Theme', value: 'Dark', onPress: () => openRow('Theme') },
     { key: 'language',      icon: 'globe',    color: '#3B82F6', label: 'Language', value: 'English', onPress: () => openRow('Language') },
     { key: 'help',          icon: 'help-circle', color: '#F59E0B', label: 'Help Center', onPress: () => openRow('Help Center') },

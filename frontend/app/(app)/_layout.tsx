@@ -26,6 +26,11 @@ export default function AppLayout() {
        * discovery, but the app never navigates to them directly.
        */}
       <Stack.Screen name="tabs" />
+      {/* Notification settings — slides in from the right */}
+      <Stack.Screen
+        name="notification-settings"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }
