@@ -2,3 +2,4 @@
 - [SwipePager architecture](swipe-pager-architecture.md) — Five tabs rendered as a mounted side-by-side pager (not Expo Router Stack); module-level PAGES constant prevents remounting; gesture locks prevent multi-page swipes.
 - [Expo Go silent crash with New Architecture](expo-go-silent-crash-new-arch.md) — `newArchEnabled: true` in an Expo SDK 54 project can cause Expo Go to show only "Something went wrong"; disable it, clear caches, and use `--go --tunnel --clear`.
 - [Expo gesture animations](expo-gesture-animations.md) — Prefer Gesture Handler + Reanimated for shared swipe animations; legacy Animated native-driver fallback can produce preview runtime errors.
+- [Expo dependency install location](expo-dependency-install-location.md) — Imported Expo apps under `frontend/` must install dependencies from that directory so the workflow can resolve the local Expo CLI.

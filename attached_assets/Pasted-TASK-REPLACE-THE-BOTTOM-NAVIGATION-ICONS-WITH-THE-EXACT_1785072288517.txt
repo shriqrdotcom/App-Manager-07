@@ -1,0 +1,92 @@
+TASK: REPLACE THE BOTTOM NAVIGATION ICONS WITH THE EXACT REFERENCE SYMBOLS
+
+Use the attached reference image as the mandatory visual source.
+
+Replace only the five existing bottom-navigation symbols in my mobile app. The new symbols must visually match the reference image exactly.
+
+ICON ORDER AND DESTINATION
+
+1. Orders
+   - Use the document/receipt symbol with two horizontal lines and a small circular checkmark at the bottom-right.
+
+2. Bookings
+   - Use the calendar symbol with two top binding tabs and a large checkmark inside it.
+
+3. Edit Menu
+   - Use the four-tile grid symbol.
+   - The grid must contain four rounded square tiles arranged in a 2 × 2 layout.
+
+4. Analytics
+   - Use the circular segmented pie/donut-chart symbol shown in the reference.
+   - Preserve the exact open centre, segment gaps and lower-right chart section.
+
+5. Settings
+   - Use the solid gear symbol with a circular hole in the centre.
+
+STRICT VISUAL REQUIREMENTS
+
+- Reproduce the exact icon silhouettes from the reference image.
+- Do not replace them with similar-looking icons from Material Icons, Ionicons, Font Awesome, Lucide or another icon library.
+- Do not use generic alternatives.
+- Do not redesign, simplify or modernise the symbols.
+- Preserve the same proportions, stroke thickness, corner rounding, cut-outs and internal spacing.
+- All five icons must have a consistent visual size and weight.
+- Centre every icon perfectly inside its navigation item.
+- Preserve the original aspect ratio of each symbol.
+- Do not stretch, compress, rotate or distort the icons.
+- Remove any unwanted black rectangular background from the source image. Only the symbol itself should be visible.
+- Render the icons sharply at every Android screen density without pixelation or blurred edges.
+- Prefer custom SVG components recreated directly from the reference.
+- If necessary, manually create the SVG paths so the symbols match the reference precisely.
+
+COLOUR BEHAVIOUR
+
+- Active navigation icon: pure white `#FFFFFF`.
+- Inactive navigation icons: light grey matching the reference.
+- Do not add coloured fills, gradients, shadows, outlines, glow, badges or background circles.
+- Do not place the icons inside additional containers.
+
+DO NOT CHANGE
+
+- Do not change the bottom navigation bar’s dimensions.
+- Do not change the navigation item positions.
+- Do not change the spacing between items.
+- Do not change the app background.
+- Do not change labels, routes, gestures, animations or navigation functionality.
+- Do not change any other screen, component, colour or user-interface element.
+- Do not change the existing icon press area.
+- Do not modify the overall navigation-bar shape.
+
+IMPLEMENTATION REQUIREMENTS
+
+- Create one reusable custom icon component for each symbol.
+- Store the icons in a clearly organised location such as:
+
+  `src/components/icons/navigation/`
+
+- Suggested component names:
+
+  `OrdersNavIcon.tsx`
+  `BookingsNavIcon.tsx`
+  `MenuNavIcon.tsx`
+  `AnalyticsNavIcon.tsx`
+  `SettingsNavIcon.tsx`
+
+- Support a `color` and `size` property without altering the icon proportions.
+- Use `react-native-svg` for a React Native/Expo application.
+- Do not use emoji, text characters, raster screenshots or icon-font glyphs.
+- Keep the icons accessible and ensure each navigation button retains its existing accessibility label.
+
+FINAL VERIFICATION
+
+Before completing the task, compare every implemented symbol side-by-side with the supplied reference image.
+
+The task is complete only when:
+
+- All five symbols match the reference.
+- They appear in the correct order.
+- Their alignment and visual weight are consistent.
+- Navigation still works correctly.
+- No unrelated visual or functional changes have been made.
+
+Make only this icon replacement and nothing else.
