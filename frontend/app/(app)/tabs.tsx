@@ -6,7 +6,7 @@
  * positions, loaded data, and avoiding duplicate API requests.
  */
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import BottomNavigation from '@/src/components/BottomNavigation';
 import SwipePager from '@/src/components/SwipePager';
@@ -27,15 +27,16 @@ import SettingsScreen from './settings';
  * unmounts/remounts the tab screens.
  */
 const PAGES = [
-  <OrdersScreen />,
-  <BookingScreen />,
-  <EditScreen />,
-  <AnalyticsScreen />,
-  <SettingsScreen />,
+  <OrdersScreen key="orders" />,
+  <BookingScreen key="booking" />,
+  <EditScreen key="edit" />,
+  <AnalyticsScreen key="analytics" />,
+  <SettingsScreen key="settings" />,
 ];
 
 export default function TabsScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [quickActionsExpanded, setQuickActionsExpanded] = useState(false);
 
   /** Called by SwipePager the moment a swipe is committed (before snap ends). */
   const handleCommit = useCallback((index: number) => {
@@ -49,7 +50,21 @@ export default function TabsScreen() {
 
   return (
     <View style={styles.container}>
-      <TopHeader />
+      {quickActionsExpanded && (
+        <Pressable
+          style={styles.quickActionsBackdrop}
+          onPress={() => setQuickActionsExpanded(false)}
+          accessibilityLabel="Close quick actions"
+          accessibilityRole="button"
+          testID="quick-actions-backdrop"
+        />
+      )}
+      <View style={styles.headerLayer}>
+        <TopHeader
+          quickActionsExpanded={quickActionsExpanded}
+          onQuickActionsExpandedChange={setQuickActionsExpanded}
+        />
+      </View>
       <View style={styles.screen}>
         <SwipePager
           pages={PAGES}
@@ -64,5 +79,10 @@ export default function TabsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  headerLayer: { zIndex: 2 },
+  quickActionsBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
   screen: { flex: 1 },
 });
