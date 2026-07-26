@@ -23,17 +23,17 @@ import { storage } from '@/src/utils/storage';
 const STORAGE_KEY = 'notification_settings_v1';
 
 // ─── Notification items ──────────────────────────────────────────────────────
-const ITEMS: { key: string; label: string; desc: string }[] = [
-  { key: 'new_orders',         label: 'New orders',              desc: 'Alerts when a new order arrives' },
-  { key: 'order_cancel',       label: 'Order cancellations',     desc: 'Alerts when an order is cancelled' },
-  { key: 'order_status',       label: 'Order status updates',    desc: 'Track order progress in real time' },
-  { key: 'new_bookings',       label: 'New bookings',            desc: 'Alerts when a reservation is made' },
-  { key: 'booking_cancel',     label: 'Booking cancellations',   desc: 'Alerts when a booking is cancelled' },
-  { key: 'booking_reminders',  label: 'Booking reminders',       desc: 'Reminders before upcoming bookings' },
-  { key: 'stock_alerts',       label: 'Menu & stock alerts',     desc: 'Low stock and menu change updates' },
-  { key: 'payment_updates',    label: 'Payment updates',         desc: 'Payment confirmations and failures' },
-  { key: 'staff_updates',      label: 'Staff & account updates', desc: 'Staff changes and account activity' },
-  { key: 'announcements',      label: 'System announcements',    desc: 'Platform updates and maintenance' },
+const ITEMS: { key: string; label: string; desc: string; icon: keyof typeof Feather.glyphMap; color: string }[] = [
+  { key: 'new_orders',        label: 'New orders',              desc: 'Alerts when a new order arrives',       icon: 'shopping-bag',  color: '#3B82F6' },
+  { key: 'order_cancel',      label: 'Order cancellations',     desc: 'Alerts when an order is cancelled',     icon: 'x-circle',      color: '#EF4444' },
+  { key: 'order_status',      label: 'Order status updates',    desc: 'Track order progress in real time',     icon: 'refresh-cw',    color: '#22C55E' },
+  { key: 'new_bookings',      label: 'New bookings',            desc: 'Alerts when a reservation is made',     icon: 'calendar',      color: '#8B5CF6' },
+  { key: 'booking_cancel',    label: 'Booking cancellations',   desc: 'Alerts when a booking is cancelled',    icon: 'calendar',      color: '#F59E0B' },
+  { key: 'booking_reminders', label: 'Booking reminders',       desc: 'Reminders before upcoming bookings',    icon: 'clock',         color: '#06B6D4' },
+  { key: 'stock_alerts',      label: 'Menu & stock alerts',     desc: 'Low stock and menu change updates',     icon: 'alert-triangle',color: '#F59E0B' },
+  { key: 'payment_updates',   label: 'Payment updates',         desc: 'Payment confirmations and failures',    icon: 'credit-card',   color: '#22C55E' },
+  { key: 'staff_updates',     label: 'Staff & account updates', desc: 'Staff changes and account activity',    icon: 'users',         color: '#EC4899' },
+  { key: 'announcements',     label: 'System announcements',    desc: 'Platform updates and maintenance',      icon: 'info',          color: '#3B82F6' },
 ];
 
 type Settings = {
@@ -68,13 +68,14 @@ function Toggle({
     backgroundColor: interpolateColor(
       progress.value,
       [0, 1],
-      ['#3A3B3C', disabled ? '#3A3B3C' : '#6B7280'],
+      [disabled ? '#2E2E2E' : '#3A3A3A', '#7F9A82'],
     ),
+    opacity: disabled ? 0.4 : 1,
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: progress.value * 22 }],
-    opacity: disabled ? 0.45 : 1,
+    backgroundColor: disabled && !value ? '#888' : '#F5F5F5',
   }));
 
   return (
@@ -186,6 +187,9 @@ export default function NotificationSettings() {
         <View style={styles.section}>
           <View style={styles.card}>
             <View style={styles.masterRow}>
+              <View style={[styles.itemIcon, { backgroundColor: '#EF4444' }]}>
+                <Feather name="bell" size={14} color="#fff" />
+              </View>
               <View style={styles.masterLeft}>
                 <Text style={styles.masterLabel}>Allow Notifications</Text>
                 <Text style={styles.masterDesc}>
@@ -212,6 +216,9 @@ export default function NotificationSettings() {
                   accessible
                   accessibilityLabel={item.label}
                 >
+                  <View style={[styles.itemIcon, { backgroundColor: item.color, opacity: settings.master ? 1 : 0.38 }]}>
+                    <Feather name={item.icon} size={14} color="#fff" />
+                  </View>
                   <View style={styles.itemText}>
                     <Text style={[styles.itemLabel, !settings.master && styles.dimText]}>
                       {item.label}
@@ -292,8 +299,8 @@ const styles = StyleSheet.create({
   masterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     gap: 12,
   },
   masterLeft: { flex: 1 },
@@ -308,11 +315,21 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  // Icon container — matches Settings page style
+  itemIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+
   // Individual item rows
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 13,
     gap: 12,
   },
@@ -334,7 +351,7 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
-    marginLeft: 16,
+    marginLeft: 58, // 14px padding + 32px icon + 12px gap
   },
 
   // Toggle

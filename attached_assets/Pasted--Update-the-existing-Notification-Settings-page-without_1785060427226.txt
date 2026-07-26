@@ -1,0 +1,141 @@
+
+
+
+
+Update the existing **Notification Settings** page without changing its current layout, spacing, text, navigation, or functionality.
+
+
+
+### 1. Add icons to every notification option
+
+
+
+The notification rows currently have no icons. Add one icon to the left side of every row, following the exact icon style already used on the main Settings page:
+
+
+
+* Small rounded-square icon container
+
+* Approximately `32 × 32`
+
+* Corner radius around `9–10`
+
+* Clean white outline icon in the centre
+
+* Bright but controlled background colour
+
+* Same icon size, alignment, padding, and visual weight as the existing Settings-page icons
+
+* Do not use emojis, illustrations, gradients, shadows, or oversized icons
+
+
+
+Use these appropriate icons:
+
+
+
+* **Allow Notifications:** bell icon
+
+* **New orders:** receipt, shopping bag, or order icon
+
+* **Order cancellations:** cancelled order or circle-X icon
+
+* **Order status updates:** refresh, progress, or sync icon
+
+* **New bookings:** calendar-plus icon
+
+* **Booking cancellations:** calendar-X icon
+
+* **Booking reminders:** clock or alarm icon
+
+* **Menu & stock alerts:** warning triangle or inventory alert icon
+
+* **Payment updates:** card, wallet, or payment icon
+
+* **Staff & account updates:** users or team icon
+
+* **System announcements:** information or announcement icon
+
+
+
+Use the project’s existing icon library. Do not install another icon library unless absolutely necessary.
+
+
+
+Use a balanced variety of icon-container colours matching the existing Settings page, such as blue, green, purple, orange, cyan, and pink. The colours should appear only behind the icons and must not change the page’s premium dark appearance.
+
+
+
+### 2. Improve the toggle design
+
+
+
+The current grey toggles look too basic. Replace them with a cleaner premium toggle style using a neutral **sage green** colour.
+
+
+
+Use this toggle appearance:
+
+
+
+* **ON track:** muted sage green, approximately `#7F9A82` or `#829B85`
+
+* **ON thumb:** soft white, approximately `#F5F5F5`
+
+* **OFF track:** dark neutral grey, approximately `#3A3A3A`
+
+* **OFF thumb:** muted light grey or soft white
+
+* **Disabled track:** lower-opacity dark grey
+
+* **Disabled thumb:** faded grey
+
+
+
+The sage green must be subtle and desaturated—not bright green, neon green, or highly saturated.
+
+
+
+Keep every toggle:
+
+
+
+* The same size
+
+* Properly aligned on the right
+
+* Smoothly animated
+
+* Fully interactive
+
+* Consistent across all notification rows
+
+* Easy to distinguish between ON and OFF states
+
+
+
+The main **Allow Notifications** toggle must use the same sage-green style. When it is turned off, all individual notification controls should continue following the existing disabled behaviour.
+
+
+
+### Important restrictions
+
+
+
+* Do not redesign the page.
+
+* Do not change the text, descriptions, card structure, section title, spacing, or navigation.
+
+* Do not change the existing dark background or card colours.
+
+* Do not add unnecessary borders, shadows, gradients, or glowing effects.
+
+* Do not break local persistence or the existing toggle logic.
+
+* Keep the screen smooth and responsive on Android devices.
+
+* Make sure icons and toggles are vertically centred and consistently aligned in every row.
+
+
+
+Only add the matching Settings-style icons and upgrade all notification toggles to the premium sage-green design.
