@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -227,13 +228,35 @@ function CreateSheet({
   const insets = useSafeAreaInsets();
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Date picker
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerDate, setPickerDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (visible) { setForm(EMPTY_FORM); setErrors({}); }
+    if (visible) { setForm(EMPTY_FORM); setErrors({}); setPickerDate(new Date()); }
   }, [visible]);
 
   const set = (key: keyof typeof EMPTY_FORM) => (val: string) =>
     setForm((f) => ({ ...f, [key]: val }));
+
+  const onDateChange = (_: DateTimePickerEvent, selected?: Date) => {
+    // Android dismisses automatically; iOS keeps open
+    if (Platform.OS === 'android') setShowPicker(false);
+    if (selected) {
+      setPickerDate(selected);
+      // Store as YYYY-MM-DD
+      const y = selected.getFullYear();
+      const m = String(selected.getMonth() + 1).padStart(2, '0');
+      const d = String(selected.getDate()).padStart(2, '0');
+      setForm((f) => ({ ...f, expiryDate: `${y}-${m}-${d}` }));
+      setErrors((e) => ({ ...e, expiryDate: '' }));
+    }
+  };
+
+  // Formatted display — dd-mm-yyyy
+  const displayDate = form.expiryDate
+    ? form.expiryDate.split('-').reverse().join('-')
+    : '';
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -242,8 +265,7 @@ function CreateSheet({
     const dv = parseFloat(form.discountValue);
     if (!form.discountValue || isNaN(dv) || dv <= 0) e.discountValue = 'Enter a valid value';
     else if (form.discountType === 'percentage' && dv > 100) e.discountValue = 'Max 100%';
-    if (!form.expiryDate.trim()) e.expiryDate = 'Expiry date is required';
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.expiryDate.trim())) e.expiryDate = 'Format: YYYY-MM-DD';
+    if (!form.expiryDate) e.expiryDate = 'Please select an expiry date';
     const mu = parseInt(form.maxUses || '0');
     if (form.maxUses && (isNaN(mu) || mu < 0)) e.maxUses = 'Enter 0 for unlimited or a positive number';
     setErrors(e);
@@ -258,7 +280,7 @@ function CreateSheet({
       discountType: form.discountType,
       discountValue: parseFloat(form.discountValue),
       description: form.description.trim(),
-      expiryDate: form.expiryDate.trim(),
+      expiryDate: form.expiryDate,
       maxUses: parseInt(form.maxUses || '0'),
       usedCount: 0,
       createdAt: new Date().toISOString(),
@@ -360,15 +382,66 @@ function CreateSheet({
           <View style={sStyles.section}>
             <Text style={sStyles.sectionLabel}>VALIDITY & LIMITS</Text>
             <View style={sStyles.card}>
-              <Field
-                label="Expiry Date (YYYY-MM-DD)"
-                value={form.expiryDate}
-                onChangeText={set('expiryDate')}
-                placeholder="e.g. 2025-12-31"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-              />
+              {/* Date picker field */}
+              <View style={sStyles.dateWrap}>
+                <Text style={sStyles.fieldLabel}>DATE</Text>
+                <TouchableOpacity
+                  style={sStyles.dateField}
+                  onPress={() => setShowPicker(true)}
+                  activeOpacity={0.8}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel="Select expiry date"
+                >
+                  <Feather name="calendar" size={15} color={colors.mutedForeground} />
+                  <Text style={[sStyles.dateText, !displayDate && sStyles.datePlaceholder]}>
+                    {displayDate || 'dd-mm-yyyy'}
+                  </Text>
+                  <Feather name="calendar" size={15} color={colors.mutedForeground} style={{ marginLeft: 'auto' }} />
+                </TouchableOpacity>
+              </View>
               {errors.expiryDate ? <Text style={sStyles.errorText}>{errors.expiryDate}</Text> : null}
+
+              {/* Android — inline picker (shown/hidden) */}
+              {showPicker && Platform.OS === 'android' && (
+                <DateTimePicker
+                  value={pickerDate}
+                  mode="date"
+                  display="default"
+                  minimumDate={new Date()}
+                  onChange={onDateChange}
+                />
+              )}
+
+              {/* iOS — modal picker */}
+              {Platform.OS === 'ios' && (
+                <Modal
+                  visible={showPicker}
+                  transparent
+                  animationType="slide"
+                  onRequestClose={() => setShowPicker(false)}
+                >
+                  <View style={sStyles.iosPickerBackdrop}>
+                    <Pressable style={{ flex: 1 }} onPress={() => setShowPicker(false)} />
+                    <View style={sStyles.iosPickerSheet}>
+                      <View style={sStyles.iosPickerHeader}>
+                        <TouchableOpacity onPress={() => setShowPicker(false)}>
+                          <Text style={sStyles.iosPickerDone}>Done</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <DateTimePicker
+                        value={pickerDate}
+                        mode="date"
+                        display="spinner"
+                        minimumDate={new Date()}
+                        onChange={onDateChange}
+                        style={{ backgroundColor: colors.card }}
+                        themeVariant="dark"
+                      />
+                    </View>
+                  </View>
+                </Modal>
+              )}
 
               <View style={sStyles.divider} />
 
@@ -456,6 +529,30 @@ const sStyles = StyleSheet.create({
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   hintText: { color: colors.mutedForeground, fontSize: 11.5, flex: 1, lineHeight: 17 },
   errorText: { color: colors.destructive, fontSize: 11.5, marginTop: -4 },
+  // Date picker field — matches image: dark input, left + right calendar icons
+  dateWrap: { gap: 6 },
+  dateField: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: colors.card, borderRadius: 12,
+    borderWidth: 1, borderColor: colors.border,
+    paddingHorizontal: 14, paddingVertical: 13,
+  },
+  dateText: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
+  datePlaceholder: { color: colors.mutedForeground },
+  // iOS picker modal
+  iosPickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  iosPickerSheet: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    borderWidth: 1, borderColor: colors.border,
+    paddingBottom: 32,
+  },
+  iosPickerHeader: {
+    flexDirection: 'row', justifyContent: 'flex-end',
+    paddingHorizontal: 20, paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+  },
+  iosPickerDone: { color: '#829B85', fontSize: 15, fontWeight: '700' },
   // Preview card
   previewCard: {
     backgroundColor: '#1A2E1B', borderRadius: 16,
