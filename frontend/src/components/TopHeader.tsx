@@ -30,7 +30,7 @@ const DESCRIPTION_BY_RESTAURANT: Record<string, string> = {
   'Urban Eats Cafe': 'All-day cafe · Powai',
 };
 
-const COLLAPSED_WIDTH = 48;
+const COLLAPSED_WIDTH = 44;
 const EXPANDED_WIDTH = 148;
 const ACTION_SIZE = 44;
 const ACTIONS_ANIMATION_MS = 250;
@@ -225,18 +225,18 @@ const styles = StyleSheet.create({
   name: { fontSize: 14, fontWeight: '700', color: colors.foreground },
   desc: { fontSize: 11, color: colors.mutedForeground, marginTop: 2 },
   actionsPill: {
-    height: 48,
+    height: 44,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
     backgroundColor: '#1F2021', borderRadius: 999,
     borderWidth: 1, borderColor: colors.border,
-    paddingHorizontal: 2,
+    paddingHorizontal: 0,
     overflow: 'hidden',
     ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8 } }),
   },
   secondaryActions: {
     position: 'absolute',
-    left: 2,
-    top: 2,
+    left: 0,
+    top: 0,
     height: ACTION_SIZE,
     flexDirection: 'row',
     alignItems: 'center',
