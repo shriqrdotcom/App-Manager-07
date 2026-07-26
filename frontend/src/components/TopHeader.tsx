@@ -30,7 +30,8 @@ const DESCRIPTION_BY_RESTAURANT: Record<string, string> = {
   'Urban Eats Cafe': 'All-day cafe · Powai',
 };
 
-const COLLAPSED_WIDTH = 44;
+const COLLAPSED_WIDTH = 40;
+const COLLAPSED_HEIGHT = 40;
 const EXPANDED_WIDTH = 148;
 const ACTION_SIZE = 44;
 const ACTIONS_ANIMATION_MS = 250;
@@ -132,6 +133,10 @@ export default function TopHeader({
 
   const actionsStyle = useAnimatedStyle(() => ({
     width: width.value,
+    height: interpolate(width.value, [COLLAPSED_WIDTH, EXPANDED_WIDTH], [
+      COLLAPSED_HEIGHT,
+      ACTION_SIZE,
+    ]),
     borderRadius: interpolate(width.value, [COLLAPSED_WIDTH, EXPANDED_WIDTH], [24, 999]),
   }));
 
@@ -188,8 +193,9 @@ export default function TopHeader({
             </TouchableOpacity>
           </Animated.View>
           <TouchableOpacity
-            style={styles.iconBtn}
+            style={quickActionsExpanded ? styles.iconBtn : styles.collapsedIconBtn}
             onPress={quickActionsExpanded ? closeQuickActions : toggleQuickActions}
+            hitSlop={quickActionsExpanded ? undefined : 2}
             accessibilityRole="button"
             accessibilityLabel={quickActionsExpanded ? 'Close quick actions' : 'Open quick actions'}
             accessibilityState={{ expanded: quickActionsExpanded }}
@@ -225,7 +231,6 @@ const styles = StyleSheet.create({
   name: { fontSize: 14, fontWeight: '700', color: colors.foreground },
   desc: { fontSize: 11, color: colors.mutedForeground, marginTop: 2 },
   actionsPill: {
-    height: 44,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
     backgroundColor: '#1F2021', borderRadius: 999,
     borderWidth: 1, borderColor: colors.border,
@@ -244,6 +249,12 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: ACTION_SIZE,
     height: ACTION_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  collapsedIconBtn: {
+    width: COLLAPSED_WIDTH,
+    height: COLLAPSED_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
   },
