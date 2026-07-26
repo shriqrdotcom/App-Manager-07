@@ -31,6 +31,11 @@ export default function AppLayout() {
         name="notification-settings"
         options={{ animation: 'slide_from_right', gestureEnabled: true }}
       />
+      {/* Coupon codes — slides in from the right */}
+      <Stack.Screen
+        name="coupon-codes"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }

@@ -54,6 +54,10 @@ export default function Settings() {
     { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => openRow('Restaurant Location') },
   ];
 
+  const promoRows: SettingRow[] = [
+    { key: 'coupons', icon: 'tag', color: '#829B85', label: 'Coupon Codes', onPress: () => router.push('/(app)/coupon-codes') },
+  ];
+
   const publicRows: SettingRow[] = [
     { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: () => openRow('Google Review Link') },
     { key: 'hero-gallery',  icon: 'image',   color: '#F59E0B', label: 'Hero Image Gallery', onPress: () => openRow('Hero Image Gallery') },
@@ -139,6 +143,7 @@ export default function Settings() {
 
         <Section title="ACCOUNT & TEAM" rows={filter(accountRows)} />
         <Section title="RESTAURANT INFORMATION" rows={filter(restRows)} />
+        <Section title="PROMOTIONS" rows={filter(promoRows)} />
         <Section title="PUBLIC CONTENT" rows={filter(publicRows)} />
         <Section title="SECURITY & APPLICATION" rows={filter(secRows)} />
       </ScrollView>
