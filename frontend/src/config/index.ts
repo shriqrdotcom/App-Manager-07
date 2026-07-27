@@ -1,6 +1,7 @@
 const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+const isPreviewDemo = process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true';
 
-if (!backendUrl) {
+if (!backendUrl && !isPreviewDemo) {
   throw new Error(
     '[Config] EXPO_PUBLIC_BACKEND_URL is required but not set. ' +
       'Set it in the Replit Secrets & Environment panel.',
@@ -8,5 +9,7 @@ if (!backendUrl) {
 }
 
 export const config = {
-  backendUrl: backendUrl.replace(/\/+$/, ''),
+  // Preview demo mode is intentionally backend-free; normal mode still
+  // requires a real backend URL above.
+  backendUrl: backendUrl ? backendUrl.replace(/\/+$/, '') : '',
 } as const;

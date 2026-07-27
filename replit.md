@@ -15,11 +15,11 @@ A React Native / Expo frontend restaurant management app (runs on web via Expo R
 The "Start application" workflow runs:
 
 ```bash
-cd frontend && yarn expo start --go --tunnel --clear --port 5000
+cd frontend && yarn expo start --web --lan --clear --port 5000
 ```
 
-Metro bundles the Expo app for **Expo Go** (Android/iOS) and serves it on port 5000 with a public ngrok tunnel.  
-The Replit preview shows the web dashboard, and the terminal also prints a QR code you can scan with **Expo Go** on Android.
+Metro serves the Expo web dashboard on port 5000 for the Replit preview.
+For native Expo Go development, run `yarn expo start` locally from `frontend/`.
 
 ## Environment Variables
 
