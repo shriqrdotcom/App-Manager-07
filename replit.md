@@ -1,50 +1,52 @@
 # Exzibo Manager
 
-A React Native / Expo frontend restaurant management app (runs on web via Expo Router + Metro). It connects to the original Exzibo production backend using **Better Auth** + **Google OAuth**.
+A React Native / Expo app for managing restaurant bookings, orders, coupons, analytics, and notification settings. Built with Expo SDK 54, expo-router (file-based routing), Better Auth for authentication, and TanStack Query for data fetching.
 
 ## Stack
 
-- **Frontend**: React Native + Expo SDK 54, Expo Router, TypeScript, Better Auth, React Query — located in `frontend/`
-- **Backend**: Original Exzibo production API (Better Auth, Neon/Postgres, Drizzle ORM) — not hosted in this repl; the frontend reaches it via `EXPO_PUBLIC_BACKEND_URL`
-- **Package manager**: Yarn 1.x (frontend)
+- **Framework**: Expo 54 (React Native 0.81) + expo-router 6
+- **Auth**: Better Auth (`@better-auth/expo`)
+- **Data fetching**: TanStack Query v5
+- **Animations**: Reanimated 4 + Gesture Handler
+- **Styling**: React Native StyleSheet
+
+## Project structure
+
+```
+frontend/          # Expo app root
+  app/
+    (app)/         # Authenticated screens (tabs, booking, orders, analytics, etc.)
+    (auth)/        # Unauthenticated screens (sign-in)
+    auth/          # Better Auth callback route
+  src/
+    api/           # Backend client + bootstrap
+    auth/          # Better Auth client config
+    components/    # Shared UI components
+    config/        # App config (reads EXPO_PUBLIC_BACKEND_URL)
+    hooks/         # Custom hooks
+    providers/     # React context providers
+    storage/       # Secure storage helpers
+    utils/         # Utilities
+  assets/          # Images, fonts
+```
 
 ## Running on Replit
 
-### Frontend (Expo Web) — click **Run**
-
-The "Start application" workflow runs:
+The **Start application** workflow runs:
 
 ```bash
-cd frontend && yarn expo start --web --lan --clear --port 5000
+cd frontend && yarn expo start --go --tunnel --clear --port 5000
 ```
 
-Metro serves the Expo web dashboard on port 5000 for the Replit preview.
-For native Expo Go development, run `yarn expo start` locally from `frontend/`.
+This starts a Metro bundler with an ngrok tunnel and opens via Expo Go.
 
-## Environment Variables
+## Environment variables
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `EXPO_PUBLIC_BACKEND_URL` | Secret | Production backend base URL (e.g. `https://dashboard.exzibo.online`) |
-| `EXPO_PUBLIC_ENABLE_DEMO_LOGIN` | Shared env | `false` — disables the old demo login |
-| `EXPO_PUBLIC_PREVIEW_DEMO` | Shared env | `true` — **preview only**: bypasses Google OAuth and shows the dashboard for UI testing |
-| `EXPO_TOKEN` | Secret | Expo token (currently invalid, so workflow overrides it for local dev) |
+| `EXPO_PUBLIC_BACKEND_URL` | Replit Secrets | Base URL for the backend API (e.g. `https://dashboard.exzibo.online`) |
+| `EXPO_TOKEN` | Replit Secrets | Expo account token (for EAS builds / publish) |
 
-## Authentication
+## User preferences
 
-- In normal mode, sign-in uses **Better Auth** with **Google OAuth**.
-- The session is restored automatically on app launch via `authClient.useSession()`.
-- The app fetches the user's restaurants from `GET /api/mobile/v1/bootstrap`.
-- In preview demo mode (`EXPO_PUBLIC_PREVIEW_DEMO=true`), the login screen is skipped and a demo restaurant/user is injected so the dashboard pages can be navigated.
-
-## Installing / Reinstalling
-
-After a fresh GitHub import:
-
-```bash
-cd frontend && yarn install
-```
-
-## User Preferences
-
-<!-- Add user preferences here -->
+- Backend URL: `https://dashboard.exzibo.online`
