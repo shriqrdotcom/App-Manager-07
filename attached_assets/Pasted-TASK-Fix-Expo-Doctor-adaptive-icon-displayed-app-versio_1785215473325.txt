@@ -1,0 +1,359 @@
+TASK: Fix Expo Doctor, adaptive icon, displayed app version, and Android production configuration.
+
+REPOSITORY
+
+Work only in:
+
+shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+PREREQUISITE
+
+Prompt 4 must already be reviewed and merged into origin/main.
+
+Before changing anything:
+
+1. Fetch origin.
+2. Confirm the repository is "shriqrdotcom/App-Manager-07".
+3. Confirm the working tree is clean.
+4. Switch to "main".
+5. Update from "origin/main" using fast-forward only.
+6. Run the existing TypeScript, lint, dependency, and lockfile checks.
+7. Stop if Prompt 4 is not present or any prerequisite check fails.
+8. Create this branch:
+
+fix/mobile-production-config
+
+GOAL
+
+Make the Expo Android project internally consistent and ready for a future EAS production AAB build.
+
+Fix:
+
+- Expo Doctor failures
+- Invalid adaptive-icon dimensions
+- Hardcoded or inconsistent version text
+- Production EAS profile problems
+- Unsafe production demo configuration
+- Any confirmed production configuration defect directly related to these items
+
+Do not build, submit, publish, merge, or deploy the application during this task.
+
+IDENTITY PROTECTION
+
+The existing EAS project identity recovered in Prompts 1 and 2 is authoritative.
+
+Before editing, record these non-secret values:
+
+- Expo owner
+- Expo slug
+- EAS project ID
+- Android package name
+- URL scheme
+- application display name
+- user-facing app version
+- EAS version source
+
+Do not change, replace, regenerate, or guess any of them.
+
+Do not:
+
+- create a new EAS project
+- change the Android package
+- change the Expo owner
+- change the slug
+- change the EAS project ID
+- change the URL scheme
+- reset the remote Android version code
+- change iOS identifiers
+- add Expo Updates, runtime versions, or update channels
+- upgrade the Expo SDK
+- change application identifiers to temporary Replit values
+
+If repository configuration and the linked EAS project disagree, stop and report "BLOCKED FOR REVIEW".
+
+1. EXPO DOCTOR
+
+Run the complete Expo Doctor before making changes and record every failure.
+
+Fix the actual causes. Do not hide them.
+
+Forbidden workarounds:
+
+- ignoring Expo Doctor checks
+- adding exclusions to suppress failures
+- disabling validation
+- deleting valid configuration merely to make the command pass
+- upgrading unrelated packages without evidence
+
+The final complete Expo Doctor run must pass all applicable checks.
+
+2. ADAPTIVE ANDROID ICON
+
+Inspect:
+
+- "frontend/app.json"
+- the configured Android adaptive icon
+- "frontend/assets/images/adaptive-icon.png"
+- "frontend/assets/images/icon.png"
+- splash-screen assets
+
+The adaptive foreground image was previously found to be "1024 × 1008", which is not square.
+
+Repair it using the existing artwork.
+
+Requirements:
+
+- output must be a valid PNG
+- exact dimensions must be "1024 × 1024"
+- preserve the existing logo design
+- preserve the original aspect ratio
+- do not stretch the image
+- do not crop important artwork
+- do not rotate it
+- do not change brand colours
+- centre the artwork on a square canvas
+- use transparent padding for the foreground where appropriate
+- keep important artwork inside the recommended adaptive-icon safe area
+- preserve the existing adaptive-icon background colour unless confirmed repository evidence requires another colour
+- verify that common circle, rounded-square, and squircle masks do not cut off important content
+
+Use a deterministic local image operation. Do not add a runtime image-processing dependency to the mobile app.
+
+Do not redesign or generate a new logo.
+
+Do not alter the normal application icon or splash artwork unless a separate, confirmed validation failure requires it.
+
+After repair, report:
+
+- old dimensions
+- new dimensions
+- file format
+- colour mode
+- whether alpha transparency exists
+- whether the artwork was padded, cropped, or resized
+
+3. APPLICATION VERSION DISPLAY
+
+Find the App Information or Settings UI that currently displays a hardcoded version such as "v0.1.0".
+
+Replace the hardcoded text with native application version information.
+
+Preferred implementation:
+
+- use the SDK-compatible "expo-application" package
+- read "Application.nativeApplicationVersion"
+- read "Application.nativeBuildVersion"
+- use "Constants.expoConfig?.version" only as a safe development fallback
+
+Display a clear value such as:
+
+Version 1.0.0 (build 12)
+
+The actual values must come from native/configuration data. Do not hardcode version or build numbers in a component.
+
+If "expo-application" is missing:
+
+- add it with the Expo SDK-compatible installer
+- update "package.json"
+- update the public Yarn Classic lockfile reproducibly
+- do not use "npm install"
+- do not replace Yarn
+- do not introduce private Replit registry URLs
+
+Do not arbitrarily increase or decrease the user-facing app version. Preserve the version confirmed during Prompt 2 unless there is documented evidence of a release-version conflict. If a conflict exists, stop and report it.
+
+4. EAS PRODUCTION CONFIGURATION
+
+Inspect "frontend/eas.json" and the resolved Expo configuration.
+
+Preserve the development and preview profiles recovered in Prompt 2.
+
+Confirm the production profile has all of the following:
+
+- production EAS environment
+- Android app-bundle output
+- no development client
+- no internal distribution
+- remote application-version source
+- Android build-number auto-increment enabled
+- clean Git commit required
+- no embedded credentials or secret values
+
+The production Android output must resolve to an AAB, not an APK.
+
+Do not start an EAS build in this task.
+
+Do not request, download, replace, or expose Android signing credentials.
+
+5. PRODUCTION ENVIRONMENT SAFETY
+
+Inspect the names and presence of the EAS production environment variables without printing their values.
+
+Confirm:
+
+- "EXPO_PUBLIC_BACKEND_URL" exists for the production environment
+- it resolves to the confirmed canonical HTTPS backend
+- "EXPO_PUBLIC_PREVIEW_DEMO" is absent or exactly disabled in production
+- production mode cannot silently fall back to mock or demo data
+- no backend-only secrets are placed in "EXPO_PUBLIC_*" variables
+- no environment values are committed to "app.json", "eas.json", source code, or Git
+
+If "EXPO_PUBLIC_PREVIEW_DEMO" is enabled in the EAS production environment, change only that variable to "false", if authorized access is already configured.
+
+Do not print its previous or new value beyond reporting "enabled" or "disabled".
+
+If the canonical production backend cannot be verified safely, stop and report "BLOCKED FOR REVIEW". Do not guess the URL.
+
+6. PRODUCTION CONFIGURATION REVIEW
+
+Inspect the resolved public Expo configuration for:
+
+- Android package
+- app name
+- slug
+- scheme
+- version
+- project ID
+- adaptive icon
+- edge-to-edge setting
+- requested Android permissions
+- production build type
+
+Do not add permissions without a confirmed feature requirement.
+
+Do not change the New Architecture setting, edge-to-edge setting, orientation, application scheme, or identifiers merely as cleanup.
+
+Remove a permission only if repository evidence proves it is accidental and unused. Otherwise report it for later review.
+
+Do not add store-listing content, privacy-policy text, Play Console declarations, or production credentials. Those belong to a later release-readiness task.
+
+7. VALIDATION
+
+Run all applicable commands from "frontend".
+
+At minimum run:
+
+- clean reproducible Yarn install using the existing Yarn Classic lockfile
+- existing TypeScript typecheck
+- existing lint command
+- Expo dependency compatibility check
+- complete Expo Doctor
+- JSON parsing for "app.json" and "eas.json"
+- resolved public Expo config inspection
+- EAS configuration validation for development, preview, and production profiles
+- Android Expo export using production-style environment settings
+- "git diff --check"
+
+For the Android export:
+
+- ensure demo mode is disabled
+- use a temporary output directory
+- do not commit generated output
+- remove the temporary output after validation
+- do not run an EAS cloud build
+
+Also verify:
+
+- adaptive icon is exactly "1024 × 1024"
+- no TypeScript errors
+- no lint errors
+- no Expo dependency mismatches
+- all Expo Doctor checks pass
+- production resolves to an AAB
+- the version is no longer hardcoded
+- the linked EAS identity remains unchanged
+- public lockfile contains no Replit-private registry URLs or credentials
+- no secrets, ".env" files, APKs, AABs, keystores, generated exports, prompts, or "attached_assets" are tracked
+
+8. SCOPE LIMITS
+
+Do not:
+
+- modify "shriqrdotcom/exzibo-mag"
+- modify backend APIs
+- implement new dashboard features
+- redesign application screens
+- change navigation
+- change authentication
+- change restaurant selection
+- add mock data
+- add Expo Updates
+- upgrade the Expo SDK
+- create an EAS project
+- trigger an EAS build
+- submit to Google Play
+- merge into "main"
+- expose secret values
+- commit generated build output
+
+Expected files may include only:
+
+- "frontend/assets/images/adaptive-icon.png"
+- "frontend/app.json", if configuration correction is required
+- "frontend/eas.json", if production-profile correction is required
+- "frontend/package.json"
+- "frontend/yarn.lock"
+- the existing Settings/App Information component
+- one small version-information utility, if justified
+
+Do not change unrelated files.
+
+9. GIT
+
+Review the complete diff before committing.
+
+Commit only if every required validation passes.
+
+Commit message:
+
+fix: finalize Expo production configuration
+
+Push only to:
+
+origin/fix/mobile-production-config
+
+Do not merge the branch.
+
+FINAL RESPONSE
+
+Return:
+
+1. Repository, branch, and starting commit
+2. Prompt 4 prerequisite results
+3. EAS identity before and after
+4. Initial Expo Doctor failures
+5. Adaptive-icon repair and verified dimensions
+6. Application-version implementation
+7. Development, preview, and production profile summary
+8. Production environment checks without secret values
+9. Files changed
+10. Dependencies and lockfile changes
+11. Complete validation-results table
+12. Android permissions and production-config review
+13. Secret and generated-file scan
+14. Commit hash and push result
+15. Remaining blockers for Prompt 6
+16. Final result: "PASS", "FAIL", or "BLOCKED FOR REVIEW"
+
+PASS CONDITIONS
+
+Return "PASS" only when:
+
+- all TypeScript checks pass
+- lint passes
+- dependency checks pass
+- complete Expo Doctor passes without suppression
+- adaptive icon is a valid "1024 × 1024" PNG
+- version text comes from native/configuration data
+- production resolves to an AAB
+- production demo mode is disabled
+- EAS identity is unchanged
+- lockfile remains reproducible and public
+- no secrets or generated artifacts are tracked
+- branch is committed and pushed successfully
+
+If any identity, production-version, environment, or credential conflict cannot be safely verified, do not guess. Return "BLOCKED FOR REVIEW".
