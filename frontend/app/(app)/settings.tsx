@@ -42,7 +42,7 @@ export default function Settings() {
 
   const accountRows: SettingRow[] = [
     { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => router.push('/(app)/notification-settings') },
-    { key: 'theme',         icon: 'droplet',  color: '#8B5CF6', label: 'Theme', value: 'Dark', onPress: () => openRow('Theme') },
+    { key: 'theme',         icon: 'droplet',  color: '#8B5CF6', label: 'Theme', value: 'Dark', onPress: () => router.push('/(app)/theme-settings') },
     { key: 'language',      icon: 'globe',    color: '#3B82F6', label: 'Language', value: 'English', onPress: () => openRow('Language') },
     { key: 'help',          icon: 'help-circle', color: '#F59E0B', label: 'Help Center', onPress: () => openRow('Help Center') },
   ];
