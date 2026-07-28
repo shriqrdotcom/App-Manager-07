@@ -1,0 +1,514 @@
+TASK: Prompt 4 — Fix all mobile TypeScript errors and missing direct dependencies
+
+REPOSITORY
+
+Run only in:
+
+shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+DEPENDENCY ON PROMPT 3
+
+Prompt 3 must already be reviewed and merged into origin/main.
+
+The merged main branch must contain:
+
+- the confirmed EAS identity
+- the permanent Android package
+- the public Yarn lockfile
+- zero Replit-private package URLs
+- Yarn 1.22.22 as the only package manager
+- the pinned Node 20 toolchain
+- working frozen dependency installation
+
+If Prompt 3 is not merged or the lockfile still contains Replit-private URLs, stop and return BLOCKED.
+
+OBJECTIVE
+
+Make the complete mobile TypeScript project compile successfully in strict mode.
+
+Also ensure every third-party package imported directly by the application is declared directly in package.json.
+
+Fix root causes without weakening TypeScript, hiding errors or changing application behavior.
+
+PREVIOUSLY OBSERVED ERRORS
+
+Treat these only as starting evidence. Run a fresh typecheck and independently verify every current error.
+
+Previously observed problems included:
+
+1. "app/(app)/booking.tsx"
+   
+   - imports "@react-navigation/native"
+   - package is not declared as a direct dependency
+
+2. "app/(app)/coupon-codes.tsx"
+   
+   - stores an array of objects
+   - storage helper accepts only primitive values
+   - uses an unsafe "as unknown as" cast
+
+3. "app/(app)/notification-settings.tsx"
+   
+   - stores a settings object
+   - storage helper accepts only primitive values
+   - uses an unsafe "as unknown as" cast
+
+4. Environment access in:
+   
+   - "src/api/client.ts"
+   - "src/config/index.ts"
+   - "src/providers/AppProvider.tsx"
+   - TypeScript cannot resolve the "process" global
+
+There may be additional errors after Prompts 2 and 3. Fix every error shown by the current strict typecheck.
+
+STRICT SAFETY RULES
+
+Do not:
+
+- disable strict mode
+- set strict to false
+- add "// @ts-ignore"
+- add unjustified "// @ts-expect-error"
+- add "as any"
+- add "as unknown as" to hide an error
+- add broad global "any" declarations
+- declare "process" as any
+- set "noImplicitAny" to false
+- exclude failing source files from tsconfig
+- remove files merely because they fail type checking
+- disable type checking during builds
+- change "skipLibCheck" to hide application errors
+- delete working application features
+- change UI design
+- change navigation behavior
+- change authentication behavior
+- change API endpoint paths
+- connect mock features to the backend
+- modify EAS identity
+- modify Android package
+- modify EAS projectId
+- modify the deep-link scheme
+- upgrade Expo
+- upgrade React
+- upgrade React Native
+- upgrade Better Auth
+- upgrade unrelated dependencies
+- add a second package manager or lockfile
+- reintroduce Replit-private lockfile URLs
+- modify the backend repository
+- run an EAS build
+- submit anything to Google Play
+- commit generated builds, environment files or credentials
+- merge into main
+- force-push, reset or rebase
+
+STEP 1 — PREPARE THE BRANCH
+
+1. Fetch origin.
+2. Confirm the repository is:
+   shriqrdotcom/App-Manager-07
+3. Confirm the working tree is clean.
+4. Switch to main.
+5. Pull origin/main using fast-forward only.
+6. Confirm local main equals origin/main.
+7. Confirm frontend/yarn.lock contains zero:
+   package-firewall.replit.local
+8. Run the frozen installation using the pinned Node and Yarn versions.
+9. Create:
+
+fix/mobile-typescript-dependencies
+
+10. Work only in:
+
+frontend
+
+Stop if the repository is stale, dirty, diverged or not reproducible.
+
+STEP 2 — CAPTURE THE BASELINE
+
+Before changing anything, run:
+
+yarn typecheck
+
+If a typecheck script does not exist, run:
+
+yarn tsc --noEmit
+
+Record every error with:
+
+- file
+- line
+- TypeScript error code
+- short root-cause category
+
+Group the errors into:
+
+- missing direct dependency
+- invalid application type
+- unsafe storage type
+- environment-variable type
+- incorrect library usage
+- stale or invalid generated type
+- configuration problem
+- other
+
+Report the exact initial error count.
+
+Do not begin by changing tsconfig.
+
+STEP 3 — AUDIT DIRECT DEPENDENCIES
+
+Inspect all TypeScript and TSX imports in:
+
+- frontend/app
+- frontend/src
+- relevant frontend configuration files
+
+For every non-local package imported directly by application code:
+
+1. Resolve the real package name.
+2. Check dependencies and devDependencies.
+3. Confirm the package is declared directly.
+4. Do not count:
+   - relative imports
+   - "@/" path aliases
+   - React Native built-in modules
+   - type-only references provided by another declared package
+   - package names appearing only in comments
+
+At minimum, verify:
+
+- @react-navigation/native
+- expo-router
+- react
+- react-native
+- @expo/vector-icons
+- react-native-safe-area-context
+- @better-auth/expo
+- better-auth
+- expo-secure-store
+- @react-native-async-storage/async-storage
+
+If "@react-navigation/native" is imported directly but missing:
+
+- add it as a direct dependency
+- use the Expo SDK-compatible installer
+- do not manually invent its version
+- preserve the installed Expo-compatible major version
+- do not upgrade its peer dependencies unnecessarily
+
+For native or Expo-related packages, use the Expo-compatible installer.
+
+For development-only type packages, add them to devDependencies.
+
+Use Yarn only and update yarn.lock normally.
+
+Do not create package-lock.json or pnpm-lock.yaml.
+
+STEP 4 — FIX ENVIRONMENT-VARIABLE TYPES
+
+The application currently uses static Expo environment variables such as:
+
+- EXPO_PUBLIC_BACKEND_URL
+- EXPO_PUBLIC_PREVIEW_DEMO
+
+Add proper TypeScript declarations for only the environment-variable names the mobile application actually uses.
+
+Requirements:
+
+- keep the values optional where runtime configuration can be absent
+- type boolean-like variables using their real string representation
+- preserve Expo’s required "EXPO_PUBLIC_" access pattern
+- keep static property access so Expo can replace the values correctly
+- do not expose actual environment-variable values
+- do not add backend-only environment names
+- do not add DATABASE_URL
+- do not add authentication secrets
+- do not add Google client secrets
+- do not add R2, Upstash or realtime secrets
+- do not declare "process" as any
+
+First use the normal Expo-compatible environment typing method.
+
+If TypeScript still requires Node ambient types because the source directly uses "process.env", add a compatible "@types/node" version as a direct devDependency.
+
+Do not add "@types/node" as a runtime dependency.
+
+Ensure the environment declaration file is included by tsconfig without weakening strict mode.
+
+STEP 5 — FIX STORAGE TYPES CORRECTLY
+
+Inspect:
+
+- "src/utils/storage/storage-base.ts"
+- "src/utils/storage/index.ts"
+- "src/utils/storage/index.web.ts"
+- every caller of "storage.setItem"
+- every caller of "storage.getItem"
+- every secure-storage caller
+
+The storage implementation already uses JSON serialization, but its current public type reportedly accepts only:
+
+- string
+- number
+- boolean
+- null
+
+Coupon and notification settings require JSON-compatible arrays and objects.
+
+Implement a safe JSON-serializable storage type that supports:
+
+- strings
+- finite numbers
+- booleans
+- null
+- arrays of JSON-compatible values
+- plain objects whose values are JSON-compatible
+
+Do not allow:
+
+- undefined as a stored top-level value
+- functions
+- symbols
+- BigInt
+- class instances
+- Date objects without explicit conversion
+- cyclic objects
+- arbitrary unknown values
+- authentication sessions in AsyncStorage
+
+Requirements:
+
+1. Preserve the existing JSON serialization behavior.
+2. Preserve native AsyncStorage behavior.
+3. Preserve web storage behavior.
+4. Preserve SecureStore for sensitive values.
+5. Do not move authentication cookies or tokens into AsyncStorage.
+6. Update misleading storage comments so they match the actual supported values.
+7. Remove the unsafe double casts from:
+   - coupon-codes.tsx
+   - notification-settings.tsx
+8. Use explicit JSON-compatible storage DTOs where needed.
+9. Validate stored data before treating it as Coupon or Settings data.
+10. Preserve safe fallback behavior for missing, corrupt or outdated stored data.
+11. Do not crash the app when old stored values have an unexpected shape.
+12. Do not change the visible coupon or notification UI in this prompt.
+
+Do not solve this by changing "StorageItemValue" to "any", "unknown" or "object".
+
+STEP 6 — FIX ALL REMAINING TYPESCRIPT ERRORS
+
+After the known fixes, run the full typecheck again.
+
+For every remaining error:
+
+1. Read the affected implementation.
+2. Identify the real intended data type.
+3. Fix the narrowest root cause.
+4. Preserve runtime behavior.
+5. Avoid unnecessary refactors.
+6. Avoid broad casts.
+7. Use "unknown" for caught external values and narrow safely.
+8. Validate untrusted API or stored data before using it.
+9. Keep nullable and optional states explicit.
+10. Keep React component props correctly typed.
+
+Do not stop after fixing only the previously reported eight errors.
+
+The final error count must be zero.
+
+STEP 7 — ADD A PERMANENT TYPECHECK COMMAND
+
+Ensure frontend/package.json contains a script equivalent to:
+
+typecheck: tsc --noEmit
+
+Requirements:
+
+- it must check the complete Expo application
+- it must use the existing strict tsconfig
+- it must not emit JavaScript
+- it must not suppress output
+- it must return a non-zero exit code on any error
+
+Do not replace the existing lint or Expo scripts.
+
+STEP 8 — PROTECT LOCKFILE PORTABILITY
+
+After adding any required direct dependency:
+
+1. Confirm yarn.lock still contains zero:
+   package-firewall.replit.local
+2. Confirm all registry URLs use HTTPS.
+3. Confirm no registry credentials were added.
+4. Confirm Yarn remains the only package manager.
+5. Run a frozen install from an empty temporary cache.
+6. Confirm the frozen install does not modify yarn.lock.
+7. Confirm no direct dependency was unintentionally upgraded.
+8. Confirm Expo, React, React Native and Better Auth versions remain unchanged.
+
+If installing a dependency reintroduces Replit-private URLs, do not commit.
+
+Regenerate safely using Prompt 3’s public-registry process or stop and return BLOCKED.
+
+STEP 9 — VALIDATION
+
+Using the pinned Node and Yarn versions, run from frontend:
+
+1. "yarn install --frozen-lockfile --non-interactive"
+2. "yarn typecheck"
+3. "yarn lint"
+4. Expo dependency compatibility check
+5. Expo Doctor
+6. Android Expo export to a temporary output directory
+7. EAS configuration validation for:
+   - development
+   - preview
+   - production
+8. "git diff --check"
+
+For the Android export:
+
+- use the existing environment configuration
+- confirm EXPO_PUBLIC_BACKEND_URL exists without printing its value
+- do not enable preview demo mode to make production validation pass
+- delete the temporary export directory after validation
+- do not track generated output
+
+EXPO DOCTOR RULE
+
+Prompt 5 will repair the known adaptive-icon/configuration issue.
+
+Therefore, Expo Doctor may report only the already confirmed non-square adaptive-icon problem.
+
+If Expo Doctor reports any new dependency, package or configuration problem introduced by this task, fix it before continuing.
+
+STEP 10 — SELF-REVIEW
+
+Before committing, search changed and relevant files for:
+
+- "@ts-ignore"
+- "@ts-expect-error"
+- "as any"
+- "as unknown as"
+- "strict: false"
+- "noImplicitAny: false"
+- newly added "skipLibCheck"
+- excluded application files
+- duplicate package-manager files
+- Replit-private URLs
+- registry tokens
+- EXPO_TOKEN values
+- environment-variable values
+- hardcoded backend secrets
+
+No new suppression is allowed.
+
+Specifically confirm the two previously unsafe storage double casts were removed.
+
+Review the dependency diff and explain why every new direct dependency is required.
+
+STEP 11 — ALLOWED FILES
+
+Expected changed files may include:
+
+- frontend/package.json
+- frontend/yarn.lock
+- frontend/tsconfig.json, only if an include is genuinely required
+- a focused environment declaration file
+- frontend/src/utils/storage/storage-base.ts
+- frontend/src/utils/storage/index.ts
+- frontend/src/utils/storage/index.web.ts
+- frontend/app/(app)/booking.tsx, only if the import usage requires correction
+- frontend/app/(app)/coupon-codes.tsx
+- frontend/app/(app)/notification-settings.tsx
+- other TypeScript files only when they contain a confirmed compiler error
+
+Do not modify:
+
+- app name
+- Expo owner
+- Expo slug
+- EAS projectId
+- Android package
+- deep-link scheme
+- EAS build-profile purposes
+- application artwork
+- backend repository
+- API contracts
+- mock-feature integration
+- unrelated UI
+- .env files
+- credentials
+- keystores
+- APK or AAB files
+- android or ios generated directories
+- attached_assets
+- prompt or report files
+
+If unrelated files change, stop before committing.
+
+STEP 12 — COMMIT AND PUSH
+
+Only after the strict typecheck reports zero errors and all dependency checks pass:
+
+1. Commit as:
+
+fix: resolve mobile TypeScript errors
+
+2. Push only to:
+
+origin/fix/mobile-typescript-dependencies
+
+Do not merge into main.
+
+Do not build or submit a production AAB.
+
+FINAL RESPONSE
+
+Return only:
+
+1. Repository and branch
+2. Starting commit
+3. Initial TypeScript error count
+4. Initial error table
+5. Root causes
+6. Direct dependency audit
+7. Dependencies added and why
+8. Storage type solution
+9. Environment typing solution
+10. Files changed
+11. Final TypeScript result
+12. Lint result
+13. Expo dependency result
+14. Expo Doctor result
+15. Android export result
+16. EAS profile validation
+17. Lockfile portability check
+18. Type-suppression scan
+19. Secret and generated-file check
+20. Commit hash and push result
+21. Remaining blockers for Prompt 5
+22. Final result:
+    - PASS
+    - BLOCKED
+    - or BLOCKED FOR REVIEW
+
+PASS is allowed only when:
+
+- strict TypeScript reports zero errors
+- all direct imports have direct dependencies
+- no unsafe suppression was introduced
+- the two storage double casts were removed
+- environment variables are typed without exposing values
+- the public lockfile remains reproducible
+- lint passes
+- Android export succeeds
+- no identity, authentication or unrelated feature behavior changed
+
+Do not merge, build an AAB or submit anything in this task.
