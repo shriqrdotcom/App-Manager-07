@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View 
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
+import { useTheme } from '@/src/providers/ThemeProvider';
 import colors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
 
@@ -18,6 +19,7 @@ type SettingRow = {
 
 export default function Settings() {
   const { bootstrap, selectedRestaurant, logout } = useApp();
+  const { preference } = useTheme();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -42,7 +44,14 @@ export default function Settings() {
 
   const accountRows: SettingRow[] = [
     { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => router.push('/(app)/notification-settings') },
-    { key: 'theme',         icon: 'droplet',  color: '#8B5CF6', label: 'Theme', value: 'Dark', onPress: () => router.push('/(app)/theme-settings') },
+    {
+      key: 'theme',
+      icon: 'droplet',
+      color: '#8B5CF6',
+      label: 'Theme',
+      value: preference === 'system' ? 'System default' : preference === 'light' ? 'Light' : 'Dark',
+      onPress: () => router.push('/(app)/theme-settings'),
+    },
     { key: 'language',      icon: 'globe',    color: '#3B82F6', label: 'Language', value: 'English', onPress: () => openRow('Language') },
     { key: 'help',          icon: 'help-circle', color: '#F59E0B', label: 'Help Center', onPress: () => openRow('Help Center') },
   ];

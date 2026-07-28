@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Pressable,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -14,15 +15,14 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import colors from '@/src/constants/colors';
-import { storage } from '@/src/utils/storage';
-
-const STORAGE_KEY = 'theme_preference_v1';
-
-type ThemeOption = 'light' | 'dark' | 'system';
+import {
+  type ThemePalette,
+  type ThemePreference,
+  useTheme,
+} from '@/src/providers/ThemeProvider';
 
 const THEMES: {
-  key: ThemeOption;
+  key: ThemePreference;
   label: string;
   desc: string;
   icon: keyof typeof Feather.glyphMap;
@@ -51,12 +51,18 @@ const THEMES: {
   },
 ];
 
-function RadioDot({ selected }: { selected: boolean }) {
+function RadioDot({
+  selected,
+  styles,
+}: {
+  selected: boolean;
+  styles: ReturnType<typeof createStyles>;
+}) {
   const scale = useSharedValue(selected ? 1 : 0);
 
   useEffect(() => {
     scale.value = withTiming(selected ? 1 : 0, { duration: 180 });
-  }, [selected]);
+  }, [selected, scale]);
 
   const dotStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -72,24 +78,19 @@ function RadioDot({ selected }: { selected: boolean }) {
 export default function ThemeSettings() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [selected, setSelected] = useState<ThemeOption>('dark');
+  const { preference, resolvedTheme, colors, setThemePreference } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
-  useEffect(() => {
-    (async () => {
-      const saved = await storage.getItem(STORAGE_KEY, null);
-      if (saved && typeof saved === 'string' && ['light', 'dark', 'system'].includes(saved as string)) {
-        setSelected(saved as ThemeOption);
-      }
-    })();
-  }, []);
-
-  const pick = (key: ThemeOption) => {
-    setSelected(key);
-    storage.setItem(STORAGE_KEY, key as unknown as Record<string, unknown>);
+  const pick = (key: ThemePreference) => {
+    void setThemePreference(key);
   };
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
+      <StatusBar
+        barStyle={resolvedTheme === 'light' ? 'dark-content' : 'light-content'}
+        backgroundColor={colors.background}
+      />
       {/* Header */}
       <View style={styles.header}>
         <Pressable
@@ -129,7 +130,7 @@ export default function ThemeSettings() {
               <View style={[styles.previewBar, { width: '65%', backgroundColor: colors.border }]} />
             </View>
             <Text style={styles.previewLabel}>
-              {THEMES.find((t) => t.key === selected)?.label ?? 'Dark'}
+              {THEMES.find((t) => t.key === preference)?.label ?? 'Dark'}
             </Text>
           </View>
         </View>
@@ -145,7 +146,7 @@ export default function ThemeSettings() {
                   onPress={() => pick(theme.key)}
                   accessible
                   accessibilityRole="radio"
-                  accessibilityState={{ checked: selected === theme.key }}
+                  accessibilityState={{ checked: preference === theme.key }}
                   accessibilityLabel={theme.label}
                 >
                   <View style={[styles.iconBox, { backgroundColor: theme.color }]}>
@@ -155,7 +156,7 @@ export default function ThemeSettings() {
                     <Text style={styles.rowLabel}>{theme.label}</Text>
                     <Text style={styles.rowDesc}>{theme.desc}</Text>
                   </View>
-                  <RadioDot selected={selected === theme.key} />
+                  <RadioDot selected={preference === theme.key} styles={styles} />
                 </Pressable>
                 {i < THEMES.length - 1 && <View style={styles.divider} />}
               </React.Fragment>
@@ -168,7 +169,7 @@ export default function ThemeSettings() {
           <View style={styles.noteCard}>
             <Feather name="info" size={13} color={colors.info} />
             <Text style={styles.noteText}>
-              Theme changes will take effect the next time you open the app.
+              The preview updates immediately and your choice is saved.
             </Text>
           </View>
         </View>
@@ -177,7 +178,7 @@ export default function ThemeSettings() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemePalette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

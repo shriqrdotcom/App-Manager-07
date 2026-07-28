@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { AppProvider } from "@/src/providers/AppProvider";
+import { ThemeProvider } from "@/src/providers/ThemeProvider";
 
 // Disable logbox errors etc so that users can see the app
 // and agent works as expected.
@@ -69,9 +70,11 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <AppProvider>
-              <Stack screenOptions={{ headerShown: false }} />
-            </AppProvider>
+            <ThemeProvider>
+              <AppProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </AppProvider>
+            </ThemeProvider>
           </QueryClientProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
