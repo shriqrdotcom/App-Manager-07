@@ -23,11 +23,11 @@ name = "Start application"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd frontend && yarn expo start --go --tunnel --clear --port 5000"
+args = "cd frontend && yarn expo start --web --port 5000"
 waitForPort = 5000
 
 [[ports]]

@@ -1,52 +1,37 @@
 # Exzibo Manager
 
-A React Native / Expo app for managing restaurant bookings, orders, coupons, analytics, and notification settings. Built with Expo SDK 54, expo-router (file-based routing), Better Auth for authentication, and TanStack Query for data fetching.
+A React Native / Expo restaurant management app built with Expo Router, Better Auth, and React Query.
 
 ## Stack
 
-- **Framework**: Expo 54 (React Native 0.81) + expo-router 6
-- **Auth**: Better Auth (`@better-auth/expo`)
-- **Data fetching**: TanStack Query v5
-- **Animations**: Reanimated 4 + Gesture Handler
-- **Styling**: React Native StyleSheet
+- **Framework**: Expo SDK 54, Expo Router 6 (file-based routing)
+- **Auth**: Better Auth + `@better-auth/expo`
+- **Data fetching**: TanStack React Query
+- **Animations**: React Native Reanimated + Gesture Handler
+- **Language**: TypeScript
 
 ## Project structure
 
 ```
-frontend/          # Expo app root
-  app/
-    (app)/         # Authenticated screens (tabs, booking, orders, analytics, etc.)
-    (auth)/        # Unauthenticated screens (sign-in)
-    auth/          # Better Auth callback route
-  src/
-    api/           # Backend client + bootstrap
-    auth/          # Better Auth client config
-    components/    # Shared UI components
-    config/        # App config (reads EXPO_PUBLIC_BACKEND_URL)
-    hooks/         # Custom hooks
-    providers/     # React context providers
-    storage/       # Secure storage helpers
-    utils/         # Utilities
+frontend/          # Expo app (all app code lives here)
+  app/             # Expo Router pages
+    (app)/         # Authenticated routes (orders, booking, analytics, settings, edit)
+    (auth)/        # Auth routes (sign-in)
   assets/          # Images, fonts
+  components/      # Shared UI components
+  lib/             # Auth client, API helpers
 ```
 
-## Running on Replit
+## How to run
 
-The **Start application** workflow runs:
+Dependencies are installed under `frontend/node_modules`. The workflow runs:
 
-```bash
-cd frontend && yarn expo start --go --tunnel --clear --port 5000
+```
+cd frontend && yarn expo start --web --port 5000
 ```
 
-This starts a Metro bundler with an ngrok tunnel and opens via Expo Go.
-
-## Environment variables
-
-| Variable | Where | Purpose |
-|---|---|---|
-| `EXPO_PUBLIC_BACKEND_URL` | Replit Secrets | Base URL for the backend API (e.g. `https://dashboard.exzibo.online`) |
-| `EXPO_TOKEN` | Replit Secrets | Expo account token (for EAS builds / publish) |
+This serves the app as a web preview on port 5000. To preview on a physical device via Expo Go, switch the workflow command to use `--tunnel` (requires a working ngrok connection).
 
 ## User preferences
 
-- Backend URL: `https://dashboard.exzibo.online`
+- Keep the existing Expo / React Native stack — do not migrate or restructure.
