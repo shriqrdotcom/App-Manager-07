@@ -19,6 +19,10 @@ App is served on port 5000 as an Expo Web build.
 - `EXPO_PUBLIC_ENABLE_DEMO_LOGIN` — set to `"false"` (flip to `"true"` to bypass auth)
 - `EXPO_PUBLIC_PREVIEW_DEMO` — set to `"true"` for demo data in preview
 
+## Setup status
+- Dependencies installed: `cd frontend && yarn install`
+- App verified running on Expo Web (port 5000) with demo data
+
 ## Notes
 - `newArchEnabled` is `false` in `app.json` (required for Expo Go stability — see memory)
 - Dependencies must be installed from `frontend/` directory
