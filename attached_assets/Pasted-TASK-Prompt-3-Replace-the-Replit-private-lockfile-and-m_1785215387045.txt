@@ -1,0 +1,476 @@
+TASK: Prompt 3 — Replace the Replit-private lockfile and make mobile dependency installation reproducible
+
+REPOSITORY
+
+Run only in:
+
+shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+DEPENDENCY ON PROMPT 2
+
+Prompt 2 must already be reviewed and merged into origin/main.
+
+The merged main branch must contain:
+
+- the confirmed permanent Android package
+- the confirmed existing EAS projectId
+- the restored app.json
+- frontend/eas.json
+- development, preview and production build profiles
+- expo-dev-client, if it was safely added
+
+If Prompt 2 is not merged, stop and return BLOCKED.
+
+CURRENT CONFIRMED PROBLEM
+
+The existing frontend/yarn.lock reportedly contains approximately 1,001 URLs using:
+
+http://package-firewall.replit.local/...
+
+This host belongs to the Replit environment and may not be accessible from:
+
+- Expo EAS Build
+- GitHub Actions
+- another developer’s computer
+- a clean production build environment
+
+A dependency installation must not depend on a Replit-only registry.
+
+OBJECTIVE
+
+Create one public, reproducible dependency setup for the Expo mobile application.
+
+The result must:
+
+- use one package manager
+- use one lockfile
+- use HTTPS public package sources
+- preserve current direct dependency versions
+- install successfully with a frozen lockfile
+- install from an empty cache
+- work without previously installed node_modules
+- remain compatible with Expo SDK 54
+- be suitable for EAS Build and future CI
+
+PACKAGE-MANAGER DECISION
+
+Keep:
+
+Yarn Classic 1.22.22
+
+Reasons:
+
+- package.json already declares Yarn 1.22.22
+- the repository already contains yarn.lock
+- the command-guard scripts are designed around Yarn
+- migrating to npm or pnpm would unnecessarily expand this task
+
+Do not migrate package managers in this prompt.
+
+STRICT SAFETY RULES
+
+Do not:
+
+- upgrade Expo
+- upgrade React
+- upgrade React Native
+- upgrade Better Auth
+- upgrade unrelated dependencies
+- change application source code
+- change UI files
+- change authentication
+- change the Android package
+- change the EAS projectId
+- change the deep-link scheme
+- create package-lock.json
+- create pnpm-lock.yaml
+- keep more than one lockfile
+- disable SSL validation
+- use an HTTP package registry
+- add registry credentials
+- commit authentication tokens
+- commit npm tokens
+- expose EXPO_TOKEN
+- expose environment-variable values
+- remove dependency-integrity checks
+- use "--no-lockfile"
+- use "--force" to hide dependency errors
+- use "--legacy-peer-deps"
+- edit dependency versions merely to make installation pass
+- run an EAS build
+- submit anything to Google Play
+- modify the backend repository
+- merge into main
+- force-push, reset or rebase
+- commit generated node_modules, dist, .expo, APK or AAB files
+
+STEP 1 — PREPARE A CLEAN BRANCH
+
+1. Fetch origin.
+2. Confirm the repository is:
+   shriqrdotcom/App-Manager-07
+3. Confirm the working tree is clean.
+4. Switch to main.
+5. Pull origin/main using fast-forward only.
+6. Confirm local main equals origin/main.
+7. Confirm Prompt 2’s EAS configuration exists.
+8. Create:
+
+fix/public-mobile-lockfile
+
+9. Work only in:
+
+frontend
+
+Stop if the branch is stale, dirty or diverged.
+
+STEP 2 — RECORD THE CURRENT DEPENDENCY STATE
+
+Before changing anything, report:
+
+- Node version
+- Yarn version
+- packageManager value
+- Expo SDK version
+- React Native version
+- existing lockfile names
+- current yarn.lock checksum
+- total yarn.lock entries
+- number of Replit-private URLs
+- number of HTTP URLs
+- public registry URLs already present
+- whether frontend/.npmrc exists
+- whether frontend/.yarnrc exists
+- whether expo-dev-client is declared
+- whether package.json contains exact or ranged direct dependency versions
+
+Record the current top-level dependency list and versions for comparison.
+
+Do not print registry authentication values.
+
+If ".npmrc" or ".yarnrc" contains a token, print only:
+
+REGISTRY CREDENTIAL FOUND
+
+Include the filename, but never print the value.
+
+STEP 3 — PIN A COMPATIBLE TOOLCHAIN
+
+Use a Node 20 LTS version compatible with Expo SDK 54.
+
+Requirements:
+
+- Node must be at least 20.19
+- use one exact Node 20 version available to both Replit and EAS
+- prefer Node 20.20.2 if it is confirmed available
+- do not use Node 24 for the reproducibility test
+- use Yarn 1.22.22 through Corepack
+- preserve packageManager as Yarn 1.22.22
+
+Add or update only the necessary configuration:
+
+- frontend/package.json engines.node
+- frontend/package.json packageManager
+- frontend/.nvmrc
+- the Node version in every EAS build profile
+
+The acceptable Node engine range should remain within Node 20, for example:
+
+«=20.19.0 <21»
+
+Do not blindly use this example if the current valid JSON structure requires different formatting.
+
+Ensure the same exact Node version is used by:
+
+- development EAS profile
+- preview EAS profile
+- production EAS profile
+- clean-install validation
+
+Do not change any EAS identity values.
+
+STEP 4 — CONFIGURE PUBLIC REGISTRY SOURCES
+
+Configure the project to use an HTTPS public npm registry.
+
+Update or create:
+
+frontend/.npmrc
+
+It must contain safe non-secret configuration equivalent to:
+
+- public HTTPS npm registry
+- save exact direct dependencies
+- strict SSL enabled
+
+Create:
+
+frontend/.yarnrc
+
+It must configure Yarn Classic to use a public HTTPS registry with strict SSL.
+
+Acceptable public registry hosts include:
+
+- registry.npmjs.org
+- registry.yarnpkg.com
+
+Do not add:
+
+- package-firewall.replit.local
+- localhost
+- private IP addresses
+- HTTP registries
+- auth tokens
+- username/password URLs
+- SSL bypasses
+
+Do not replace the user’s global registry configuration. Configure only the project files.
+
+STEP 5 — REGENERATE THE LOCKFILE SAFELY
+
+Use the pinned Node 20 version and Yarn 1.22.22.
+
+1. Preserve package.json direct dependency versions.
+2. Do not edit dependency ranges before regeneration.
+3. Remove only the task-owned frontend/yarn.lock on the feature branch.
+4. Use an empty temporary Yarn cache.
+5. Regenerate yarn.lock using the configured public HTTPS registry.
+6. Do not use existing node_modules as evidence of success.
+7. Do not use Replit’s package firewall as the resolved lockfile host.
+8. Do not manually invent package integrity hashes.
+9. Do not copy a lockfile from another unrelated project.
+10. Do not add or remove dependencies during regeneration.
+
+If Replit rewrites the newly generated lockfile back to:
+
+package-firewall.replit.local
+
+stop immediately.
+
+Do not commit another Replit-private lockfile.
+
+Restore the task-owned files to the branch’s starting state and return BLOCKED with:
+
+PUBLIC LOCKFILE GENERATION REQUIRES A NON-REPLIT ENVIRONMENT
+
+Do not mechanically replace the hostname unless package integrity and a completely clean public-registry installation can independently verify every resulting entry. Fresh public-registry regeneration is the required primary method.
+
+STEP 6 — AUDIT THE NEW LOCKFILE
+
+Inspect the regenerated lockfile.
+
+The new lockfile must have:
+
+- zero package-firewall.replit.local URLs
+- zero localhost URLs
+- zero private IP URLs
+- zero registry URLs containing credentials
+- zero plain HTTP package URLs
+- public HTTPS tarball URLs
+- integrity information for registry packages
+- no unresolved Git conflict markers
+
+Compare the previous and new dependency graphs.
+
+Confirm:
+
+- every direct dependency from package.json remains present
+- direct dependency versions did not change
+- Expo version did not change
+- React version did not change
+- React Native version did not change
+- Better Auth versions did not change
+- expo-dev-client remains present if Prompt 2 added it
+- no dependency was silently removed
+- no unexpected major-version change occurred
+
+Report:
+
+- previous lockfile entry count
+- new lockfile entry count
+- packages added
+- packages removed
+- version changes
+- reason for every meaningful transitive change
+
+If regeneration causes an unexplained large dependency-graph change, stop before committing and return BLOCKED FOR REVIEW.
+
+Do not hide dependency drift.
+
+STEP 7 — CLEAN REPRODUCIBILITY TEST
+
+Create a temporary directory outside the repository using a safe temporary-directory command.
+
+Copy the current frontend project into it while excluding:
+
+- node_modules
+- .expo
+- dist
+- caches
+- environment files
+- APKs
+- AABs
+
+The temporary copy must include the regenerated lockfile and required installation scripts.
+
+Using:
+
+- the pinned Node 20 version
+- Yarn 1.22.22
+- an empty Yarn cache
+- no existing node_modules
+- the public HTTPS registry
+
+Run a normal frozen installation:
+
+yarn install --frozen-lockfile --non-interactive
+
+Requirements:
+
+- installation exits successfully
+- yarn.lock is not modified
+- package.json is not modified
+- no second lockfile is created
+- install scripts complete successfully
+- the command guard completes successfully
+- no package is downloaded from package-firewall.replit.local
+- no package is downloaded over plain HTTP
+
+Then run in the clean copy:
+
+- Yarn integrity verification, where supported
+- Expo dependency compatibility check
+- Expo public configuration inspection
+- EAS configuration validation for development
+- EAS configuration validation for preview
+- EAS configuration validation for production
+
+Do not print environment-variable values.
+
+Delete the temporary validation directory after collecting the results.
+
+Do not delete anything inside the real repository.
+
+STEP 8 — REPOSITORY VALIDATION
+
+In the real frontend directory, run:
+
+1. Frozen Yarn install
+2. Expo dependency compatibility check
+3. git diff --check
+4. JSON validation for package.json, app.json and eas.json
+5. EAS profile validation for:
+   - development
+   - preview
+   - production
+6. Search the complete tracked mobile repository for:
+   - package-firewall.replit.local
+   - plain HTTP registry URLs
+   - multiple lockfiles
+   - registry credentials
+   - EXPO_TOKEN values
+   - npm authentication tokens
+
+Do not expose any secret value found.
+
+Do not fix unrelated TypeScript, UI, adaptive-icon or feature problems in this prompt.
+
+Those belong to later prompts.
+
+STEP 9 — REVIEW ALLOWED FILES
+
+Expected changed files are limited to:
+
+- frontend/yarn.lock
+- frontend/.npmrc
+- frontend/.yarnrc
+- frontend/.nvmrc
+- frontend/package.json
+- frontend/eas.json
+
+Only toolchain and package-manager fields may change in package.json and eas.json.
+
+Do not commit changes to:
+
+- application source files
+- UI files
+- app identity fields
+- Android package
+- EAS projectId
+- authentication
+- backend files
+- .env files
+- credentials
+- service-account JSON
+- keystores
+- APKs
+- AABs
+- node_modules
+- dist
+- .expo
+- android
+- ios
+- attached_assets
+- prompt or report files
+- unrelated Replit configuration
+
+If any unrelated file changed, stop before committing.
+
+STEP 10 — COMMIT AND PUSH
+
+Only after every lockfile and clean-install requirement passes:
+
+1. Commit as:
+
+build: make mobile installs reproducible
+
+2. Push only to:
+
+origin/fix/public-mobile-lockfile
+
+Do not merge into main.
+
+Do not run an EAS production build.
+
+FINAL RESPONSE
+
+Return only:
+
+1. Repository and branch
+2. Starting and final commit
+3. Selected Node and Yarn versions
+4. Package-manager decision
+5. Files changed
+6. Old lockfile audit
+7. New lockfile audit
+8. Private URL count before and after
+9. Dependency graph comparison
+10. Clean temporary installation result
+11. Frozen installation result
+12. Expo dependency check
+13. EAS profile validation
+14. Secret and registry-credential check
+15. Generated-file check
+16. Commit hash and push result
+17. Remaining blockers for Prompt 4
+18. Final result:
+    - PASS
+    - BLOCKED
+    - or BLOCKED FOR REVIEW
+
+PASS is allowed only when:
+
+- Yarn 1.22.22 is the only package manager
+- yarn.lock is the only lockfile
+- the lockfile contains no Replit-private URLs
+- all registry URLs use HTTPS
+- direct dependency versions are preserved
+- a clean frozen installation succeeds from an empty cache
+- the EAS profiles validate
+- no secrets or generated builds are committed
+
+Do not merge, build or submit anything in this task.
