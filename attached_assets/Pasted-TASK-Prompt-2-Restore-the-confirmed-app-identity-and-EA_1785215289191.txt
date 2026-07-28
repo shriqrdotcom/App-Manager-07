@@ -1,0 +1,400 @@
+TASK: Prompt 2 — Restore the confirmed app identity and EAS build configuration
+
+REPOSITORY
+
+Run only in:
+
+shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+DEPENDENCY ON PROMPT 1
+
+Use the exact confirmed values from the completed Prompt 1 report:
+
+- Expo owner
+- Expo slug
+- existing EAS projectId
+- permanent Android package
+- deep-link scheme
+- user-facing app version
+- existing EAS Android version information
+- Play Console verification status
+
+Do not use historical values as facts unless Prompt 1 confirmed them.
+
+STOP CONDITIONS
+
+Do not make any changes if:
+
+- Prompt 1 returned BLOCKED
+- the Android package is still uncertain
+- the Play Console contains a different application package
+- the EAS projectId is missing
+- the EAS project does not exist
+- the current Expo account cannot access the confirmed EAS project
+- more than one possible EAS project remains
+- the working tree is dirty
+- local main differs from origin/main
+- the existing Play versionCode cannot be determined for an already-uploaded application
+
+Return BLOCKED and explain the missing verification.
+
+OBJECTIVE
+
+Restore the current Expo application to the already confirmed EAS project and Android identity.
+
+Configure three Android build profiles:
+
+1. Development APK for Replit and Metro testing
+2. Standalone preview APK for physical-device testing without Metro
+3. Production AAB for Google Play
+
+Do not create a new Expo project, EAS project, Play Console application or signing credential.
+
+STRICT SAFETY RULES
+
+Do not:
+
+- run eas init
+- run eas project:init
+- run eas project:create
+- create a duplicate EAS project
+- guess or generate a projectId
+- change to an unconfirmed Android package
+- create a new keystore
+- replace an existing keystore
+- run eas credentials
+- run an EAS build
+- submit anything to Google Play
+- run eas submit
+- modify the backend repository
+- modify authentication logic
+- modify API endpoints
+- change the Google OAuth flow
+- change the application UI
+- add expo-updates
+- add EAS Update channels
+- add runtimeVersion
+- add an updates URL
+- expose EXPO_TOKEN
+- expose environment-variable values
+- expose EAS credentials or signing information
+- commit ".env", credentials, APK, AAB or generated native directories
+- merge into main
+- force-push, reset or rebase
+- modify unrelated files
+
+STEP 1 — PREPARE THE BRANCH
+
+1. Fetch origin.
+2. Confirm the repository is:
+   shriqrdotcom/App-Manager-07
+3. Confirm the working tree is clean.
+4. Switch to main.
+5. Update main from origin/main using fast-forward only.
+6. Confirm local main equals origin/main.
+7. Create this branch:
+
+fix/restore-mobile-eas-config
+
+8. Work only inside the existing Expo project:
+
+frontend
+
+Do not proceed from a stale, dirty or diverged branch.
+
+STEP 2 — REVERIFY THE CONFIRMED IDENTITY
+
+Before editing, compare the Prompt 1 result with the accessible EAS project.
+
+Confirm all of these agree:
+
+- Expo owner
+- Expo slug
+- EAS projectId
+- Android package
+- app name
+- deep-link scheme
+
+Use read-only EAS project information commands.
+
+Do not continue if the EAS account or project does not match Prompt 1.
+
+Do not print tokens, credentials or keystore information.
+
+STEP 3 — RESTORE APP.JSON
+
+Update only the required identity and Android release fields in:
+
+frontend/app.json
+
+Preserve all unrelated current configuration, plugins, splash-screen settings, icon paths, colors, orientation, router settings and UI settings.
+
+Set the following using the exact Prompt 1 values:
+
+- expo.name
+- expo.slug
+- expo.owner
+- expo.scheme
+- expo.android.package
+- expo.extra.eas.projectId
+
+VERSION RULES
+
+1. Preserve the confirmed user-facing version from Prompt 1.
+2. If Prompt 1 confirmed that no APK or AAB has ever been uploaded to Google Play, use:
+   version: 1.0.0
+3. If a Play release already exists, do not lower or reset its version.
+4. Never reuse a Play versionCode.
+5. Do not guess the next versionCode.
+6. EAS remote version management will be the authoritative source for Android versionCode.
+7. Do not change the existing EAS remote version in this task.
+8. If an existing Play version cannot be compared with the EAS remote version, stop and return BLOCKED.
+
+ANDROID IDENTITY RULES
+
+- The Android package must exactly match Prompt 1.
+- Do not use "com.emergent.appmanager.ld40cy" unless Prompt 1 proved it is the existing permanent Play/EAS package.
+- Do not automatically use "online.exzibo.manager" unless Prompt 1 confirmed it.
+- Keep the confirmed "exzibo-manager" scheme only when Prompt 1 verified it.
+- Do not change the iOS bundleIdentifier unless Prompt 1 separately confirmed the permanent iOS identity.
+- Do not add unnecessary Android permissions.
+
+Do not write placeholders such as:
+
+- YOUR_PROJECT_ID
+- YOUR_OWNER
+- CONFIRMED_PACKAGE
+
+If any exact value is unavailable, stop.
+
+STEP 4 — RESTORE EAS.JSON
+
+Create or restore:
+
+frontend/eas.json
+
+It must be beside "frontend/package.json".
+
+Use valid current EAS configuration with:
+
+- remote app-version management
+- Git commit requirement for builds
+- development profile
+- preview profile
+- production profile
+- production submission profile
+
+Required behavior:
+
+CLI
+
+- appVersionSource: remote
+- requireCommit: true
+
+DEVELOPMENT PROFILE
+
+- developmentClient: true
+- distribution: internal
+- Android output: APK
+- EAS environment: development
+- never intended for Play Store submission
+
+PREVIEW PROFILE
+
+- no development client
+- distribution: internal
+- Android output: APK
+- EAS environment: preview
+- must work without Replit or Metro
+- never intended for Play Store submission
+
+PRODUCTION PROFILE
+
+- Android output: app bundle/AAB
+- EAS environment: production
+- autoIncrement: true
+- no development tools
+- intended for Google Play
+
+SUBMIT PROFILE
+
+- create only a production submission profile
+- do not include credentials
+- do not automatically submit
+- do not select a production rollout percentage
+- do not configure a Play service-account file in Git
+
+Use this behavior, but validate the final JSON against the currently installed EAS schema instead of copying an outdated schema blindly.
+
+Do not add Expo Update channels because expo-updates is not currently part of this task.
+
+STEP 5 — DEVELOPMENT CLIENT DEPENDENCY
+
+Check whether "expo-dev-client" is already declared in:
+
+frontend/package.json
+
+If it is already present:
+
+- preserve its Expo-compatible version
+
+If it is missing:
+
+1. Confirm the development profile requires it.
+2. Add it using the Expo SDK-compatible installer from inside frontend.
+3. Use the repository’s existing package manager.
+4. Update the matching lockfile normally.
+5. Do not upgrade Expo or unrelated dependencies.
+6. Do not manually invent the dependency version.
+7. Do not create a second lockfile.
+
+If the existing Replit-private lockfile prevents this safe installation, stop this dependency step and report it clearly. Do not regenerate the entire lockfile here because Prompt 3 is responsible for lockfile portability.
+
+The EAS identity configuration may be completed, but final status must be NEEDS PROMPT 3 if the required dependency cannot be recorded safely.
+
+STEP 6 — EAS ENVIRONMENT CHECK
+
+Check only whether these EAS environments exist:
+
+- development
+- preview
+- production
+
+For each environment, check whether this variable name exists:
+
+EXPO_PUBLIC_BACKEND_URL
+
+Do not print its value.
+
+Rules:
+
+- do not copy Replit secrets into files
+- do not create or change EAS environment variables in this task
+- do not add backend secrets to EAS
+- do not add DATABASE_URL
+- do not add Better Auth secrets
+- do not add R2, Upstash or realtime secrets
+- do not add Google client secrets
+
+If "EXPO_PUBLIC_BACKEND_URL" is missing, report the environment where it is missing. Do not expose or invent its value.
+
+STEP 7 — VALIDATE THE RESTORED CONFIGURATION
+
+Run safe validation only.
+
+From frontend:
+
+1. Parse app.json successfully.
+2. Parse eas.json successfully.
+3. Run Expo public configuration inspection.
+4. Report only the selected non-secret identity fields.
+5. Validate all three EAS profiles:
+   - development
+   - preview
+   - production
+6. Confirm EAS project information resolves to the exact existing projectId.
+7. Run Expo dependency compatibility check.
+8. Run git diff --check.
+9. Confirm no generated android or ios directory was created.
+10. Confirm no APK, AAB, credentials or environment file was created.
+11. Confirm no secret value appears in the diff.
+
+Do not run an EAS build in this prompt.
+
+Do not treat the existing TypeScript or adaptive-icon failures as part of this prompt. Those belong to later focused repair prompts, but report them if validation encounters them.
+
+EXPECTED FINAL CONFIGURATION
+
+The final configuration must provide:
+
+Purpose| Profile| Android format
+Replit/Metro development| development| APK with development client
+Standalone device QA| preview| APK without development client
+Google Play| production| AAB
+
+The production profile must never produce an APK.
+
+STEP 8 — REVIEW THE DIFF
+
+Before committing, confirm the diff contains only expected files such as:
+
+- frontend/app.json
+- frontend/eas.json
+- frontend/package.json, only if expo-dev-client was required
+- frontend/yarn.lock, only if safely updated for expo-dev-client
+
+Do not commit:
+
+- .env files
+- EXPO_TOKEN
+- service-account JSON
+- credentials.json
+- google-services.json unless it was already intentionally tracked and Prompt 1 approved it
+- keystores
+- JKS files
+- APK files
+- AAB files
+- dist
+- .expo
+- android
+- ios
+- attached_assets
+- prompt files
+- reports
+- unrelated Replit configuration
+
+If unrelated changes exist, stop before committing.
+
+STEP 9 — COMMIT AND PUSH
+
+Only when identity and EAS validation pass:
+
+1. Commit as:
+
+chore: restore Android EAS configuration
+
+2. Push only to:
+
+origin/fix/restore-mobile-eas-config
+
+Do not merge the branch.
+
+Do not create a production build.
+
+FINAL RESPONSE
+
+Return only:
+
+1. Repository, branch and commit
+2. Prompt 1 identity values used
+3. Current versus restored identity table
+4. Files changed
+5. EAS project linking result
+6. Development profile summary
+7. Preview profile summary
+8. Production profile summary
+9. Version-management strategy
+10. EAS environment-name check without values
+11. expo-dev-client result
+12. Validation results
+13. Secret and generated-file check
+14. Commit hash and push result
+15. Remaining blockers for Prompt 3
+16. Final result:
+    - PASS
+    - NEEDS PROMPT 3
+    - or BLOCKED
+
+PASS is allowed only when:
+
+- the exact existing EAS project is linked
+- the confirmed permanent package is restored
+- all profiles validate
+- no identity conflict remains
+- no secret or generated build file is committed
+
+Do not build, submit or merge anything in this task.
