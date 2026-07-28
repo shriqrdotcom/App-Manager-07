@@ -1,0 +1,301 @@
+TASK: Prompt 1 — Inspect and recover the existing EAS identity
+
+REPOSITORY
+
+Run only in:
+
+shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+This is a read-only investigation. Do not repair or modify anything in this task.
+
+OBJECTIVE
+
+Determine the correct existing Expo EAS project and permanent Android package before any Play Store configuration.
+
+The investigation must prevent:
+
+- creating a duplicate Expo project
+- connecting to the wrong EAS project
+- publishing with an Emergent-generated package
+- losing existing Android credentials
+- breaking Google authentication
+- changing the deep-link scheme
+
+KNOWN HISTORICAL INFORMATION
+
+Treat the following only as leads. Independently verify everything from Git history, current files and available EAS account evidence:
+
+- App name: Exzibo Manager
+- Expo slug: exzibo-manager
+- Deep-link scheme: exzibo-manager
+- Previously intended Android package: online.exzibo.manager
+- Previously used Expo organization: app-manager-07s-team
+- Current app directory: frontend
+- Current frontend/app.json reportedly contains:
+  com.emergent.appmanager.ld40cy
+- The current main branch reportedly has no eas.json or EAS projectId
+
+STRICT SAFETY RULES
+
+Do not:
+
+- modify, create, delete, move or format files
+- change app.json
+- create eas.json
+- run eas init
+- run eas project:init
+- run eas project:create
+- create another Expo project
+- run an EAS build
+- run eas credentials
+- generate or replace a keystore
+- submit anything to Google Play
+- install or upgrade packages
+- create a branch
+- commit, push, merge, reset, rebase or force-push
+- change environment variables
+- expose EXPO_TOKEN
+- expose EAS authentication tokens
+- expose keystores, passwords, cookies or credentials
+- print .env contents
+- print Google service-account JSON
+- guess an EAS project ID
+- claim a Play Store package is confirmed without Play Console evidence
+
+If authentication is required, report that authentication is needed. Never ask for or print a token value.
+
+STEP 1 — VERIFY THE REPOSITORY
+
+1. Fetch origin without modifying application files.
+2. Confirm the repository is:
+   shriqrdotcom/App-Manager-07
+3. Report:
+   - current branch
+   - current commit
+   - origin/main commit
+   - whether the working tree is clean
+   - whether local main differs from origin/main
+4. If the working tree is not clean, stop without stashing, resetting or deleting anything.
+5. Do not print a remote URL if it contains embedded credentials. Report only the repository owner and name.
+
+STEP 2 — INSPECT THE CURRENT APPLICATION IDENTITY
+
+Inspect only relevant configuration files, including:
+
+- frontend/app.json
+- frontend/app.config.js or app.config.ts, if present
+- frontend/package.json
+- eas.json at repository root or inside frontend, if present
+- .eas configuration, if present
+- Android Gradle configuration, only if an android directory exists
+- relevant non-secret documentation
+
+Using Expo’s public configuration output if available, report only:
+
+- app name
+- Expo slug
+- Expo owner
+- Expo projectId
+- app version
+- Android versionCode
+- Android package
+- deep-link scheme
+- EAS Update URL
+- runtimeVersion
+- update channel information
+
+Do not dump the complete environment or configuration.
+
+STEP 3 — SEARCH GIT HISTORY
+
+Search all local and remote Git history without checking out old branches.
+
+Find every historical occurrence of:
+
+- online.exzibo.manager
+- com.emergent.appmanager.ld40cy
+- exzibo-manager
+- app-manager-07s-team
+- extra.eas.projectId
+- projectId
+- eas.json
+- developmentClient
+- android.buildType
+- expo-dev-client
+
+Inspect:
+
+- merged commits
+- deleted remote branch history that is still reachable
+- tags
+- remote branches
+- relevant local reflog entries, if available
+- earlier versions of app.json and eas.json
+
+For every identity found, report:
+
+- value
+- file
+- commit hash
+- commit date
+- branch or tag, when known
+- whether it was merged into main
+- whether it appears generated, temporary or intentional
+
+Do not restore any file during this task.
+
+STEP 4 — INSPECT AVAILABLE EAS ACCOUNT EVIDENCE
+
+Use only existing, non-mutating EAS CLI commands.
+
+1. Run eas whoami if EAS CLI is already available.
+2. Do not install EAS CLI if it is unavailable.
+3. If the current configuration is linked, run the read-only EAS project information command.
+4. If a historical projectId is found in Git, use safe read-only methods to determine whether that project still exists and whether the authenticated account can access it.
+5. Inspect accessible non-secret build metadata only when it can be done without changing the project.
+
+Report:
+
+- authenticated Expo account or organization
+- whether the account can access app-manager-07s-team
+- existing project name
+- existing project slug
+- existing projectId
+- Android package associated with previous builds
+- whether Android build history exists
+- whether development, preview or production builds exist
+- whether the current repository is linked to that project
+- whether access is blocked by missing authentication
+
+Do not display build credentials or signing material.
+
+STEP 5 — DETERMINE GOOGLE PLAY VERIFICATION STATUS
+
+Search repository history and safe documentation for evidence of:
+
+- a previously created Play Console application
+- an uploaded APK or AAB package name
+- Google OAuth Android client configuration
+- package-name references
+- SHA-1 or SHA-256 registration instructions
+
+Do not treat repository text alone as proof that an app exists in Play Console.
+
+Apply this authority order:
+
+1. Existing Google Play application package
+2. Existing EAS project with Android credentials and build history
+3. Previously merged intentional application configuration
+4. Current generated configuration
+5. Unverified notes or assumptions
+
+If Play Console cannot be inspected safely, mark:
+
+RUNTIME VERIFICATION REQUIRED
+
+Then tell the user exactly where to check manually:
+
+Play Console
+→ select the application
+→ Setup
+→ App integrity
+→ confirm application ID/package
+
+Do not request Play Console credentials.
+
+STEP 6 — CHECK FOR IDENTITY CONFLICTS
+
+Explicitly compare:
+
+- online.exzibo.manager
+- com.emergent.appmanager.ld40cy
+- every other package found
+
+Determine:
+
+- whether online.exzibo.manager belonged to the earlier validated EAS project
+- whether the Emergent package was introduced later
+- whether either package has an existing Play Store upload
+- whether changing back would affect Google OAuth
+- whether the exzibo-manager callback scheme remained consistent
+- whether a duplicate EAS project may already exist
+
+Do not change either package.
+
+STEP 7 — SECRET AND CREDENTIAL SAFETY CHECK
+
+Report filenames only for any tracked:
+
+- .env files
+- EXPO_TOKEN value
+- Google service-account JSON
+- google-services.json
+- credentials.json
+- keystore
+- JKS file
+- PEM, P8 or P12 file
+- APK or AAB
+
+Do not print their contents.
+
+If an actual secret value is tracked, report:
+
+SECRET EXPOSURE SUSPECTED
+
+Include only:
+
+- filename
+- secret type
+- Git-history status
+- required rotation category
+
+Never display the secret value.
+
+FINAL DECISION RULES
+
+Return IDENTITY CONFIRMED only when enough evidence identifies one existing EAS project and one Android package without an unresolved Play Console conflict.
+
+Return NEEDS USER VERIFICATION when:
+
+- the likely EAS identity is found
+- but the Play Console package cannot be confirmed
+
+Return BLOCKED when:
+
+- EAS authentication is unavailable
+- important Git history is unavailable
+- multiple conflicting projects exist
+- or the permanent package cannot be determined safely
+
+FINAL RESPONSE
+
+Return only these sections:
+
+1. Repository verification
+2. Current identity table
+3. Historical identity evidence
+4. Existing EAS project evidence
+5. Google Play verification status
+6. Package conflict analysis
+7. Secret and credential filename check
+8. Recommended canonical identity
+9. Confidence: High, Medium or Low
+10. Manual verification required
+11. Exact non-secret values needed for Prompt 2:
+    - Expo owner
+    - Expo slug
+    - existing projectId
+    - Android package
+    - deep-link scheme
+    - app directory
+12. Files that Prompt 2 will probably need to change
+13. Final result:
+    IDENTITY CONFIRMED
+    NEEDS USER VERIFICATION
+    or BLOCKED
+
+Do not make any changes, even if the correct solution appears obvious.
