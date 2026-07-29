@@ -52,7 +52,7 @@ function makeStyles(colors: ThemePalette) {
     tabBtnActive: { backgroundColor: colors.primary },
     tabText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
 
-    statusRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
+    statusRow: { flexDirection: 'row', paddingLeft: 20, paddingRight: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
     statusChip: {
       paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
       backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, flexShrink: 0,
