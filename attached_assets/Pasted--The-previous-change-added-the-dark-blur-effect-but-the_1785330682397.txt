@@ -1,0 +1,169 @@
+The previous change added the dark blur effect, but the original solid header background is still visible. Please fix the actual header container now. 
+
+
+
+The restaurant logo, restaurant name, subtitle, and three-dot button should float directly over the page. There must not be any large rectangular background, card, dark strip, divider, or visible header box behind them.
+
+
+
+### Fix the real source of the background
+
+
+
+Inspect the complete header component and all of its parent wrappers. Remove the background from every layer that controls the header, including:
+
+
+
+* Header root container
+
+* Safe-area wrapper
+
+* Navigation header
+
+* Parent `View`
+
+* Sticky header wrapper
+
+* Absolute-positioned header layer
+
+* Blur wrapper
+
+* Gradient wrapper
+
+* Any card or surface container behind the header
+
+
+
+Set all of those structural header backgrounds to transparent:
+
+
+
+```tsx
+
+backgroundColor: 'transparent'
+
+```
+
+
+
+Also remove any remaining header decoration:
+
+
+
+```tsx
+
+borderBottomWidth: 0
+
+borderWidth: 0
+
+elevation: 0
+
+shadowOpacity: 0
+
+```
+
+
+
+For Expo Router or React Navigation, also check the route configuration and use the correct transparent-header settings, such as:
+
+
+
+```tsx
+
+headerTransparent: true
+
+headerShadowVisible: false
+
+```
+
+
+
+Do not leave a solid `#000000`, `#141414`, `#212121`, card colour, or theme surface colour on the full-width header wrapper.
+
+
+
+### Keep only the floating elements
+
+
+
+The following elements should remain visible:
+
+
+
+* Circular restaurant logo
+
+* Restaurant name
+
+* Restaurant subtitle
+
+* Circular three-dot button
+
+
+
+These elements can keep their own small individual backgrounds where already required, but they must not sit inside one visible full-width header card.
+
+
+
+The restaurant information itself should appear directly over the page background.
+
+
+
+### Blur effect
+
+
+
+Keep the subtle top blur effect, but make sure the blur does not look like another rectangular header background.
+
+
+
+The blur layer should:
+
+
+
+* Be positioned absolutely behind the floating header content
+
+* Be translucent
+
+* Have no border
+
+* Have no solid background
+
+* Fade softly toward the bottom
+
+* Cover only the top safe-area and header region
+
+* Not create a hard horizontal edge
+
+
+
+The actual page should remain visible through the blur.
+
+
+
+### Final expected appearance
+
+
+
+The top area should look like this:
+
+
+
+* No visible header rectangle
+
+* No dark strip behind the restaurant name
+
+* No bottom divider line
+
+* No card surrounding the complete header
+
+* Restaurant details floating on the left
+
+* Three-dot button floating on the right
+
+* Soft blur and depth near the top
+
+* Page content visually continuing behind the header
+
+
+
+Do not change the header content, typography, spacing, icons, three-dot functionality, navigation, or page layout. Only remove the remaining solid header background and make the entire header truly transparent and floating.
