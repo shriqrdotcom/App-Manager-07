@@ -36,13 +36,6 @@ const THEMES: {
     color: '#8B5CF6',
   },
   {
-    key: 'light',
-    label: 'Light',
-    desc: 'Bright background, great in daylight',
-    icon: 'sun',
-    color: '#F59E0B',
-  },
-  {
     key: 'system',
     label: 'System default',
     desc: 'Follows your device appearance setting',
