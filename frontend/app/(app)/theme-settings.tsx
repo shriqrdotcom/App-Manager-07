@@ -103,31 +103,6 @@ export default function ThemeSettings() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Preview swatch */}
-        <View style={styles.section}>
-          <View style={styles.previewCard}>
-            <View style={styles.previewDots}>
-              <View style={[styles.previewDot, { backgroundColor: '#EF4444' }]} />
-              <View style={[styles.previewDot, { backgroundColor: '#F59E0B' }]} />
-              <View style={[styles.previewDot, { backgroundColor: '#22C55E' }]} />
-            </View>
-            <View style={styles.previewRow}>
-              <View style={[styles.previewBar, { width: '55%', backgroundColor: colors.border }]} />
-              <View style={[styles.previewBar, { width: '30%', backgroundColor: '#8B5CF6', opacity: 0.7 }]} />
-            </View>
-            <View style={styles.previewRow}>
-              <View style={[styles.previewBar, { width: '40%', backgroundColor: colors.border }]} />
-              <View style={[styles.previewBar, { width: '20%', backgroundColor: colors.border }]} />
-            </View>
-            <View style={styles.previewRow}>
-              <View style={[styles.previewBar, { width: '65%', backgroundColor: colors.border }]} />
-            </View>
-            <Text style={styles.previewLabel}>
-              {THEMES.find((t) => t.key === preference)?.label ?? 'Dark'}
-            </Text>
-          </View>
-        </View>
-
         {/* Options */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>APPEARANCE</Text>
