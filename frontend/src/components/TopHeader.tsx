@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -153,6 +154,16 @@ export default function TopHeader({
 
   return (
     <View style={[styles.outer, { paddingTop: insets.top }]} testID="top-header">
+      <LinearGradient
+        colors={[
+          isDark ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.38)',
+          isDark ? 'rgba(0,0,0,0.38)' : 'rgba(0,0,0,0.16)',
+          'rgba(0,0,0,0)',
+        ]}
+        locations={[0, 0.55, 1]}
+        style={styles.blurGradient}
+        pointerEvents="none"
+      />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.row}>
         <View style={styles.left}>
@@ -220,6 +231,15 @@ export default function TopHeader({
 const styles = StyleSheet.create({
   outer: {
     backgroundColor: 'transparent',
+    position: 'relative',
+  },
+  blurGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    zIndex: 0,
   },
   row: {
     flexDirection: 'row',
