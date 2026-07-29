@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
@@ -52,7 +52,7 @@ function makeStyles(colors: ThemePalette) {
     tabBtnActive: { backgroundColor: colors.primary },
     tabText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
 
-    statusRow: { flexDirection: 'row', paddingLeft: 20, paddingRight: 20, paddingTop: 6, gap: 8, paddingBottom: 12, alignItems: 'center' },
+    statusRow: { flexDirection: 'row', paddingLeft: 20, paddingRight: 20, paddingTop: 4, paddingBottom: 12, gap: 8, alignItems: 'center' },
     statusChip: {
       paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
       backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, flexShrink: 0,
@@ -194,7 +194,7 @@ export default function EditMenu() {
       </View>
 
       {/* Status filters */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statusRow}>
+      <View style={styles.statusRow}>
         {(['all', 'active', 'paused'] as StatusFilter[]).map((s) => {
           const active = status === s;
           return (
@@ -210,7 +210,7 @@ export default function EditMenu() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
       {tab === 'items' ? (
         <FlatList
