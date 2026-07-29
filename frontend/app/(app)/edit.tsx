@@ -84,10 +84,17 @@ function makeStyles(colors: ThemePalette) {
       borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
     },
 
-    comboImg: {
-      width: 72, height: 72, borderRadius: 12, backgroundColor: colors.muted,
-      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
+    comboBanner: {
+      width: '100%', height: 120, borderRadius: 12, overflow: 'hidden',
+      backgroundColor: colors.muted, alignItems: 'center', justifyContent: 'center',
     },
+    comboBannerOverlay: {
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      paddingHorizontal: 12, paddingVertical: 8,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
+    comboBannerName: { color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 },
     oldPrice: { color: colors.mutedForeground, fontSize: 12, textDecorationLine: 'line-through' },
     saveBadge: { backgroundColor: '#22C55E22', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
     saveText: { color: '#4ADE80', fontSize: 10, fontWeight: '700' },
@@ -304,31 +311,34 @@ function ItemCard({ item, onToggle, colors, styles }: { item: MenuItem; onToggle
 function ComboCard({ combo, onToggle, onAction, colors, styles }: { combo: Combo; onToggle: () => void; onAction: (m: string) => void; colors: ThemePalette; styles: StylesType }) {
   const saving = combo.oldPrice - combo.price;
   return (
-    <Card style={{ marginHorizontal: 20, gap: 12 }} testID={`combo-${combo.id}`}>
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        <View style={styles.comboImg}>
-          <Text style={{ fontSize: 32 }}>{combo.emoji}</Text>
-        </View>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={styles.itemName} numberOfLines={1}>{combo.name}</Text>
-            <View style={[styles.statusDotPill, { backgroundColor: combo.active ? '#22C55E22' : '#8A8A8E22' }]}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: combo.active ? '#4ADE80' : colors.mutedForeground }}>
-                {combo.active ? 'Active' : 'Paused'}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.itemCategory} numberOfLines={2}>{combo.items.join(' · ')}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-            <Text style={styles.itemPrice}>₹{combo.price}</Text>
-            <Text style={styles.oldPrice}>₹{combo.oldPrice}</Text>
-            <View style={styles.saveBadge}>
-              <Text style={styles.saveText}>Save ₹{saving}</Text>
-            </View>
+    <Card style={{ marginHorizontal: 20, gap: 0, overflow: 'hidden', padding: 0 }} testID={`combo-${combo.id}`}>
+      {/* Full-width banner */}
+      <View style={styles.comboBanner}>
+        <Text style={{ fontSize: 56 }}>{combo.emoji}</Text>
+        <View style={styles.comboBannerOverlay}>
+          <Text style={styles.comboBannerName} numberOfLines={1}>{combo.name}</Text>
+          <View style={[styles.statusDotPill, { backgroundColor: combo.active ? '#22C55E44' : '#8A8A8E33' }]}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: combo.active ? '#4ADE80' : '#aaa' }}>
+              {combo.active ? 'Active' : 'Paused'}
+            </Text>
           </View>
         </View>
       </View>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+
+      {/* Info */}
+      <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
+        <Text style={styles.itemCategory} numberOfLines={2}>{combo.items.join(' · ')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+          <Text style={styles.itemPrice}>₹{combo.price}</Text>
+          <Text style={styles.oldPrice}>₹{combo.oldPrice}</Text>
+          <View style={styles.saveBadge}>
+            <Text style={styles.saveText}>Save ₹{saving}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Actions */}
+      <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14, paddingTop: 6 }}>
         <TouchableOpacity style={styles.ghostAction} testID={`combo-edit-${combo.id}`}>
           <Feather name="edit-2" size={13} color={colors.foreground} />
           <Text style={styles.ghostActionText}>Edit</Text>
