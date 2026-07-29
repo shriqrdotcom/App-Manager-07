@@ -21,8 +21,6 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../providers/AppProvider';
 import { useTheme } from '../providers/ThemeProvider';
 
@@ -152,39 +150,10 @@ export default function TopHeader({
   }));
 
   const isDark = resolvedTheme === 'dark';
-  // Barely-there gradient — only to soften the bottom edge of the blur region.
-  // This is NOT a background; keep opacity very low.
-  const gradientColors = isDark
-    ? (['rgba(0,0,0,0.14)', 'rgba(0,0,0,0.04)', 'rgba(0,0,0,0)'] as const)
-    : (['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0)'] as const);
 
   return (
     <View style={[styles.outer, { paddingTop: insets.top }]} testID="top-header">
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      {/* Blur layer.
-          On web: a plain transparent View with CSS backdrop-filter — expo-blur's
-          BlurView injects a backgroundColor on every tint, which produces the
-          visible rectangle. The web View has NO background at all.
-          On native: BlurView renders the real platform blur effect. */}
-      {Platform.OS === 'web' ? (
-        <View
-          style={[StyleSheet.absoluteFill, styles.webBlur]}
-          pointerEvents="none"
-        />
-      ) : (
-        <BlurView
-          intensity={isDark ? 32 : 24}
-          tint="default"
-          style={StyleSheet.absoluteFill}
-        />
-      )}
-      {/* Gradient fade — extends 24 px below so the edge dissolves softly. */}
-      <LinearGradient
-        colors={gradientColors}
-        locations={[0, 0.5, 1]}
-        style={[StyleSheet.absoluteFill, styles.fadeGradient]}
-        pointerEvents="none"
-      />
       <View style={styles.row}>
         <View style={styles.left}>
           <View style={[styles.logoCircle, { backgroundColor: colors.accent, borderColor: colors.border }]}>
@@ -250,18 +219,7 @@ export default function TopHeader({
 
 const styles = StyleSheet.create({
   outer: {
-    overflow: 'visible',
-  },
-  /** Web-only: pure CSS backdrop-filter with zero background colour. */
-  webBlur: {
-    // @ts-ignore — web-only CSS properties accepted by react-native-web
-    backdropFilter: 'blur(6px)',
-    // @ts-ignore
-    WebkitBackdropFilter: 'blur(6px)',
     backgroundColor: 'transparent',
-  },
-  fadeGradient: {
-    bottom: -24,
   },
   row: {
     flexDirection: 'row',

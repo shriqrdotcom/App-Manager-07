@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
@@ -123,6 +124,7 @@ type StylesType = ReturnType<typeof makeStyles>;
 
 export default function EditMenu() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [tab, setTab] = useState<MenuTab>('items');
   const [search, setSearch] = useState('');
@@ -170,7 +172,7 @@ export default function EditMenu() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + 64 }}>
       <ScreenTitle testID="edit-title">Edit Menu</ScreenTitle>
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search dishes or combos" testID="edit-search" />
 

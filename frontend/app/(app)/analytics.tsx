@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import { ScreenTitle, Card } from '@/src/components/ui';
@@ -78,6 +79,7 @@ type StylesType = ReturnType<typeof makeStyles>;
 
 export default function Analytics() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [range, setRange] = useState<Range>('7d');
   const d = DATA[range];
@@ -89,7 +91,7 @@ export default function Analytics() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingBottom: 24 }}
+      contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 24 }}
       testID="analytics-screen"
       showsVerticalScrollIndicator={false}
     >

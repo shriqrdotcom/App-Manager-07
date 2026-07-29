@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
@@ -100,6 +101,7 @@ type StylesType = ReturnType<typeof makeStyles>;
 export default function Settings() {
   const { bootstrap, selectedRestaurant, logout } = useApp();
   const { preference, colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [search, setSearch] = useState('');
@@ -167,7 +169,7 @@ export default function Settings() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         testID="settings-screen"
       >

@@ -200,7 +200,7 @@ export default function Orders() {
       <FlatList
         testID="orders-screen"
         style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120 + insets.bottom }}
         data={data}
         keyExtractor={(o) => o.id}
         ListHeaderComponent={

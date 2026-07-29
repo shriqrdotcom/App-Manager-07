@@ -52,7 +52,7 @@ function makeStyles(colors: ThemePalette, headerHeight: number) {
       ...StyleSheet.absoluteFillObject,
       zIndex: 5,
     },
-    screen: { flex: 1, paddingTop: headerHeight },
+    screen: { flex: 1 },
   });
 }
 

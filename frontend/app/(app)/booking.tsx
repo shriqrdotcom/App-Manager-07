@@ -185,7 +185,7 @@ export default function BookingScreen() {
         testID="booking-screen"
         data={shown}
         keyExtractor={(b) => b.id}
-        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120 + insets.bottom }}
         onRefresh={fetchBookings}
         refreshing={loading}
         ListHeaderComponent={
