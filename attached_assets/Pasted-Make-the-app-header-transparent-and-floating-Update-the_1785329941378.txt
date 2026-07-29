@@ -1,0 +1,165 @@
+Make the app header transparent and floating 
+
+
+
+Update the current top header to match the floating style shown in the second reference image.
+
+
+
+Right now, the header has a visible dark background container and a bottom line/divider. Remove that solid header appearance completely.
+
+
+
+### Required changes
+
+
+
+1. **Remove the header background**
+
+
+
+   * Remove the solid rectangular background behind the restaurant information and the three-dot button.
+
+   * Remove the bottom border, divider line, or visible edge of the header.
+
+   * The page content should visually continue behind the header area.
+
+
+
+2. **Keep the header content floating**
+
+
+
+   * Keep the restaurant logo, restaurant name, subtitle, and three-dot button in their current positions.
+
+   * These elements should appear to float independently over the page.
+
+   * Do not wrap them inside one large visible card or rectangular container.
+
+   * Keep the restaurant logo circular.
+
+   * Keep the three-dot action button circular.
+
+
+
+3. **Add a subtle top blur effect**
+
+
+
+   * Add a soft translucent blur behind the top safe-area and header content.
+
+   * The blur should gently fade out toward the bottom instead of ending with a hard straight line.
+
+   * Use a dark transparent blur suitable for the existing dark theme.
+
+   * Do not make it look like a frosted white panel.
+
+   * Keep the restaurant name and icons fully readable.
+
+
+
+4. **Add a soft shadow**
+
+
+
+   * Add a very subtle shadow underneath the floating header elements or blurred top area.
+
+   * The shadow should create light depth only.
+
+   * Do not use a strong black line, thick shadow, glow, or visible border.
+
+
+
+5. **Scrolling behaviour**
+
+
+
+   * Keep the header fixed at the top while the page content scrolls underneath it.
+
+   * The floating restaurant details and action button must remain stable.
+
+   * Add enough top padding to the page content so it does not start underneath the header.
+
+   * Avoid any jumping, clipping, overlap, or flickering while scrolling.
+
+
+
+### Theme behaviour
+
+
+
+For dark mode:
+
+
+
+* Use a dark transparent blur based on the active dark background.
+
+* Keep the surrounding page background `#000000`.
+
+* Keep floating action-button surfaces consistent with the existing `#212121` control colour.
+
+* Keep existing control borders as `#3F3F3F` where already required.
+
+
+
+For light mode:
+
+
+
+* Use a soft light translucent blur.
+
+* Keep text and icons readable.
+
+* Do not break the existing light-theme design.
+
+
+
+### Important restrictions
+
+
+
+Do not change:
+
+
+
+* Restaurant name or subtitle
+
+* Logo design
+
+* Three-dot button icon
+
+* Button functionality
+
+* Header height unless necessary for safe-area spacing
+
+* Page layout
+
+* Bottom navigation
+
+* Existing navigation behaviour
+
+* Current typography
+
+* Other screen components
+
+
+
+Do not add:
+
+
+
+* A new rectangular header card
+
+* A visible divider line
+
+* Heavy blur
+
+* Bright glow
+
+* Large shadow
+
+* Gradient colours unrelated to the current theme
+
+
+
+The final header should feel clean, premium, borderless, and floating, with a subtle native-style blur and soft depth similar to the second reference image.

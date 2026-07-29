@@ -7,11 +7,15 @@
  */
 import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import BottomNavigation from '@/src/components/BottomNavigation';
 import SwipePager from '@/src/components/SwipePager';
 import TopHeader from '@/src/components/TopHeader';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+
+/** Height of the header row below the safe area (paddingTop + row + paddingBottom). */
+const HEADER_ROW_HEIGHT = 64;
 
 // Import tab screens as plain React components.
 // They remain mounted for the lifetime of this screen.
@@ -34,21 +38,29 @@ const PAGES = [
   <SettingsScreen key="settings" />,
 ];
 
-function makeStyles(colors: ThemePalette) {
+function makeStyles(colors: ThemePalette, headerHeight: number) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
-    headerLayer: { zIndex: 2 },
+    headerLayer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+    },
     quickActionsBackdrop: {
       ...StyleSheet.absoluteFillObject,
-      zIndex: 1,
+      zIndex: 5,
     },
-    screen: { flex: 1 },
+    screen: { flex: 1, paddingTop: headerHeight },
   });
 }
 
 export default function TabsScreen() {
   const { colors } = useTheme();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + HEADER_ROW_HEIGHT;
+  const styles = useMemo(() => makeStyles(colors, headerHeight), [colors, headerHeight]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quickActionsExpanded, setQuickActionsExpanded] = useState(false);
 

@@ -21,6 +21,8 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../providers/AppProvider';
 import { useTheme } from '../providers/ThemeProvider';
 
@@ -149,9 +151,27 @@ export default function TopHeader({
     ],
   }));
 
+  const isDark = resolvedTheme === 'dark';
+  const gradientColors = isDark
+    ? (['rgba(0,0,0,0.72)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0)'] as const)
+    : (['rgba(255,255,255,0.82)', 'rgba(255,255,255,0.48)', 'rgba(255,255,255,0)'] as const);
+
   return (
-    <View style={[styles.outer, { paddingTop: insets.top, backgroundColor: colors.background }]} testID="top-header">
-      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
+    <View style={[styles.outer, { paddingTop: insets.top }]} testID="top-header">
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      {/* Blur layer — sits within header bounds */}
+      <BlurView
+        intensity={isDark ? 28 : 22}
+        tint={isDark ? 'dark' : 'light'}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Gradient fade — extends 24 px below the header so the edge softens */}
+      <LinearGradient
+        colors={gradientColors}
+        locations={[0, 0.55, 1]}
+        style={[StyleSheet.absoluteFill, styles.fadeGradient]}
+        pointerEvents="none"
+      />
       <View style={styles.row}>
         <View style={styles.left}>
           <View style={[styles.logoCircle, { backgroundColor: colors.accent, borderColor: colors.border }]}>
@@ -216,7 +236,12 @@ export default function TopHeader({
 }
 
 const styles = StyleSheet.create({
-  outer: {},
+  outer: {
+    overflow: 'visible',
+  },
+  fadeGradient: {
+    bottom: -24,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
