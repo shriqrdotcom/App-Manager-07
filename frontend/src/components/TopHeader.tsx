@@ -24,6 +24,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useApp } from '../providers/AppProvider';
 import { useTheme } from '../providers/ThemeProvider';
+import { useScrollHeader } from '../providers/ScrollHeaderProvider';
 
 const DESCRIPTION_BY_RESTAURANT: Record<string, string> = {
   'Demo Diner': 'Modern Indian · Bandra West',
@@ -152,18 +153,24 @@ export default function TopHeader({
 
   const isDark = resolvedTheme === 'dark';
 
+  const { scrollY } = useScrollHeader();
+  const gradientAnimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, 24], [0, 1], 'clamp'),
+  }));
+
   return (
     <View style={[styles.outer, { paddingTop: insets.top }]} testID="top-header">
-      <LinearGradient
-        colors={[
-          isDark ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.38)',
-          isDark ? 'rgba(0,0,0,0.38)' : 'rgba(0,0,0,0.16)',
-          'rgba(0,0,0,0)',
-        ]}
-        locations={[0, 0.55, 1]}
-        style={styles.blurGradient}
-        pointerEvents="none"
-      />
+      <Animated.View style={[styles.blurGradient, gradientAnimStyle]} pointerEvents="none">
+        <LinearGradient
+          colors={[
+            isDark ? 'rgba(0,0,0,0.72)' : 'rgba(0,0,0,0.38)',
+            isDark ? 'rgba(0,0,0,0.38)' : 'rgba(0,0,0,0.16)',
+            'rgba(0,0,0,0)',
+          ]}
+          locations={[0, 0.55, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.row}>
         <View style={styles.left}>

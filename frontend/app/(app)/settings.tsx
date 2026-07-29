@@ -1,5 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
+import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
+
+const TAB_INDEX = 4;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -166,12 +170,21 @@ export default function Settings() {
   const filter = (rows: SettingRow[]) =>
     search ? rows.filter((r) => r.label.toLowerCase().includes(search.toLowerCase())) : rows;
 
+  const { scrollY, reportTabScroll } = useScrollHeader();
+  const updatePos = useCallback((y: number) => { reportTabScroll(TAB_INDEX, y); }, [reportTabScroll]);
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+    runOnJS(updatePos)(e.contentOffset.y);
+  });
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView
+      <Animated.ScrollView
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
         testID="settings-screen"
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
       >
         <ScreenTitle testID="settings-title">Settings</ScreenTitle>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search" testID="settings-search" />
@@ -238,7 +251,7 @@ export default function Settings() {
         <Section title="PROMOTIONS" rows={filter(promoRows)} colors={colors} styles={styles} />
         <Section title="PUBLIC CONTENT" rows={filter(publicRows)} colors={colors} styles={styles} />
         <Section title="SECURITY & APPLICATION" rows={filter(secRows)} colors={colors} styles={styles} />
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Logout confirmation */}
       <Modal visible={confirmLogout} transparent animationType="fade" onRequestClose={() => setConfirmLogout(false)}>

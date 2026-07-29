@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
+import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
+import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
+
+const TAB_INDEX = 1;
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -178,16 +182,24 @@ export default function BookingScreen() {
   );
 
   const openAddBooking = () => router.push('/add-booking');
+  const { scrollY, reportTabScroll } = useScrollHeader();
+  const updatePos = useCallback((y: number) => { reportTabScroll(TAB_INDEX, y); }, [reportTabScroll]);
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+    runOnJS(updatePos)(e.contentOffset.y);
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <FlatList
+      <Animated.FlatList
         testID="booking-screen"
         data={shown}
         keyExtractor={(b) => b.id}
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120 + insets.bottom }}
         onRefresh={fetchBookings}
         refreshing={loading}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         ListHeaderComponent={
           <>
             <ScreenTitle

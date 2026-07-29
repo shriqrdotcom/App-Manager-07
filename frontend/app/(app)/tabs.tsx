@@ -5,7 +5,7 @@
  * SwipePager so they stay mounted across tab switches, preserving scroll
  * positions, loaded data, and avoiding duplicate API requests.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import BottomNavigation from '@/src/components/BottomNavigation';
 import SwipePager from '@/src/components/SwipePager';
 import TopHeader from '@/src/components/TopHeader';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+import { ScrollHeaderProvider, useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
 /** Height of the header row below the safe area (paddingTop + row + paddingBottom). */
 const HEADER_ROW_HEIGHT = 64;
@@ -57,12 +58,26 @@ function makeStyles(colors: ThemePalette, headerHeight: number) {
 }
 
 export default function TabsScreen() {
+  return (
+    <ScrollHeaderProvider>
+      <TabsContent />
+    </ScrollHeaderProvider>
+  );
+}
+
+function TabsContent() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { syncToTab } = useScrollHeader();
   const headerHeight = insets.top + HEADER_ROW_HEIGHT;
   const styles = useMemo(() => makeStyles(colors, headerHeight), [colors, headerHeight]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quickActionsExpanded, setQuickActionsExpanded] = useState(false);
+
+  /** Sync header shadow to the newly-active tab's stored scroll position. */
+  useEffect(() => {
+    syncToTab(activeIndex);
+  }, [activeIndex, syncToTab]);
 
   /** Called by SwipePager the moment a swipe is committed (before snap ends). */
   const handleCommit = useCallback((index: number) => {

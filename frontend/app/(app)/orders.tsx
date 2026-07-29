@@ -1,11 +1,15 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card } from '@/src/components/ui';
+import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
+
+const TAB_INDEX = 0;
 
 type Status = 'new' | 'confirmed' | 'preparing' | 'ready';
 type OrderType = 'dine-in' | 'takeaway' | 'delivery';
@@ -180,6 +184,12 @@ export default function Orders() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [filter, setFilter] = useState<Status>('new');
+  const { scrollY, reportTabScroll } = useScrollHeader();
+  const updatePos = useCallback((y: number) => { reportTabScroll(TAB_INDEX, y); }, [reportTabScroll]);
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+    runOnJS(updatePos)(e.contentOffset.y);
+  });
 
   const data = useMemo(() => MOCK.filter((o) => o.status === filter), [filter]);
   const counts = useMemo(() => {
@@ -197,12 +207,14 @@ export default function Orders() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <FlatList
+      <Animated.FlatList
         testID="orders-screen"
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 120 + insets.bottom }}
         data={data}
         keyExtractor={(o) => o.id}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         ListHeaderComponent={
           <>
             <ScreenTitle

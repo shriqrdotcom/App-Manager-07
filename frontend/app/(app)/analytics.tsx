@@ -1,6 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
+import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
+
+const TAB_INDEX = 3;
 import { Feather } from '@expo/vector-icons';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import { ScreenTitle, Card } from '@/src/components/ui';
@@ -88,12 +92,21 @@ export default function Analytics() {
   const maxHr  = useMemo(() => Math.max(...HOURLY), []);
   const maxBk  = useMemo(() => Math.max(...BOOKING_LINE), []);
 
+  const { scrollY, reportTabScroll } = useScrollHeader();
+  const updatePos = useCallback((y: number) => { reportTabScroll(TAB_INDEX, y); }, [reportTabScroll]);
+  const scrollHandler = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+    runOnJS(updatePos)(e.contentOffset.y);
+  });
+
   return (
-    <ScrollView
+    <Animated.ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ paddingTop: insets.top + 64, paddingBottom: 24 }}
       testID="analytics-screen"
       showsVerticalScrollIndicator={false}
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
     >
       <ScreenTitle testID="analytics-title">Analytics</ScreenTitle>
 
@@ -210,7 +223,7 @@ export default function Analytics() {
           ))}
         </View>
       </Card>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 
