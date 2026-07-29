@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import colors from '@/src/constants/colors';
+import { useTheme } from '@/src/providers/ThemeProvider';
 
 const SWIPE_DISTANCE = 72;
 const SWIPE_VELOCITY = 0.55;
@@ -51,6 +51,7 @@ export default function MainTabSwipeWrapper({ children }: MainTabSwipeWrapperPro
   const tabIndex = useMemo(() => getMainTabIndex(pathname), [pathname]);
   const translateX = useSharedValue(0);
   const screenWidth = Dimensions.get('window').width;
+  const { colors } = useTheme();
 
   useEffect(() => {
     translateX.value = 0;
@@ -106,7 +107,7 @@ export default function MainTabSwipeWrapper({ children }: MainTabSwipeWrapperPro
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View
-        style={[styles.stage, animatedStyle]}
+        style={[styles.stage, { backgroundColor: colors.background }, animatedStyle]}
         testID="main-tab-swipe-wrapper"
       >
         {children}
@@ -119,6 +120,5 @@ const styles = StyleSheet.create({
   stage: {
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: colors.background,
   },
 });

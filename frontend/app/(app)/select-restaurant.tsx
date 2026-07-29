@@ -1,16 +1,48 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 
 const ROLE_LABELS: Record<string, string> = {
   owner: 'Owner', admin: 'Admin', manager: 'Manager', staff: 'Staff',
 };
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background, paddingTop: 8 },
+    header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
+    title: { fontSize: 28, fontWeight: '800', color: colors.foreground, letterSpacing: -0.5 },
+    subtitle: { fontSize: 14, color: colors.mutedForeground, lineHeight: 20 },
+    card: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1,
+      borderRadius: 14, padding: 14,
+    },
+    avatar: {
+      width: 44, height: 44, borderRadius: 22, backgroundColor: colors.accent,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+    avatarText: { color: colors.foreground, fontSize: 14, fontWeight: '700' },
+    name: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
+    rolePill: {
+      alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, marginTop: 4,
+      borderRadius: 4, backgroundColor: colors.muted, borderWidth: 1, borderColor: colors.border,
+    },
+    roleText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: colors.mutedForeground },
+    logoutButton: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      paddingVertical: 14,
+    },
+    logoutText: { fontSize: 13, color: colors.mutedForeground },
+  });
+}
+
 export default function SelectRestaurant() {
   const { bootstrap, selectRestaurant, logout } = useApp();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const restaurants = bootstrap?.restaurants ?? [];
 
   return (
@@ -59,31 +91,3 @@ export default function SelectRestaurant() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 8 },
-  header: { paddingHorizontal: 20, paddingBottom: 16, gap: 6 },
-  title: { fontSize: 28, fontWeight: '800', color: colors.foreground, letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, color: colors.mutedForeground, lineHeight: 20 },
-  card: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1,
-    borderRadius: 14, padding: 14,
-  },
-  avatar: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#2A2B2C',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-  avatarText: { color: colors.foreground, fontSize: 14, fontWeight: '700' },
-  name: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
-  rolePill: {
-    alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, marginTop: 4,
-    borderRadius: 4, backgroundColor: '#242526', borderWidth: 1, borderColor: colors.border,
-  },
-  roleText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5, color: colors.mutedForeground },
-  logoutButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 14,
-  },
-  logoutText: { fontSize: 13, color: colors.mutedForeground },
-});

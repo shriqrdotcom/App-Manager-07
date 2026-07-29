@@ -16,7 +16,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import colors from '@/src/constants/colors';
+import { useTheme } from '@/src/providers/ThemeProvider';
 import { storage } from '@/src/utils/storage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -60,13 +60,14 @@ function statusLabel(c: Coupon) {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 function EmptyState({ onAdd }: { onAdd: () => void }) {
+  const { colors } = useTheme();
   return (
     <View style={eStyles.wrap}>
-      <View style={eStyles.iconBox}>
+      <View style={[eStyles.iconBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <Feather name="tag" size={28} color={colors.mutedForeground} />
       </View>
-      <Text style={eStyles.title}>No coupons yet</Text>
-      <Text style={eStyles.sub}>Create your first coupon code to offer discounts to your customers.</Text>
+      <Text style={[eStyles.title, { color: colors.foreground }]}>No coupons yet</Text>
+      <Text style={[eStyles.sub, { color: colors.mutedForeground }]}>Create your first coupon code to offer discounts to your customers.</Text>
       <TouchableOpacity style={eStyles.btn} onPress={onAdd} activeOpacity={0.8}>
         <Feather name="plus" size={15} color="#fff" />
         <Text style={eStyles.btnText}>Create Coupon</Text>
@@ -77,12 +78,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 const eStyles = StyleSheet.create({
   wrap: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
   iconBox: {
-    width: 72, height: 72, borderRadius: 20, backgroundColor: colors.card,
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    width: 72, height: 72, borderRadius: 20,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
     marginBottom: 16,
   },
-  title: { color: colors.foreground, fontSize: 17, fontWeight: '700', marginBottom: 8 },
-  sub: { color: colors.mutedForeground, fontSize: 13, textAlign: 'center', lineHeight: 19, marginBottom: 24 },
+  title: { fontSize: 17, fontWeight: '700', marginBottom: 8 },
+  sub: { fontSize: 13, textAlign: 'center', lineHeight: 19, marginBottom: 24 },
   btn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#829B85', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12,
@@ -92,13 +93,14 @@ const eStyles = StyleSheet.create({
 
 // ─── Coupon Card ──────────────────────────────────────────────────────────────
 function CouponCard({ coupon, onDelete }: { coupon: Coupon; onDelete: () => void }) {
+  const { colors } = useTheme();
   const status = statusLabel(coupon);
   const usageText = coupon.maxUses === 0
     ? `${coupon.usedCount} used · Unlimited`
     : `${coupon.usedCount} / ${coupon.maxUses} used`;
 
   return (
-    <View style={cStyles.card}>
+    <View style={[cStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <View style={cStyles.top}>
         {/* Code pill */}
         <View style={cStyles.codePill}>
@@ -118,7 +120,7 @@ function CouponCard({ coupon, onDelete }: { coupon: Coupon; onDelete: () => void
 
       {/* Discount display */}
       <View style={cStyles.discountRow}>
-        <Text style={cStyles.discountVal}>
+        <Text style={[cStyles.discountVal, { color: colors.foreground }]}>
           {coupon.discountType === 'percentage'
             ? `${coupon.discountValue}% OFF`
             : `₹${coupon.discountValue} OFF`}
@@ -126,18 +128,18 @@ function CouponCard({ coupon, onDelete }: { coupon: Coupon; onDelete: () => void
       </View>
 
       {coupon.description ? (
-        <Text style={cStyles.desc} numberOfLines={2}>{coupon.description}</Text>
+        <Text style={[cStyles.desc, { color: colors.mutedForeground }]} numberOfLines={2}>{coupon.description}</Text>
       ) : null}
 
       <View style={cStyles.metaRow}>
         <View style={cStyles.metaItem}>
           <Feather name="calendar" size={11} color={colors.mutedForeground} />
-          <Text style={cStyles.metaText}>Expires {formatDate(coupon.expiryDate)}</Text>
+          <Text style={[cStyles.metaText, { color: colors.mutedForeground }]}>Expires {formatDate(coupon.expiryDate)}</Text>
         </View>
-        <View style={cStyles.metaDot} />
+        <View style={[cStyles.metaDot, { backgroundColor: colors.mutedForeground }]} />
         <View style={cStyles.metaItem}>
           <Feather name="users" size={11} color={colors.mutedForeground} />
-          <Text style={cStyles.metaText}>{usageText}</Text>
+          <Text style={[cStyles.metaText, { color: colors.mutedForeground }]}>{usageText}</Text>
         </View>
       </View>
     </View>
@@ -146,8 +148,8 @@ function CouponCard({ coupon, onDelete }: { coupon: Coupon; onDelete: () => void
 
 const cStyles = StyleSheet.create({
   card: {
-    backgroundColor: colors.card, borderRadius: 16,
-    borderWidth: 1, borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
     padding: 16, gap: 10,
   },
   top: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -165,12 +167,12 @@ const cStyles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: '700' },
   delBtn: { marginLeft: 'auto', padding: 4 },
   discountRow: { flexDirection: 'row', alignItems: 'center' },
-  discountVal: { color: colors.foreground, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  desc: { color: colors.mutedForeground, fontSize: 12.5, lineHeight: 18 },
+  discountVal: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  desc: { fontSize: 12.5, lineHeight: 18 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: colors.mutedForeground },
-  metaText: { color: colors.mutedForeground, fontSize: 11.5 },
+  metaDot: { width: 3, height: 3, borderRadius: 1.5 },
+  metaText: { fontSize: 11.5 },
 });
 
 // ─── Form Field ───────────────────────────────────────────────────────────────
@@ -181,12 +183,13 @@ function Field({
   placeholder?: string; keyboardType?: any; maxLength?: number;
   multiline?: boolean; suffix?: string;
 }) {
+  const { colors } = useTheme();
   return (
     <View style={fStyles.wrap}>
-      <Text style={fStyles.label}>{label}</Text>
+      <Text style={[fStyles.label, { color: colors.mutedForeground }]}>{label}</Text>
       <View style={fStyles.inputRow}>
         <TextInput
-          style={[fStyles.input, multiline && { height: 72, textAlignVertical: 'top' }]}
+          style={[fStyles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.foreground }, multiline && { height: 72, textAlignVertical: 'top' }]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -197,21 +200,21 @@ function Field({
           autoCapitalize="characters"
           autoCorrect={false}
         />
-        {suffix ? <Text style={fStyles.suffix}>{suffix}</Text> : null}
+        {suffix ? <Text style={[fStyles.suffix, { color: colors.mutedForeground }]}>{suffix}</Text> : null}
       </View>
     </View>
   );
 }
 const fStyles = StyleSheet.create({
   wrap: { gap: 6 },
-  label: { color: colors.mutedForeground, fontSize: 11.5, fontWeight: '700', letterSpacing: 0.5, marginLeft: 2 },
+  label: { fontSize: 11.5, fontWeight: '700', letterSpacing: 0.5, marginLeft: 2 },
   inputRow: { flexDirection: 'row', alignItems: 'center' },
   input: {
-    flex: 1, backgroundColor: colors.card, borderRadius: 12, borderWidth: 1,
-    borderColor: colors.border, color: colors.foreground, fontSize: 14.5,
+    flex: 1, borderRadius: 12, borderWidth: 1,
+    fontSize: 14.5,
     paddingHorizontal: 14, paddingVertical: 12,
   },
-  suffix: { position: 'absolute', right: 14, color: colors.mutedForeground, fontSize: 13 },
+  suffix: { position: 'absolute', right: 14, fontSize: 13 },
 });
 
 // ─── Create Coupon Sheet ──────────────────────────────────────────────────────
@@ -226,6 +229,7 @@ function CreateSheet({
   visible: boolean; onClose: () => void; onSave: (c: Coupon) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Date picker
@@ -296,11 +300,11 @@ function CreateSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Sheet header */}
-        <View style={[sStyles.header, { paddingTop: insets.top + 6 }]}>
+        <View style={[sStyles.header, { paddingTop: insets.top + 6, borderBottomColor: colors.border }]}>
           <TouchableOpacity onPress={onClose} style={sStyles.cancelBtn} activeOpacity={0.7}>
-            <Text style={sStyles.cancelText}>Cancel</Text>
+            <Text style={[sStyles.cancelText, { color: colors.mutedForeground }]}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={sStyles.title}>New Coupon</Text>
+          <Text style={[sStyles.title, { color: colors.foreground }]}>New Coupon</Text>
           <TouchableOpacity onPress={handleSave} style={sStyles.saveBtn} activeOpacity={0.8}>
             <Text style={sStyles.saveText}>Save</Text>
           </TouchableOpacity>
@@ -313,8 +317,8 @@ function CreateSheet({
         >
           {/* ── Coupon Code ── */}
           <View style={sStyles.section}>
-            <Text style={sStyles.sectionLabel}>COUPON CODE</Text>
-            <View style={sStyles.card}>
+            <Text style={[sStyles.sectionLabel, { color: colors.mutedForeground }]}>COUPON CODE</Text>
+            <View style={[sStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Field
                 label="Code"
                 value={form.code}
@@ -322,21 +326,25 @@ function CreateSheet({
                 placeholder="e.g. SAVE20"
                 maxLength={20}
               />
-              {errors.code ? <Text style={sStyles.errorText}>{errors.code}</Text> : null}
+              {errors.code ? <Text style={[sStyles.errorText, { color: '#EF4444' }]}>{errors.code}</Text> : null}
             </View>
           </View>
 
           {/* ── Discount ── */}
           <View style={sStyles.section}>
-            <Text style={sStyles.sectionLabel}>DISCOUNT</Text>
-            <View style={sStyles.card}>
+            <Text style={[sStyles.sectionLabel, { color: colors.mutedForeground }]}>DISCOUNT</Text>
+            <View style={[sStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
               {/* Type selector */}
-              <Text style={sStyles.fieldLabel}>Discount Type</Text>
+              <Text style={[sStyles.fieldLabel, { color: colors.mutedForeground }]}>Discount Type</Text>
               <View style={sStyles.typeRow}>
                 {(['percentage', 'flat'] as DiscountType[]).map((t) => (
                   <TouchableOpacity
                     key={t}
-                    style={[sStyles.typeBtn, form.discountType === t && sStyles.typeBtnActive]}
+                    style={[
+                      sStyles.typeBtn,
+                      { backgroundColor: colors.accent, borderColor: colors.border },
+                      form.discountType === t && sStyles.typeBtnActive,
+                    ]}
                     onPress={() => setForm((f) => ({ ...f, discountType: t }))}
                     activeOpacity={0.8}
                   >
@@ -345,14 +353,14 @@ function CreateSheet({
                       size={14}
                       color={form.discountType === t ? '#fff' : colors.mutedForeground}
                     />
-                    <Text style={[sStyles.typeBtnText, form.discountType === t && sStyles.typeBtnTextActive]}>
+                    <Text style={[sStyles.typeBtnText, { color: colors.mutedForeground }, form.discountType === t && sStyles.typeBtnTextActive]}>
                       {t === 'percentage' ? 'Percentage (%)' : 'Flat Amount (₹)'}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <View style={sStyles.divider} />
+              <View style={[sStyles.divider, { backgroundColor: colors.border }]} />
 
               {/* Value */}
               <Field
@@ -363,9 +371,9 @@ function CreateSheet({
                 keyboardType="decimal-pad"
                 suffix={form.discountType === 'percentage' ? '%' : '₹'}
               />
-              {errors.discountValue ? <Text style={sStyles.errorText}>{errors.discountValue}</Text> : null}
+              {errors.discountValue ? <Text style={[sStyles.errorText, { color: '#EF4444' }]}>{errors.discountValue}</Text> : null}
 
-              <View style={sStyles.divider} />
+              <View style={[sStyles.divider, { backgroundColor: colors.border }]} />
 
               {/* Description */}
               <Field
@@ -380,13 +388,13 @@ function CreateSheet({
 
           {/* ── Validity & Limits ── */}
           <View style={sStyles.section}>
-            <Text style={sStyles.sectionLabel}>VALIDITY & LIMITS</Text>
-            <View style={sStyles.card}>
+            <Text style={[sStyles.sectionLabel, { color: colors.mutedForeground }]}>VALIDITY & LIMITS</Text>
+            <View style={[sStyles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
               {/* Date picker field */}
               <View style={sStyles.dateWrap}>
-                <Text style={sStyles.fieldLabel}>DATE</Text>
+                <Text style={[sStyles.fieldLabel, { color: colors.mutedForeground }]}>DATE</Text>
                 <TouchableOpacity
-                  style={sStyles.dateField}
+                  style={[sStyles.dateField, { backgroundColor: colors.card, borderColor: colors.border }]}
                   onPress={() => setShowPicker(true)}
                   activeOpacity={0.8}
                   accessible
@@ -394,13 +402,13 @@ function CreateSheet({
                   accessibilityLabel="Select expiry date"
                 >
                   <Feather name="calendar" size={15} color={colors.mutedForeground} />
-                  <Text style={[sStyles.dateText, !displayDate && sStyles.datePlaceholder]}>
+                  <Text style={[sStyles.dateText, { color: colors.foreground }, !displayDate && { color: colors.mutedForeground }]}>
                     {displayDate || 'dd-mm-yyyy'}
                   </Text>
                   <Feather name="calendar" size={15} color={colors.mutedForeground} style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
               </View>
-              {errors.expiryDate ? <Text style={sStyles.errorText}>{errors.expiryDate}</Text> : null}
+              {errors.expiryDate ? <Text style={[sStyles.errorText, { color: '#EF4444' }]}>{errors.expiryDate}</Text> : null}
 
               {/* Android — inline picker (shown/hidden) */}
               {showPicker && Platform.OS === 'android' && (
@@ -423,8 +431,8 @@ function CreateSheet({
                 >
                   <View style={sStyles.iosPickerBackdrop}>
                     <Pressable style={{ flex: 1 }} onPress={() => setShowPicker(false)} />
-                    <View style={sStyles.iosPickerSheet}>
-                      <View style={sStyles.iosPickerHeader}>
+                    <View style={[sStyles.iosPickerSheet, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                      <View style={[sStyles.iosPickerHeader, { borderBottomColor: colors.border }]}>
                         <TouchableOpacity onPress={() => setShowPicker(false)}>
                           <Text style={sStyles.iosPickerDone}>Done</Text>
                         </TouchableOpacity>
@@ -443,7 +451,7 @@ function CreateSheet({
                 </Modal>
               )}
 
-              <View style={sStyles.divider} />
+              <View style={[sStyles.divider, { backgroundColor: colors.border }]} />
 
               <Field
                 label="Max Uses (0 = unlimited)"
@@ -453,12 +461,12 @@ function CreateSheet({
                 keyboardType="number-pad"
                 maxLength={6}
               />
-              {errors.maxUses ? <Text style={sStyles.errorText}>{errors.maxUses}</Text> : null}
+              {errors.maxUses ? <Text style={[sStyles.errorText, { color: '#EF4444' }]}>{errors.maxUses}</Text> : null}
 
               {/* Hint */}
               <View style={sStyles.hintRow}>
                 <Feather name="info" size={11} color={colors.mutedForeground} />
-                <Text style={sStyles.hintText}>
+                <Text style={[sStyles.hintText, { color: colors.mutedForeground }]}>
                   Set 0 in Max Uses to allow unlimited redemptions.
                 </Text>
               </View>
@@ -468,7 +476,7 @@ function CreateSheet({
           {/* Preview */}
           {form.code.trim().length > 0 && (
             <View style={sStyles.section}>
-              <Text style={sStyles.sectionLabel}>PREVIEW</Text>
+              <Text style={[sStyles.sectionLabel, { color: colors.mutedForeground }]}>PREVIEW</Text>
               <View style={sStyles.previewCard}>
                 <View style={sStyles.previewTop}>
                   <View style={sStyles.previewPill}>
@@ -480,14 +488,14 @@ function CreateSheet({
                     <Text style={sStyles.previewBadgeText}>Active</Text>
                   </View>
                 </View>
-                <Text style={sStyles.previewDiscount}>
+                <Text style={[sStyles.previewDiscount, { color: colors.foreground }]}>
                   {form.discountValue
                     ? form.discountType === 'percentage'
                       ? `${form.discountValue}% OFF`
                       : `₹${form.discountValue} OFF`
                     : '— OFF'}
                 </Text>
-                {form.description ? <Text style={sStyles.previewDesc}>{form.description}</Text> : null}
+                {form.description ? <Text style={[sStyles.previewDesc, { color: colors.mutedForeground }]}>{form.description}</Text> : null}
               </View>
             </View>
           )}
@@ -501,56 +509,54 @@ const sStyles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { color: colors.foreground, fontSize: 16, fontWeight: '700' },
+  title: { fontSize: 16, fontWeight: '700' },
   cancelBtn: { paddingVertical: 6, paddingHorizontal: 4 },
-  cancelText: { color: colors.mutedForeground, fontSize: 15 },
+  cancelText: { fontSize: 15 },
   saveBtn: { backgroundColor: '#829B85', paddingHorizontal: 18, paddingVertical: 7, borderRadius: 10 },
   saveText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   scroll: { paddingTop: 16 },
   section: { paddingHorizontal: 20, marginBottom: 16, gap: 8 },
-  sectionLabel: { fontSize: 10.5, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1, marginLeft: 2 },
+  sectionLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, marginLeft: 2 },
   card: {
-    backgroundColor: colors.card, borderRadius: 16,
-    borderWidth: 1, borderColor: colors.border, padding: 16, gap: 12,
+    borderRadius: 16,
+    borderWidth: 1, padding: 16, gap: 12,
   },
-  fieldLabel: { color: colors.mutedForeground, fontSize: 11.5, fontWeight: '700', letterSpacing: 0.5, marginLeft: 2 },
+  fieldLabel: { fontSize: 11.5, fontWeight: '700', letterSpacing: 0.5, marginLeft: 2 },
   typeRow: { flexDirection: 'row', gap: 10 },
   typeBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: colors.secondary, borderRadius: 10,
-    paddingVertical: 10, borderWidth: 1, borderColor: colors.border,
+    borderRadius: 10,
+    paddingVertical: 10, borderWidth: 1,
   },
   typeBtnActive: { backgroundColor: '#829B85', borderColor: '#829B85' },
-  typeBtnText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
+  typeBtnText: { fontSize: 12.5, fontWeight: '600' },
   typeBtnTextActive: { color: '#fff' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  divider: { height: StyleSheet.hairlineWidth },
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  hintText: { color: colors.mutedForeground, fontSize: 11.5, flex: 1, lineHeight: 17 },
-  errorText: { color: colors.destructive, fontSize: 11.5, marginTop: -4 },
-  // Date picker field — matches image: dark input, left + right calendar icons
+  hintText: { fontSize: 11.5, flex: 1, lineHeight: 17 },
+  errorText: { fontSize: 11.5, marginTop: -4 },
+  // Date picker field
   dateWrap: { gap: 6 },
   dateField: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: colors.card, borderRadius: 12,
-    borderWidth: 1, borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
     paddingHorizontal: 14, paddingVertical: 13,
   },
-  dateText: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
-  datePlaceholder: { color: colors.mutedForeground },
+  dateText: { flex: 1, fontSize: 14.5, fontWeight: '500' },
   // iOS picker modal
   iosPickerBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   iosPickerSheet: {
-    backgroundColor: colors.card,
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
     paddingBottom: 32,
   },
   iosPickerHeader: {
     flexDirection: 'row', justifyContent: 'flex-end',
     paddingHorizontal: 20, paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   iosPickerDone: { color: '#829B85', fontSize: 15, fontWeight: '700' },
   // Preview card
@@ -561,20 +567,21 @@ const sStyles = StyleSheet.create({
   previewTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   previewPill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: colors.card, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: '#0F2015', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
   previewCode: { color: '#829B85', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   previewBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   previewDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' },
   previewBadgeText: { color: '#22C55E', fontSize: 11, fontWeight: '700' },
-  previewDiscount: { color: colors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-  previewDesc: { color: colors.mutedForeground, fontSize: 12.5 },
+  previewDiscount: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  previewDesc: { fontSize: 12.5 },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CouponCodes() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors } = useTheme();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -635,14 +642,14 @@ export default function CouponCodes() {
   if (!loaded) return null;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={12}
           accessible accessibilityRole="button" accessibilityLabel="Go back">
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={styles.headerTitle}>Coupon Codes</Text>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Coupon Codes</Text>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setShowCreate(true)}
@@ -656,23 +663,23 @@ export default function CouponCodes() {
       {/* Stats row */}
       {coupons.length > 0 && (
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statVal}>{coupons.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.statVal, { color: colors.foreground }]}>{coupons.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Total</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statVal, { color: '#22C55E' }]}>{counts.active}</Text>
-            <Text style={styles.statLabel}>Active</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Active</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statVal, { color: '#EF4444' }]}>{counts.expired}</Text>
-            <Text style={styles.statLabel}>Expired</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Expired</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.statVal, { color: '#F59E0B' }]}>
               {coupons.reduce((a, c) => a + c.usedCount, 0)}
             </Text>
-            <Text style={styles.statLabel}>Redemptions</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Redemptions</Text>
           </View>
         </View>
       )}
@@ -683,11 +690,15 @@ export default function CouponCodes() {
           {(['all', 'active', 'expired'] as const).map((f) => (
             <TouchableOpacity
               key={f}
-              style={[styles.filterBtn, filter === f && styles.filterBtnActive]}
+              style={[
+                styles.filterBtn,
+                { backgroundColor: colors.card, borderColor: colors.border },
+                filter === f && styles.filterBtnActive,
+              ]}
               onPress={() => setFilter(f)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
+              <Text style={[styles.filterText, { color: colors.mutedForeground }, filter === f && styles.filterTextActive]}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
                 {' '}({counts[f]})
               </Text>
@@ -705,7 +716,7 @@ export default function CouponCodes() {
           showsVerticalScrollIndicator={false}
         >
           {filtered.length === 0 ? (
-            <Text style={styles.noResults}>No {filter} coupons.</Text>
+            <Text style={[styles.noResults, { color: colors.mutedForeground }]}>No {filter} coupons.</Text>
           ) : (
             filtered.map((c) => (
               <CouponCard key={c.id} coupon={c} onDelete={() => confirmDelete(c.id, c.code)} />
@@ -737,7 +748,7 @@ export default function CouponCodes() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.background },
+  root: { flex: 1 },
 
   header: {
     flexDirection: 'row', alignItems: 'center',
@@ -745,7 +756,7 @@ const styles = StyleSheet.create({
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: {
-    color: colors.foreground, fontSize: 17, fontWeight: '600', letterSpacing: -0.2, flex: 1,
+    fontSize: 17, fontWeight: '600', letterSpacing: -0.2, flex: 1,
   },
   addBtn: {
     width: 34, height: 34, borderRadius: 10,
@@ -756,26 +767,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 10, paddingHorizontal: 20, marginBottom: 14,
   },
   statCard: {
-    flex: 1, backgroundColor: colors.card, borderRadius: 12,
-    borderWidth: 1, borderColor: colors.border,
+    flex: 1, borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center', paddingVertical: 10, gap: 2,
   },
-  statVal: { color: colors.foreground, fontSize: 18, fontWeight: '800' },
-  statLabel: { color: colors.mutedForeground, fontSize: 10.5, fontWeight: '600' },
+  statVal: { fontSize: 18, fontWeight: '800' },
+  statLabel: { fontSize: 10.5, fontWeight: '600' },
 
   filterRow: {
     flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 14,
   },
   filterBtn: {
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
   },
   filterBtnActive: { backgroundColor: '#829B85', borderColor: '#829B85' },
-  filterText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
+  filterText: { fontSize: 12.5, fontWeight: '600' },
   filterTextActive: { color: '#fff' },
 
   list: { paddingHorizontal: 20, paddingTop: 4, gap: 12 },
-  noResults: { color: colors.mutedForeground, textAlign: 'center', paddingTop: 40, fontSize: 14 },
+  noResults: { textAlign: 'center', paddingTop: 40, fontSize: 14 },
 
   fab: {
     position: 'absolute', right: 20,

@@ -1,9 +1,10 @@
 import { Redirect, Stack } from 'expo-router';
-import colors from '@/src/constants/colors';
 import { useApp } from '@/src/providers/AppProvider';
+import { useTheme } from '@/src/providers/ThemeProvider';
 
 export default function AppLayout() {
   const { state } = useApp();
+  const { colors } = useTheme();
 
   if (state === 'signed-out' || state === 'session-loading') {
     return <Redirect href="/" />;

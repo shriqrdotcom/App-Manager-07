@@ -22,7 +22,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useApp } from '../providers/AppProvider';
-import colors from '../constants/colors';
+import { useTheme } from '../providers/ThemeProvider';
 
 const DESCRIPTION_BY_RESTAURANT: Record<string, string> = {
   'Demo Diner': 'Modern Indian · Bandra West',
@@ -47,6 +47,7 @@ export default function TopHeader({
 }: TopHeaderProps) {
   const insets = useSafeAreaInsets();
   const { selectedRestaurant, bootstrap } = useApp();
+  const { colors, resolvedTheme } = useTheme();
   const expandedRef = useRef(quickActionsExpanded);
   const [reduceMotion, setReduceMotion] = useState(false);
   const width = useSharedValue(
@@ -149,20 +150,24 @@ export default function TopHeader({
   }));
 
   return (
-    <View style={[styles.outer, { paddingTop: insets.top }]} testID="top-header">
-      <StatusBar style="light" />
+    <View style={[styles.outer, { paddingTop: insets.top, backgroundColor: colors.background }]} testID="top-header">
+      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
       <View style={styles.row}>
         <View style={styles.left}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoInitial}>{initials || 'EM'}</Text>
+          <View style={[styles.logoCircle, { backgroundColor: colors.accent, borderColor: colors.border }]}>
+            <Text style={[styles.logoInitial, { color: colors.foreground }]}>{initials || 'EM'}</Text>
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.name} numberOfLines={1}>{name}</Text>
-            <Text style={styles.desc} numberOfLines={1}>{desc}</Text>
+            <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>{name}</Text>
+            <Text style={[styles.desc, { color: colors.mutedForeground }]} numberOfLines={1}>{desc}</Text>
           </View>
         </View>
 
-        <Animated.View style={[styles.actionsPill, actionsStyle]}>
+        <Animated.View style={[
+          styles.actionsPill,
+          { backgroundColor: colors.muted, borderColor: colors.border },
+          actionsStyle,
+        ]}>
           <Animated.View
             style={[styles.secondaryActions, secondaryActionsStyle]}
           >
@@ -211,7 +216,7 @@ export default function TopHeader({
 }
 
 const styles = StyleSheet.create({
-  outer: { backgroundColor: colors.background },
+  outer: {},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -223,17 +228,17 @@ const styles = StyleSheet.create({
   },
   left: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
   logoCircle: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#2B2C2D',
+    width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
   },
-  logoInitial: { fontSize: 13, fontWeight: '800', color: colors.foreground, letterSpacing: 0.5 },
-  name: { fontSize: 14, fontWeight: '700', color: colors.foreground },
-  desc: { fontSize: 11, color: colors.mutedForeground, marginTop: 2 },
+  logoInitial: { fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  name: { fontSize: 14, fontWeight: '700' },
+  desc: { fontSize: 11, marginTop: 2 },
   actionsPill: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end',
-    backgroundColor: '#1F2021', borderRadius: 999,
-    borderWidth: 1, borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
     paddingHorizontal: 0,
     overflow: 'hidden',
     ...Platform.select({ ios: { shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8 } }),
@@ -260,6 +265,6 @@ const styles = StyleSheet.create({
   },
   notifDot: {
     position: 'absolute', top: 8, right: 10, width: 6, height: 6, borderRadius: 3,
-    backgroundColor: colors.destructive,
+    backgroundColor: '#EF4444',
   },
 });

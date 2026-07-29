@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card, SearchBar } from '@/src/components/ui';
 
 type MenuItem = {
@@ -32,7 +33,90 @@ const INITIAL_COMBOS: Combo[] = [
 type StatusFilter = 'all' | 'active' | 'paused';
 type MenuTab = 'items' | 'combos';
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    quickRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 14 },
+    quickBtn: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+    },
+    quickBtnText: { color: colors.foreground, fontSize: 12.5, fontWeight: '600' },
+
+    tabsWrap: { paddingHorizontal: 20, marginBottom: 12 },
+    tabsRow: {
+      flexDirection: 'row', backgroundColor: colors.card,
+      borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 4,
+    },
+    tabBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+    tabBtnActive: { backgroundColor: colors.primary },
+    tabText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
+
+    statusRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
+    statusChip: {
+      paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, flexShrink: 0,
+    },
+    statusChipText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
+
+    itemCard: { marginHorizontal: 20, flexDirection: 'row', gap: 12, alignItems: 'center' },
+    imgWrap: {
+      width: 64, height: 64, borderRadius: 12, backgroundColor: colors.muted,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    vegDot: {
+      position: 'absolute', top: 4, left: 4, width: 10, height: 10, borderRadius: 5,
+      borderWidth: 1.5, borderColor: colors.muted,
+    },
+    itemName: { color: colors.foreground, fontSize: 14.5, fontWeight: '700' },
+    itemCategory: { color: colors.mutedForeground, fontSize: 12 },
+    itemPrice: { color: colors.foreground, fontSize: 15, fontWeight: '800' },
+    itemRight: { alignItems: 'flex-end', gap: 6 },
+    badge: {
+      flexDirection: 'row', alignItems: 'center', gap: 3,
+      backgroundColor: '#F59E0B18', borderColor: '#F59E0B44', borderWidth: 1,
+      paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
+    },
+    badgeText: { color: '#F5C577', fontSize: 9.5, fontWeight: '700' },
+    statusDotPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+    miniBtn: {
+      width: 26, height: 26, borderRadius: 6, backgroundColor: colors.muted,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+
+    comboImg: {
+      width: 72, height: 72, borderRadius: 12, backgroundColor: colors.muted,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    oldPrice: { color: colors.mutedForeground, fontSize: 12, textDecorationLine: 'line-through' },
+    saveBadge: { backgroundColor: '#22C55E22', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+    saveText: { color: '#4ADE80', fontSize: 10, fontWeight: '700' },
+    ghostAction: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      paddingVertical: 9, borderRadius: 10, backgroundColor: colors.muted, borderWidth: 1, borderColor: colors.border,
+    },
+    ghostActionText: { color: colors.foreground, fontSize: 12.5, fontWeight: '600' },
+    ghostActionDanger: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+      paddingVertical: 9, borderRadius: 10, backgroundColor: '#3B1D1D', borderWidth: 1, borderColor: '#7F1D1D',
+    },
+    ghostActionDangerText: { color: staticColors.destructive, fontSize: 12.5, fontWeight: '600' },
+
+    toast: {
+      position: 'absolute', bottom: 24, alignSelf: 'center',
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+      borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,
+    },
+    toastText: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
+  });
+}
+
+type StylesType = ReturnType<typeof makeStyles>;
+
 export default function EditMenu() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [tab, setTab] = useState<MenuTab>('items');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
@@ -85,19 +169,19 @@ export default function EditMenu() {
 
       {/* Quick actions */}
       <View style={styles.quickRow}>
-        <QuickBtn icon="plus" label="Add item" testID="qa-add" />
-        <QuickBtn icon="layers" label="Combos" testID="qa-combos" />
-        <QuickBtn icon="tag" label="Categories" testID="qa-categories" />
+        <QuickBtn icon="plus" label="Add item" testID="qa-add" styles={styles} />
+        <QuickBtn icon="layers" label="Combos" testID="qa-combos" styles={styles} />
+        <QuickBtn icon="tag" label="Categories" testID="qa-categories" styles={styles} />
       </View>
 
       {/* Tabs */}
       <View style={styles.tabsWrap}>
         <View style={styles.tabsRow}>
           <TouchableOpacity style={[styles.tabBtn, tab === 'items' && styles.tabBtnActive]} onPress={() => setTab('items')} testID="edit-tab-items">
-            <Text style={[styles.tabText, tab === 'items' && { color: colors.background }]}>Menu items</Text>
+            <Text style={[styles.tabText, tab === 'items' && { color: colors.primaryForeground }]}>Menu items</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.tabBtn, tab === 'combos' && styles.tabBtnActive]} onPress={() => setTab('combos')} testID="edit-tab-combos">
-            <Text style={[styles.tabText, tab === 'combos' && { color: colors.background }]}>Combo offers</Text>
+            <Text style={[styles.tabText, tab === 'combos' && { color: colors.primaryForeground }]}>Combo offers</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -111,9 +195,9 @@ export default function EditMenu() {
               key={s}
               onPress={() => setStatus(s)}
               testID={`edit-status-${s}`}
-              style={[styles.statusChip, active && { backgroundColor: colors.foreground, borderColor: colors.foreground }]}
+              style={[styles.statusChip, active && { backgroundColor: colors.primary, borderColor: colors.primary }]}
             >
-              <Text style={[styles.statusChipText, active && { color: colors.background }]}>
+              <Text style={[styles.statusChipText, active && { color: colors.primaryForeground }]}>
                 {s.charAt(0).toUpperCase() + s.slice(1)}
               </Text>
             </TouchableOpacity>
@@ -128,8 +212,8 @@ export default function EditMenu() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => <ItemCard item={item} onToggle={() => toggleItem(item.id)} />}
-          ListEmptyComponent={<EmptyState label="No items match your filters" />}
+          renderItem={({ item }) => <ItemCard item={item} onToggle={() => toggleItem(item.id)} colors={colors} styles={styles} />}
+          ListEmptyComponent={<EmptyState label="No items match your filters" colors={colors} />}
         />
       ) : (
         <FlatList
@@ -138,14 +222,14 @@ export default function EditMenu() {
           keyExtractor={(c) => c.id}
           contentContainerStyle={{ paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => <ComboCard combo={item} onToggle={() => toggleCombo(item.id)} onAction={showToast} />}
-          ListEmptyComponent={<EmptyState label="No combos match your filters" />}
+          renderItem={({ item }) => <ComboCard combo={item} onToggle={() => toggleCombo(item.id)} onAction={showToast} colors={colors} styles={styles} />}
+          ListEmptyComponent={<EmptyState label="No combos match your filters" colors={colors} />}
         />
       )}
 
       {toast && (
         <View style={styles.toast} testID="edit-toast">
-          <Feather name="check-circle" size={14} color={colors.success} />
+          <Feather name="check-circle" size={14} color={staticColors.success} />
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       )}
@@ -153,7 +237,7 @@ export default function EditMenu() {
   );
 }
 
-function EmptyState({ label }: { label: string }) {
+function EmptyState({ label, colors }: { label: string; colors: ThemePalette }) {
   return (
     <View style={{ alignItems: 'center', gap: 8, paddingTop: 32 }}>
       <Feather name="package" size={26} color={colors.mutedForeground} />
@@ -162,16 +246,16 @@ function EmptyState({ label }: { label: string }) {
   );
 }
 
-function QuickBtn({ icon, label, testID }: { icon: keyof typeof Feather.glyphMap; label: string; testID?: string }) {
+function QuickBtn({ icon, label, testID, styles }: { icon: keyof typeof Feather.glyphMap; label: string; testID?: string; styles: StylesType }) {
   return (
     <TouchableOpacity style={styles.quickBtn} activeOpacity={0.8} testID={testID}>
-      <Feather name={icon} size={14} color={colors.foreground} />
+      <Feather name={icon} size={14} color={staticColors.foreground} />
       <Text style={styles.quickBtnText}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-function ItemCard({ item, onToggle }: { item: MenuItem; onToggle: () => void }) {
+function ItemCard({ item, onToggle, colors, styles }: { item: MenuItem; onToggle: () => void; colors: ThemePalette; styles: StylesType }) {
   return (
     <Card style={styles.itemCard} testID={`menu-item-${item.id}`}>
       <View style={styles.imgWrap}>
@@ -200,8 +284,8 @@ function ItemCard({ item, onToggle }: { item: MenuItem; onToggle: () => void }) 
         <Switch
           value={item.active}
           onValueChange={onToggle}
-          trackColor={{ true: colors.foreground, false: '#2A2B2C' }}
-          thumbColor={item.active ? colors.background : '#8A8A8E'}
+          trackColor={{ true: colors.primary, false: colors.accent }}
+          thumbColor={item.active ? colors.primaryForeground : colors.mutedForeground}
           testID={`menu-toggle-${item.id}`}
         />
         <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -217,7 +301,7 @@ function ItemCard({ item, onToggle }: { item: MenuItem; onToggle: () => void }) 
   );
 }
 
-function ComboCard({ combo, onToggle, onAction }: { combo: Combo; onToggle: () => void; onAction: (m: string) => void }) {
+function ComboCard({ combo, onToggle, onAction, colors, styles }: { combo: Combo; onToggle: () => void; onAction: (m: string) => void; colors: ThemePalette; styles: StylesType }) {
   const saving = combo.oldPrice - combo.price;
   return (
     <Card style={{ marginHorizontal: 20, gap: 12 }} testID={`combo-${combo.id}`}>
@@ -254,87 +338,10 @@ function ComboCard({ combo, onToggle, onAction }: { combo: Combo; onToggle: () =
           <Text style={styles.ghostActionText}>{combo.active ? 'Pause' : 'Publish'}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.ghostActionDanger} onPress={() => onAction(`${combo.name} deleted`)} testID={`combo-delete-${combo.id}`}>
-          <Feather name="trash-2" size={13} color={colors.destructive} />
+          <Feather name="trash-2" size={13} color={staticColors.destructive} />
           <Text style={styles.ghostActionDangerText}>Delete</Text>
         </TouchableOpacity>
       </View>
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  quickRow: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 14 },
-  quickBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border,
-  },
-  quickBtnText: { color: colors.foreground, fontSize: 12.5, fontWeight: '600' },
-
-  tabsWrap: { paddingHorizontal: 20, marginBottom: 12 },
-  tabsRow: {
-    flexDirection: 'row', backgroundColor: '#1B1C1C',
-    borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 4,
-  },
-  tabBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  tabBtnActive: { backgroundColor: colors.foreground },
-  tabText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
-
-  statusRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
-  statusChip: {
-    paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999,
-    backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border, flexShrink: 0,
-  },
-  statusChipText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
-
-  itemCard: { marginHorizontal: 20, flexDirection: 'row', gap: 12, alignItems: 'center' },
-  imgWrap: {
-    width: 64, height: 64, borderRadius: 12, backgroundColor: '#242526',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  vegDot: {
-    position: 'absolute', top: 4, left: 4, width: 10, height: 10, borderRadius: 5,
-    borderWidth: 1.5, borderColor: '#242526',
-  },
-  itemName: { color: colors.foreground, fontSize: 14.5, fontWeight: '700' },
-  itemCategory: { color: colors.mutedForeground, fontSize: 12 },
-  itemPrice: { color: colors.foreground, fontSize: 15, fontWeight: '800' },
-  itemRight: { alignItems: 'flex-end', gap: 6 },
-  badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: '#F59E0B18', borderColor: '#F59E0B44', borderWidth: 1,
-    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
-  },
-  badgeText: { color: '#F5C577', fontSize: 9.5, fontWeight: '700' },
-  statusDotPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  miniBtn: {
-    width: 26, height: 26, borderRadius: 6, backgroundColor: '#242526',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-
-  comboImg: {
-    width: 72, height: 72, borderRadius: 12, backgroundColor: '#242526',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  oldPrice: { color: colors.mutedForeground, fontSize: 12, textDecorationLine: 'line-through' },
-  saveBadge: { backgroundColor: '#22C55E22', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  saveText: { color: '#4ADE80', fontSize: 10, fontWeight: '700' },
-  ghostAction: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 9, borderRadius: 10, backgroundColor: '#242526', borderWidth: 1, borderColor: colors.border,
-  },
-  ghostActionText: { color: colors.foreground, fontSize: 12.5, fontWeight: '600' },
-  ghostActionDanger: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 9, borderRadius: 10, backgroundColor: '#3B1D1D', borderWidth: 1, borderColor: '#7F1D1D',
-  },
-  ghostActionDangerText: { color: colors.destructive, fontSize: 12.5, fontWeight: '600' },
-
-  toast: {
-    position: 'absolute', bottom: 24, alignSelf: 'center',
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#26272A', borderWidth: 1, borderColor: colors.border,
-    borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,
-  },
-  toastText: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
-});

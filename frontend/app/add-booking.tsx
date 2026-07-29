@@ -8,9 +8,9 @@ import { router, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dayjs from 'dayjs';
 
-import colors from '@/src/constants/colors';
 import { api, BookingSource, BookingType } from '@/src/api/client';
 import { useApp } from '@/src/providers/AppProvider';
+import { useTheme } from '@/src/providers/ThemeProvider';
 
 // ---- Domain data ----
 type Seating = { area: string; kind: BookingType; options: string[] };
@@ -39,6 +39,7 @@ function isValidTime(t: string) {
 export default function AddBookingScreen() {
   const insets = useSafeAreaInsets();
   const { state, selectedRestaurant } = useApp();
+  const { colors } = useTheme();
 
   // ---- form state ----
   const [bookingType, setBookingType] = useState<BookingType>('table');
@@ -124,7 +125,6 @@ export default function AddBookingScreen() {
       }, 700);
     } catch (e: any) {
       const msg = e?.message ?? 'Something went wrong';
-      // 409 conflict shows detail. Otherwise generic error.
       setSubmitError(msg);
       setSubmitting(false);
     }
@@ -136,9 +136,9 @@ export default function AddBookingScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
         <TouchableOpacity
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => router.back()}
           testID="add-booking-back"
           accessibilityLabel="Back"
@@ -146,7 +146,7 @@ export default function AddBookingScreen() {
         >
           <Feather name="chevron-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Booking</Text>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Add Booking</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -159,7 +159,7 @@ export default function AddBookingScreen() {
       >
         {/* Booking type toggle */}
         <View style={styles.typeWrap}>
-          <View style={styles.typeRow}>
+          <View style={[styles.typeRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <TypeBtn
               active={bookingType === 'table'}
               icon="grid"
@@ -187,19 +187,19 @@ export default function AddBookingScreen() {
               placeholder="Guest full name"
               placeholderTextColor={colors.mutedForeground}
               autoCapitalize="words"
-              style={styles.input}
+              style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted }]}
             />
           </Field>
 
           <Field label="Mobile number" error={errors.phone}>
             <View style={styles.phoneRow}>
               <TouchableOpacity
-                style={styles.codePicker}
+                style={[styles.codePicker, { backgroundColor: colors.muted, borderColor: colors.border }]}
                 onPress={() => setShowCodePicker(true)}
                 testID="country-code-picker"
                 activeOpacity={0.8}
               >
-                <Text style={styles.codeText}>{countryCode}</Text>
+                <Text style={[styles.codeText, { color: colors.foreground }]}>{countryCode}</Text>
                 <Feather name="chevron-down" size={14} color={colors.mutedForeground} />
               </TouchableOpacity>
               <TextInput
@@ -209,7 +209,7 @@ export default function AddBookingScreen() {
                 placeholder="90000 12345"
                 placeholderTextColor={colors.mutedForeground}
                 keyboardType="phone-pad"
-                style={[styles.input, { flex: 1 }]}
+                style={[styles.input, { flex: 1, color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted }]}
               />
             </View>
           </Field>
@@ -221,12 +221,12 @@ export default function AddBookingScreen() {
             <View style={{ flex: 1 }}>
               <Field label="Date">
                 <TouchableOpacity
-                  style={styles.input}
+                  style={[styles.input, { borderColor: colors.border, backgroundColor: colors.muted }]}
                   onPress={() => setShowDatePicker(true)}
                   activeOpacity={0.8}
                   testID="date-picker"
                 >
-                  <Text style={styles.inputText}>{dayjs(date).format('ddd, D MMM')}</Text>
+                  <Text style={[styles.inputText, { color: colors.foreground }]}>{dayjs(date).format('ddd, D MMM')}</Text>
                 </TouchableOpacity>
               </Field>
             </View>
@@ -239,7 +239,7 @@ export default function AddBookingScreen() {
                   placeholder="19:30"
                   placeholderTextColor={colors.mutedForeground}
                   keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'default'}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted }]}
                   maxLength={5}
                 />
               </Field>
@@ -247,20 +247,20 @@ export default function AddBookingScreen() {
           </View>
 
           <Field label="Number of guests" error={errors.guests}>
-            <View style={styles.stepperRow}>
+            <View style={[styles.stepperRow, { borderColor: colors.border, backgroundColor: colors.muted }]}>
               <TouchableOpacity
-                style={styles.stepBtn}
+                style={[styles.stepBtn, { backgroundColor: colors.accent, borderColor: colors.border }]}
                 onPress={() => setGuests(Math.max(1, guests - 1))}
                 testID="guests-minus"
               >
                 <Feather name="minus" size={16} color={colors.foreground} />
               </TouchableOpacity>
               <View style={styles.stepValueWrap}>
-                <Text style={styles.stepValue}>{guests}</Text>
-                <Text style={styles.stepValueLabel}>{guests === 1 ? 'guest' : 'guests'}</Text>
+                <Text style={[styles.stepValue, { color: colors.foreground }]}>{guests}</Text>
+                <Text style={[styles.stepValueLabel, { color: colors.mutedForeground }]}>{guests === 1 ? 'guest' : 'guests'}</Text>
               </View>
               <TouchableOpacity
-                style={styles.stepBtn}
+                style={[styles.stepBtn, { backgroundColor: colors.accent, borderColor: colors.border }]}
                 onPress={() => setGuests(Math.min(30, guests + 1))}
                 testID="guests-plus"
               >
@@ -300,7 +300,7 @@ export default function AddBookingScreen() {
                 ))}
               </View>
             ) : (
-              <Text style={styles.hint}>Choose a seating area first.</Text>
+              <Text style={[styles.hint, { color: colors.mutedForeground }]}>Choose a seating area first.</Text>
             )}
           </Field>
         </Section>
@@ -336,7 +336,7 @@ export default function AddBookingScreen() {
               placeholder="Anniversary, allergy notes, seating preference…"
               placeholderTextColor={colors.mutedForeground}
               multiline
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted }]}
             />
           </Field>
 
@@ -348,32 +348,32 @@ export default function AddBookingScreen() {
               placeholder="Not visible to the guest"
               placeholderTextColor={colors.mutedForeground}
               multiline
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.muted }]}
             />
           </Field>
         </Section>
 
         {submitError && (
           <View style={styles.errorBox} testID="submit-error">
-            <Feather name="alert-circle" size={14} color={colors.destructive} />
+            <Feather name="alert-circle" size={14} color="#EF4444" />
             <Text style={styles.errorText}>{submitError}</Text>
           </View>
         )}
       </ScrollView>
 
       {/* Bottom actions */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <TouchableOpacity
-          style={[styles.cancelBtn, submitting && { opacity: 0.5 }]}
+          style={[styles.cancelBtn, { backgroundColor: colors.card, borderColor: colors.border }, submitting && { opacity: 0.5 }]}
           onPress={() => router.back()}
           disabled={submitting}
           testID="add-booking-cancel"
           activeOpacity={0.85}
         >
-          <Text style={styles.cancelBtnText}>Cancel</Text>
+          <Text style={[styles.cancelBtnText, { color: colors.foreground }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.submitBtn, submitting && { opacity: 0.7 }]}
+          style={[styles.submitBtn, { backgroundColor: colors.foreground }, submitting && { opacity: 0.7 }]}
           onPress={onSubmit}
           disabled={submitting}
           testID="add-booking-submit"
@@ -384,7 +384,7 @@ export default function AddBookingScreen() {
           ) : (
             <>
               <Feather name="check" size={16} color={colors.background} />
-              <Text style={styles.submitBtnText}>Create Booking</Text>
+              <Text style={[styles.submitBtnText, { color: colors.background }]}>Create Booking</Text>
             </>
           )}
         </TouchableOpacity>
@@ -393,8 +393,8 @@ export default function AddBookingScreen() {
       {/* Country-code picker */}
       <Modal transparent visible={showCodePicker} animationType="fade" onRequestClose={() => setShowCodePicker(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setShowCodePicker(false)}>
-          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>Country code</Text>
+          <Pressable style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={(e) => e.stopPropagation()}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Country code</Text>
             {COUNTRY_CODES.map((c) => (
               <TouchableOpacity
                 key={c}
@@ -402,7 +402,7 @@ export default function AddBookingScreen() {
                 onPress={() => { setCountryCode(c); setShowCodePicker(false); }}
                 testID={`code-${c}`}
               >
-                <Text style={styles.modalRowText}>{c}</Text>
+                <Text style={[styles.modalRowText, { color: colors.foreground }]}>{c}</Text>
                 {countryCode === c && <Feather name="check" size={16} color={colors.foreground} />}
               </TouchableOpacity>
             ))}
@@ -413,8 +413,8 @@ export default function AddBookingScreen() {
       {/* Date picker (list) */}
       <Modal transparent visible={showDatePicker} animationType="fade" onRequestClose={() => setShowDatePicker(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setShowDatePicker(false)}>
-          <Pressable style={[styles.modalCard, { maxHeight: '70%' }]} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>Choose date</Text>
+          <Pressable style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border, maxHeight: '70%' }]} onPress={(e) => e.stopPropagation()}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Choose date</Text>
             <ScrollView>
               {dateOptions.map((d) => {
                 const iso = d.format('YYYY-MM-DD');
@@ -426,7 +426,7 @@ export default function AddBookingScreen() {
                     onPress={() => { setDate(iso); setShowDatePicker(false); }}
                     testID={`date-${iso}`}
                   >
-                    <Text style={styles.modalRowText}>{d.format('ddd, D MMM YYYY')}</Text>
+                    <Text style={[styles.modalRowText, { color: colors.foreground }]}>{d.format('ddd, D MMM YYYY')}</Text>
                     {active && <Feather name="check" size={16} color={colors.foreground} />}
                   </TouchableOpacity>
                 );
@@ -439,7 +439,7 @@ export default function AddBookingScreen() {
       {/* Success toast */}
       {successMsg && (
         <View style={[styles.successToast, { bottom: insets.bottom + 90 }]} testID="add-booking-success">
-          <Feather name="check-circle" size={16} color={colors.success} />
+          <Feather name="check-circle" size={16} color="#22C55E" />
           <Text style={styles.successText}>{successMsg}</Text>
         </View>
       )}
@@ -449,23 +449,25 @@ export default function AddBookingScreen() {
 
 // ---- subcomponents ----
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  const { colors } = useTheme();
   return (
     <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
-      <Text style={styles.sectionLabel}>{label}</Text>
-      <View style={styles.sectionCard}>{children}</View>
+      <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>{label}</Text>
+      <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>{children}</View>
     </View>
   );
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  const { colors } = useTheme();
   return (
     <View style={{ gap: 6, marginBottom: 12 }}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
       {children}
       {error && (
         <View style={styles.fieldError}>
-          <Feather name="alert-circle" size={11} color={colors.destructive} />
-          <Text style={styles.fieldErrorText}>{error}</Text>
+          <Feather name="alert-circle" size={11} color="#EF4444" />
+          <Text style={[styles.fieldErrorText, { color: '#EF4444' }]}>{error}</Text>
         </View>
       )}
     </View>
@@ -475,28 +477,34 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function TypeBtn({ active, icon, label, onPress, testID }: {
   active: boolean; icon: keyof typeof Feather.glyphMap; label: string; onPress: () => void; testID: string;
 }) {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
-      style={[styles.typeBtn, active && styles.typeBtnActive]}
+      style={[styles.typeBtn, active && { backgroundColor: colors.foreground }]}
       onPress={onPress}
       activeOpacity={0.85}
       testID={testID}
     >
       <Feather name={icon} size={16} color={active ? colors.background : colors.foreground} />
-      <Text style={[styles.typeBtnText, active && { color: colors.background }]}>{label}</Text>
+      <Text style={[styles.typeBtnText, { color: active ? colors.background : colors.foreground }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
 function ChoiceChip({ label, active, onPress, testID }: { label: string; active: boolean; onPress: () => void; testID?: string }) {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       testID={testID}
       activeOpacity={0.85}
-      style={[styles.chip, active && styles.chipActive]}
+      style={[
+        styles.chip,
+        { backgroundColor: colors.muted, borderColor: colors.border },
+        active && { backgroundColor: colors.foreground, borderColor: colors.foreground },
+      ]}
     >
-      <Text style={[styles.chipText, active && { color: colors.background }]}>{label}</Text>
+      <Text style={[styles.chipText, { color: active ? colors.background : colors.foreground }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -505,79 +513,77 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#1B1C1C',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    width: 40, height: 40, borderRadius: 20,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: { color: colors.foreground, fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
 
   typeWrap: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   typeRow: {
-    flexDirection: 'row', backgroundColor: '#1B1C1C',
-    borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 4,
+    flexDirection: 'row',
+    borderWidth: 1, borderRadius: 12, padding: 4,
   },
   typeBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 12, borderRadius: 8,
   },
-  typeBtnActive: { backgroundColor: colors.foreground },
-  typeBtnText: { color: colors.foreground, fontSize: 13.5, fontWeight: '600' },
+  typeBtnText: { fontSize: 13.5, fontWeight: '600' },
 
   sectionLabel: {
-    fontSize: 10.5, fontWeight: '700', color: colors.mutedForeground,
+    fontSize: 10.5, fontWeight: '700',
     letterSpacing: 1, marginLeft: 4, marginBottom: 8, marginTop: 4,
   },
   sectionCard: {
-    backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border,
+    borderRadius: 16, borderWidth: 1,
     padding: 14,
   },
 
-  fieldLabel: { fontSize: 12.5, fontWeight: '600', color: colors.mutedForeground, letterSpacing: 0.3 },
+  fieldLabel: { fontSize: 12.5, fontWeight: '600', letterSpacing: 0.3 },
   input: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: 10,
+    borderWidth: 1, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: Platform.OS === 'ios' ? 13 : 10,
-    fontSize: 15, color: colors.foreground, backgroundColor: '#0F1010',
+    fontSize: 15,
     minHeight: 46,
   },
-  inputText: { color: colors.foreground, fontSize: 15 },
+  inputText: { fontSize: 15 },
   textArea: { minHeight: 72, textAlignVertical: 'top' },
 
   phoneRow: { flexDirection: 'row', gap: 8 },
   codePicker: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, backgroundColor: '#0F1010',
-    borderWidth: 1, borderColor: colors.border, borderRadius: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1, borderRadius: 10,
     minWidth: 82, justifyContent: 'center',
   },
-  codeText: { color: colors.foreground, fontSize: 15, fontWeight: '600' },
+  codeText: { fontSize: 15, fontWeight: '600' },
 
   stepperRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderWidth: 1, borderColor: colors.border, borderRadius: 10,
-    backgroundColor: '#0F1010', paddingHorizontal: 12, paddingVertical: 8,
+    borderWidth: 1, borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 8,
   },
   stepBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: '#242526',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 18,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
   stepValueWrap: { flex: 1, alignItems: 'center' },
-  stepValue: { color: colors.foreground, fontSize: 22, fontWeight: '800' },
-  stepValueLabel: { color: colors.mutedForeground, fontSize: 11, marginTop: -2 },
+  stepValue: { fontSize: 22, fontWeight: '800' },
+  stepValueLabel: { fontSize: 11, marginTop: -2 },
 
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: '#0F1010', borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
   },
-  chipActive: { backgroundColor: colors.foreground, borderColor: colors.foreground },
-  chipText: { color: colors.foreground, fontSize: 12.5, fontWeight: '600' },
+  chipText: { fontSize: 12.5, fontWeight: '600' },
 
-  hint: { color: colors.mutedForeground, fontSize: 12, fontStyle: 'italic' },
+  hint: { fontSize: 12, fontStyle: 'italic' },
 
   fieldError: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  fieldErrorText: { color: colors.destructive, fontSize: 11.5, fontWeight: '600' },
+  fieldErrorText: { fontSize: 11.5, fontWeight: '600' },
 
   errorBox: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -589,32 +595,30 @@ const styles = StyleSheet.create({
 
   footer: {
     flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border,
-    backgroundColor: colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center',
-    backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
   },
-  cancelBtnText: { color: colors.foreground, fontSize: 14, fontWeight: '600' },
+  cancelBtnText: { fontSize: 14, fontWeight: '600' },
   submitBtn: {
     flex: 2, paddingVertical: 14, borderRadius: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: colors.foreground,
   },
-  submitBtnText: { color: colors.background, fontSize: 14.5, fontWeight: '700' },
+  submitBtnText: { fontSize: 14.5, fontWeight: '700' },
 
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', padding: 32 },
   modalCard: {
-    backgroundColor: colors.card, borderRadius: 16, padding: 16, width: '100%',
-    borderWidth: 1, borderColor: colors.border, gap: 4,
+    borderRadius: 16, padding: 16, width: '100%',
+    borderWidth: 1, gap: 4,
   },
-  modalTitle: { color: colors.foreground, fontSize: 15, fontWeight: '700', marginBottom: 8, marginLeft: 4 },
+  modalTitle: { fontSize: 15, fontWeight: '700', marginBottom: 8, marginLeft: 4 },
   modalRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 12, borderRadius: 10,
   },
-  modalRowText: { color: colors.foreground, fontSize: 14.5 },
+  modalRowText: { fontSize: 14.5 },
 
   successToast: {
     position: 'absolute', alignSelf: 'center',

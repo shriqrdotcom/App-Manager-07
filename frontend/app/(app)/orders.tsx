@@ -3,7 +3,8 @@ import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from '
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card } from '@/src/components/ui';
 
 type Status = 'new' | 'confirmed' | 'preparing' | 'ready';
@@ -69,10 +70,10 @@ const MOCK: Order[] = [
 ];
 
 const FILTERS: Array<{ key: Status; label: string; color: string }> = [
-  { key: 'new', label: 'New', color: colors.info },
-  { key: 'confirmed', label: 'Confirmed', color: colors.purple },
-  { key: 'preparing', label: 'Preparing', color: colors.warning },
-  { key: 'ready', label: 'Ready', color: colors.success },
+  { key: 'new', label: 'New', color: staticColors.info },
+  { key: 'confirmed', label: 'Confirmed', color: staticColors.purple },
+  { key: 'preparing', label: 'Preparing', color: staticColors.warning },
+  { key: 'ready', label: 'Ready', color: staticColors.success },
 ];
 
 const STATUS_STYLE: Record<Status, { bg: string; color: string; label: string }> = {
@@ -88,8 +89,96 @@ const TYPE_ICON: Record<OrderType, keyof typeof Feather.glyphMap> = {
 
 function fmt(n: number) { return `₹${n.toLocaleString('en-IN')}`; }
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    headerActions: { flexDirection: 'row', gap: 8 },
+    iconBtn: {
+      width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+    liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, marginBottom: 12 },
+    liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: staticColors.success },
+    liveText: { color: colors.mutedForeground, fontSize: 12 },
+
+    summaryRow: { paddingHorizontal: 20, gap: 10, marginBottom: 14 },
+    summaryCard: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12,
+      padding: 12, minWidth: 130,
+    },
+    summaryAccent: { width: 3, height: 32, borderRadius: 2 },
+    summaryLabel: { fontSize: 9, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1 },
+    summaryValue: { fontSize: 18, fontWeight: '800', color: colors.foreground, marginTop: 2 },
+
+    chipsRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
+    chip: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      height: 34, paddingHorizontal: 12, borderRadius: 999,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+      flexShrink: 0,
+    },
+    chipActive: { backgroundColor: colors.accent, borderColor: colors.border },
+    chipDot: { width: 6, height: 6, borderRadius: 3 },
+    chipLabel: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
+    chipCount: {
+      minWidth: 20, height: 18, borderRadius: 9, backgroundColor: colors.accent,
+      alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5,
+    },
+    chipCountText: { fontSize: 10, fontWeight: '700', color: colors.foreground },
+
+    orderCard: { marginHorizontal: 20, gap: 10, padding: 16 },
+    rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    orderNumber: { fontSize: 15, fontWeight: '700', color: colors.foreground },
+    dot: { color: colors.mutedForeground },
+    orderTime: { fontSize: 12, color: colors.mutedForeground },
+    statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+    statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    metaChip: {
+      flexDirection: 'row', alignItems: 'center', gap: 4,
+      backgroundColor: colors.muted, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+      borderWidth: 1, borderColor: colors.border,
+    },
+    metaText: { color: colors.mutedForeground, fontSize: 11, fontWeight: '600' },
+    customer: { color: colors.foreground, fontSize: 12, fontWeight: '600' },
+    divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
+    itemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    itemQty: { color: colors.mutedForeground, fontSize: 12, width: 22 },
+    itemName: { flex: 1, color: colors.foreground, fontSize: 13 },
+    itemPrice: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
+    noteBox: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      backgroundColor: '#F59E0B12', borderWidth: 1, borderColor: '#F59E0B33',
+      borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8,
+    },
+    noteText: { color: '#F5C577', fontSize: 12, flex: 1 },
+    footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    totalLabel: { color: colors.mutedForeground, fontSize: 11 },
+    totalValue: { color: colors.foreground, fontSize: 18, fontWeight: '800' },
+    payPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+    ghostBtn: {
+      paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
+      borderWidth: 1, borderColor: colors.border, backgroundColor: 'transparent',
+    },
+    ghostBtnText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
+    primaryBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, backgroundColor: colors.primary },
+    primaryBtnText: { color: colors.primaryForeground, fontSize: 13, fontWeight: '700' },
+    empty: { alignItems: 'center', gap: 8, paddingTop: 32 },
+    emptyText: { color: colors.mutedForeground, fontSize: 13 },
+
+    fab: {
+      position: 'absolute', right: 20, width: 56, height: 56, borderRadius: 16,
+      backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+      shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+      elevation: 8,
+    },
+  });
+}
+
 export default function Orders() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [filter, setFilter] = useState<Status>('new');
 
   const data = useMemo(() => MOCK.filter((o) => o.status === filter), [filter]);
@@ -134,10 +223,10 @@ export default function Orders() {
 
             {/* Summary cards */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.summaryRow}>
-              <SummaryCard color={colors.info}    label="Active"       value={String(summary.active)} />
-              <SummaryCard color={colors.warning} label="Pending"      value={String(summary.pending)} />
-              <SummaryCard color={colors.purple}  label="Avg prep"     value={summary.avgPrep} />
-              <SummaryCard color={colors.success} label="Revenue"      value={summary.revenue} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.info}    label="Active"       value={String(summary.active)} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.warning} label="Pending"      value={String(summary.pending)} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.purple}  label="Avg prep"     value={summary.avgPrep} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.success} label="Revenue"      value={summary.revenue} />
             </ScrollView>
 
             {/* Status chips */}
@@ -150,7 +239,7 @@ export default function Orders() {
                     testID={`orders-filter-${f.key}`}
                     onPress={() => setFilter(f.key)}
                     activeOpacity={0.8}
-                    style={[styles.chip, active && { backgroundColor: '#2A2B2C', borderColor: '#3A3B3C' }]}
+                    style={[styles.chip, active && styles.chipActive]}
                   >
                     <View style={[styles.chipDot, { backgroundColor: f.color }]} />
                     <Text style={[styles.chipLabel, active && { color: colors.foreground }]}>{f.label}</Text>
@@ -163,7 +252,7 @@ export default function Orders() {
             </ScrollView>
           </>
         }
-        renderItem={({ item }) => <OrderCard order={item} />}
+        renderItem={({ item }) => <OrderCard order={item} colors={colors} styles={styles} />}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -182,13 +271,15 @@ export default function Orders() {
         accessibilityLabel="Create manual order"
         accessibilityRole="button"
       >
-        <Feather name="file-plus" size={24} color={colors.background} />
+        <Feather name="file-plus" size={24} color={colors.primaryForeground} />
       </TouchableOpacity>
     </View>
   );
 }
 
-function SummaryCard({ label, value, color }: { label: string; value: string; color: string }) {
+type StylesType = ReturnType<typeof makeStyles>;
+
+function SummaryCard({ label, value, color, styles }: { label: string; value: string; color: string; colors: ThemePalette; styles: StylesType }) {
   return (
     <View style={styles.summaryCard}>
       <View style={[styles.summaryAccent, { backgroundColor: color }]} />
@@ -200,7 +291,7 @@ function SummaryCard({ label, value, color }: { label: string; value: string; co
   );
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, colors, styles }: { order: Order; colors: ThemePalette; styles: StylesType }) {
   const s = STATUS_STYLE[order.status];
   return (
     <Card style={styles.orderCard} testID={`order-item-${order.id}`}>
@@ -239,7 +330,7 @@ function OrderCard({ order }: { order: Order }) {
 
       {order.note && (
         <View style={styles.noteBox}>
-          <Feather name="alert-circle" size={12} color={colors.warning} />
+          <Feather name="alert-circle" size={12} color={staticColors.warning} />
           <Text style={styles.noteText}>{order.note}</Text>
         </View>
       )}
@@ -290,86 +381,3 @@ function OrderCard({ order }: { order: Order }) {
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  headerActions: { flexDirection: 'row', gap: 8 },
-  iconBtn: {
-    width: 36, height: 36, borderRadius: 18, backgroundColor: '#1B1C1C',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, marginBottom: 12 },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success },
-  liveText: { color: colors.mutedForeground, fontSize: 12 },
-
-  summaryRow: { paddingHorizontal: 20, gap: 10, marginBottom: 14 },
-  summaryCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12,
-    padding: 12, minWidth: 130,
-  },
-  summaryAccent: { width: 3, height: 32, borderRadius: 2 },
-  summaryLabel: { fontSize: 9, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1 },
-  summaryValue: { fontSize: 18, fontWeight: '800', color: colors.foreground, marginTop: 2 },
-
-  chipsRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    height: 34, paddingHorizontal: 12, borderRadius: 999,
-    backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border,
-    flexShrink: 0,
-  },
-  chipDot: { width: 6, height: 6, borderRadius: 3 },
-  chipLabel: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
-  chipCount: {
-    minWidth: 20, height: 18, borderRadius: 9, backgroundColor: '#2A2B2C',
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5,
-  },
-  chipCountText: { fontSize: 10, fontWeight: '700', color: colors.foreground },
-
-  orderCard: { marginHorizontal: 20, gap: 10, padding: 16 },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  orderNumber: { fontSize: 15, fontWeight: '700', color: colors.foreground },
-  dot: { color: colors.mutedForeground },
-  orderTime: { fontSize: 12, color: colors.mutedForeground },
-  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  metaChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#1F2021', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
-    borderWidth: 1, borderColor: colors.border,
-  },
-  metaText: { color: colors.mutedForeground, fontSize: 11, fontWeight: '600' },
-  customer: { color: colors.foreground, fontSize: 12, fontWeight: '600' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
-  itemRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemQty: { color: colors.mutedForeground, fontSize: 12, width: 22 },
-  itemName: { flex: 1, color: colors.foreground, fontSize: 13 },
-  itemPrice: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
-  noteBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#F59E0B12', borderWidth: 1, borderColor: '#F59E0B33',
-    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8,
-  },
-  noteText: { color: '#F5C577', fontSize: 12, flex: 1 },
-  footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  totalLabel: { color: colors.mutedForeground, fontSize: 11 },
-  totalValue: { color: colors.foreground, fontSize: 18, fontWeight: '800' },
-  payPill: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  ghostBtn: {
-    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
-    borderWidth: 1, borderColor: colors.border, backgroundColor: 'transparent',
-  },
-  ghostBtnText: { color: colors.mutedForeground, fontSize: 13, fontWeight: '600' },
-  primaryBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999, backgroundColor: colors.foreground },
-  primaryBtnText: { color: colors.background, fontSize: 13, fontWeight: '700' },
-  empty: { alignItems: 'center', gap: 8, paddingTop: 32 },
-  emptyText: { color: colors.mutedForeground, fontSize: 13 },
-
-  fab: {
-    position: 'absolute', right: 20, width: 56, height: 56, borderRadius: 16,
-    backgroundColor: colors.foreground, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
-  },
-});

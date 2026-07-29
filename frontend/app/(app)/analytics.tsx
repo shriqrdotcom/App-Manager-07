@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import { ScreenTitle, Card } from '@/src/components/ui';
 
 type Range = 'today' | '7d' | '30d' | 'custom';
@@ -22,7 +22,63 @@ const SOURCE = [
   { label: 'Takeaway', value: 20, color: '#A78BFA' },
 ];
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    rangeRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 14, alignItems: 'center' },
+    rangeChip: {
+      paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, flexShrink: 0,
+    },
+    rangeText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
+
+    kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 20, marginBottom: 14 },
+    kpiCard: {
+      flexBasis: '48%', flexGrow: 1,
+      backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border,
+      padding: 14, gap: 8,
+    },
+    kpiHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    kpiIcon: {
+      width: 30, height: 30, borderRadius: 8, backgroundColor: colors.muted,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
+    },
+    deltaPill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
+    kpiValue: { color: colors.foreground, fontSize: 20, fontWeight: '800', marginTop: 4 },
+    kpiLabel: { color: colors.mutedForeground, fontSize: 12 },
+
+    chartCard: { marginHorizontal: 20, marginBottom: 12, padding: 16 },
+    chartHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
+    chartTitle: { color: colors.foreground, fontSize: 14, fontWeight: '700' },
+    chartSub: { color: colors.mutedForeground, fontSize: 11 },
+    chart: {
+      flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
+      height: 140, paddingTop: 8,
+    },
+    barCol: { flex: 1, alignItems: 'center', gap: 6 },
+    bar: { width: 18, backgroundColor: colors.foreground, borderRadius: 6 },
+    barLabel: { fontSize: 10, color: colors.mutedForeground, fontWeight: '600' },
+    barColThin: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
+    barThin: { width: 6, backgroundColor: '#60A5FA', borderRadius: 3 },
+    hourAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, paddingHorizontal: 4 },
+    hourText: { color: colors.mutedForeground, fontSize: 10 },
+
+    dotCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#A78BFA', borderWidth: 2, borderColor: colors.card },
+
+    stacked: { flexDirection: 'row', height: 14, borderRadius: 6, overflow: 'hidden', marginTop: 8 },
+    legendRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', marginTop: 12 },
+    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    legendDot: { width: 8, height: 8, borderRadius: 4 },
+    legendText: { color: colors.mutedForeground, fontSize: 12 },
+    legendValue: { color: colors.foreground, fontSize: 12, fontWeight: '700' },
+  });
+}
+
+type StylesType = ReturnType<typeof makeStyles>;
+
 export default function Analytics() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [range, setRange] = useState<Range>('7d');
   const d = DATA[range];
 
@@ -49,10 +105,10 @@ export default function Analytics() {
               key={r}
               onPress={() => setRange(r)}
               testID={`analytics-range-${r}`}
-              style={[styles.rangeChip, active && { backgroundColor: colors.foreground, borderColor: colors.foreground }]}
+              style={[styles.rangeChip, active && { backgroundColor: colors.primary, borderColor: colors.primary }]}
               activeOpacity={0.85}
             >
-              <Text style={[styles.rangeText, active && { color: colors.background }]}>{label}</Text>
+              <Text style={[styles.rangeText, active && { color: colors.primaryForeground }]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -60,10 +116,10 @@ export default function Analytics() {
 
       {/* KPI grid */}
       <View style={styles.kpiGrid}>
-        <Kpi label="Total revenue" value={`₹${d.revenue.toLocaleString('en-IN')}`} delta={d.rDelta} icon="dollar-sign" testID="kpi-revenue" />
-        <Kpi label="Total orders"  value={d.orders.toLocaleString('en-IN')}       delta={d.oDelta} icon="shopping-bag" testID="kpi-orders" />
-        <Kpi label="Bookings"      value={d.bookings.toLocaleString('en-IN')}     delta={d.bDelta} icon="calendar" testID="kpi-bookings" />
-        <Kpi label="Avg order value" value={`₹${d.aov}`}                          delta={d.aDelta} icon="trending-up" testID="kpi-aov" />
+        <Kpi colors={colors} styles={styles} label="Total revenue" value={`₹${d.revenue.toLocaleString('en-IN')}`} delta={d.rDelta} icon="dollar-sign" testID="kpi-revenue" />
+        <Kpi colors={colors} styles={styles} label="Total orders"  value={d.orders.toLocaleString('en-IN')}       delta={d.oDelta} icon="shopping-bag" testID="kpi-orders" />
+        <Kpi colors={colors} styles={styles} label="Bookings"      value={d.bookings.toLocaleString('en-IN')}     delta={d.bDelta} icon="calendar" testID="kpi-bookings" />
+        <Kpi colors={colors} styles={styles} label="Avg order value" value={`₹${d.aov}`}                          delta={d.aDelta} icon="trending-up" testID="kpi-aov" />
       </View>
 
       {/* Revenue trend */}
@@ -156,7 +212,7 @@ export default function Analytics() {
   );
 }
 
-function Kpi({ label, value, delta, icon, testID }: { label: string; value: string; delta: number; icon: keyof typeof Feather.glyphMap; testID?: string }) {
+function Kpi({ label, value, delta, icon, testID, colors, styles }: { label: string; value: string; delta: number; icon: keyof typeof Feather.glyphMap; testID?: string; colors: ThemePalette; styles: StylesType }) {
   const up = delta >= 0;
   return (
     <View style={styles.kpiCard} testID={testID}>
@@ -172,53 +228,3 @@ function Kpi({ label, value, delta, icon, testID }: { label: string; value: stri
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  rangeRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 14, alignItems: 'center' },
-  rangeChip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
-    backgroundColor: '#1B1C1C', borderWidth: 1, borderColor: colors.border, flexShrink: 0,
-  },
-  rangeText: { color: colors.mutedForeground, fontSize: 12.5, fontWeight: '600' },
-
-  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: 20, marginBottom: 14 },
-  kpiCard: {
-    flexBasis: '48%', flexGrow: 1,
-    backgroundColor: colors.card, borderRadius: 14, borderWidth: 1, borderColor: colors.border,
-    padding: 14, gap: 8,
-  },
-  kpiHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  kpiIcon: {
-    width: 30, height: 30, borderRadius: 8, backgroundColor: '#242526',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border,
-  },
-  deltaPill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 999 },
-  kpiValue: { color: colors.foreground, fontSize: 20, fontWeight: '800', marginTop: 4 },
-  kpiLabel: { color: colors.mutedForeground, fontSize: 12 },
-
-  chartCard: { marginHorizontal: 20, marginBottom: 12, padding: 16 },
-  chartHeader: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 },
-  chartTitle: { color: colors.foreground, fontSize: 14, fontWeight: '700' },
-  chartSub: { color: colors.mutedForeground, fontSize: 11 },
-  chart: {
-    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
-    height: 140, paddingTop: 8,
-  },
-  barCol: { flex: 1, alignItems: 'center', gap: 6 },
-  bar: { width: 18, backgroundColor: colors.foreground, borderRadius: 6 },
-  barLabel: { fontSize: 10, color: colors.mutedForeground, fontWeight: '600' },
-  barColThin: { flex: 1, alignItems: 'center', paddingHorizontal: 2 },
-  barThin: { width: 6, backgroundColor: '#60A5FA', borderRadius: 3 },
-  hourAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, paddingHorizontal: 4 },
-  hourText: { color: colors.mutedForeground, fontSize: 10 },
-
-  dotCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#A78BFA', borderWidth: 2, borderColor: colors.card },
-
-  stacked: { flexDirection: 'row', height: 14, borderRadius: 6, overflow: 'hidden', marginTop: 8 },
-  legendRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', marginTop: 12 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { color: colors.mutedForeground, fontSize: 12 },
-  legendValue: { color: colors.foreground, fontSize: 12, fontWeight: '700' },
-});

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
-import { useTheme } from '@/src/providers/ThemeProvider';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+import staticColors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
 
 type SettingRow = {
@@ -17,9 +17,90 @@ type SettingRow = {
   destructive?: boolean;
 };
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    section: { paddingHorizontal: 20, marginBottom: 14, gap: 8 },
+    sectionLabel: { fontSize: 10.5, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1, marginLeft: 4 },
+    card: {
+      backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden',
+    },
+
+    profileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
+    avatarLg: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+    avatarLgText: { color: colors.foreground, fontSize: 18, fontWeight: '700' },
+    profileName: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
+    profileSub: { color: colors.mutedForeground, fontSize: 12, marginTop: 2 },
+    rowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 56 },
+
+    teamRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
+    teamAvatars: { flexDirection: 'row', alignItems: 'center' },
+    teamAvatar: {
+      width: 30, height: 30, borderRadius: 15,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.card,
+    },
+
+    identityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
+    identityLogo: {
+      width: 52, height: 52, borderRadius: 12, backgroundColor: colors.muted,
+      borderWidth: 1, borderColor: colors.border,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    identityLogoText: { color: colors.foreground, fontSize: 16, fontWeight: '800' },
+    identityName: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
+    identityDesc: { color: colors.mutedForeground, fontSize: 12, marginTop: 3 },
+    editSmall: {
+      width: 30, height: 30, borderRadius: 8, backgroundColor: colors.muted,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+    socialRow: {
+      flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14, paddingTop: 4,
+    },
+    socialBtn: {
+      width: 34, height: 34, borderRadius: 8, backgroundColor: colors.muted,
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    },
+
+    settingRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
+    settingIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+    rowLabel: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
+    rowValue: { color: colors.mutedForeground, fontSize: 13, marginRight: 6 },
+
+    modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', padding: 32 },
+    modalCard: {
+      backgroundColor: colors.card, borderRadius: 20, padding: 24, gap: 10, width: '100%',
+      borderWidth: 1, borderColor: colors.border, alignItems: 'center',
+    },
+    modalIcon: {
+      width: 56, height: 56, borderRadius: 28, backgroundColor: '#3B1D1D',
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#7F1D1D',
+    },
+    modalTitle: { color: colors.foreground, fontSize: 18, fontWeight: '700' },
+    modalDesc: { color: colors.mutedForeground, fontSize: 13, textAlign: 'center', marginBottom: 6 },
+    modalCancelBtn: {
+      flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
+      backgroundColor: colors.muted, borderColor: colors.border, borderWidth: 1,
+    },
+    modalDestructiveBtn: {
+      flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
+      backgroundColor: staticColors.destructive,
+    },
+
+    toast: {
+      position: 'absolute', bottom: 24, alignSelf: 'center',
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
+      borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,
+    },
+    toastText: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
+  });
+}
+
+type StylesType = ReturnType<typeof makeStyles>;
+
 export default function Settings() {
   const { bootstrap, selectedRestaurant, logout } = useApp();
-  const { preference } = useTheme();
+  const { preference, colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -150,11 +231,11 @@ export default function Settings() {
           </View>
         </View>
 
-        <Section title="ACCOUNT & TEAM" rows={filter(accountRows)} />
-        <Section title="RESTAURANT INFORMATION" rows={filter(restRows)} />
-        <Section title="PROMOTIONS" rows={filter(promoRows)} />
-        <Section title="PUBLIC CONTENT" rows={filter(publicRows)} />
-        <Section title="SECURITY & APPLICATION" rows={filter(secRows)} />
+        <Section title="ACCOUNT & TEAM" rows={filter(accountRows)} colors={colors} styles={styles} />
+        <Section title="RESTAURANT INFORMATION" rows={filter(restRows)} colors={colors} styles={styles} />
+        <Section title="PROMOTIONS" rows={filter(promoRows)} colors={colors} styles={styles} />
+        <Section title="PUBLIC CONTENT" rows={filter(publicRows)} colors={colors} styles={styles} />
+        <Section title="SECURITY & APPLICATION" rows={filter(secRows)} colors={colors} styles={styles} />
       </ScrollView>
 
       {/* Logout confirmation */}
@@ -162,20 +243,20 @@ export default function Settings() {
         <Pressable style={styles.modalBackdrop} onPress={() => setConfirmLogout(false)}>
           <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalIcon}>
-              <Feather name="log-out" size={22} color={colors.destructive} />
+              <Feather name="log-out" size={22} color={staticColors.destructive} />
             </View>
             <Text style={styles.modalTitle}>Sign out?</Text>
             <Text style={styles.modalDesc}>You&apos;ll need to sign in again to access this workspace.</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
               <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: '#242526', borderColor: colors.border, borderWidth: 1 }]}
+                style={styles.modalCancelBtn}
                 onPress={() => setConfirmLogout(false)}
                 testID="logout-cancel"
               >
                 <Text style={{ color: colors.foreground, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: colors.destructive }]}
+                style={styles.modalDestructiveBtn}
                 onPress={onLogout}
                 testID="logout-confirm"
               >
@@ -196,7 +277,7 @@ export default function Settings() {
   );
 }
 
-function Section({ title, rows }: { title: string; rows: SettingRow[] }) {
+function Section({ title, rows, colors, styles }: { title: string; rows: SettingRow[]; colors: ThemePalette; styles: StylesType }) {
   if (!rows.length) return null;
   return (
     <View style={styles.section}>
@@ -208,7 +289,7 @@ function Section({ title, rows }: { title: string; rows: SettingRow[] }) {
               <View style={[styles.settingIcon, { backgroundColor: r.color }]}>
                 <Feather name={r.icon} size={14} color="#fff" />
               </View>
-              <Text style={[styles.rowLabel, r.destructive && { color: colors.destructive }]}>{r.label}</Text>
+              <Text style={[styles.rowLabel, r.destructive && { color: staticColors.destructive }]}>{r.label}</Text>
               {r.value && <Text style={styles.rowValue}>{r.value}</Text>}
               <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
             </TouchableOpacity>
@@ -219,72 +300,3 @@ function Section({ title, rows }: { title: string; rows: SettingRow[] }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  section: { paddingHorizontal: 20, marginBottom: 14, gap: 8 },
-  sectionLabel: { fontSize: 10.5, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1, marginLeft: 4 },
-  card: {
-    backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: 'hidden',
-  },
-
-  profileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
-  avatarLg: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#2A2B2C', alignItems: 'center', justifyContent: 'center' },
-  avatarLgText: { color: colors.foreground, fontSize: 18, fontWeight: '700' },
-  profileName: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
-  profileSub: { color: colors.mutedForeground, fontSize: 12, marginTop: 2 },
-  rowDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 56 },
-
-  teamRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  teamAvatars: { flexDirection: 'row', alignItems: 'center' },
-  teamAvatar: {
-    width: 30, height: 30, borderRadius: 15,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.card,
-  },
-
-  identityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
-  identityLogo: {
-    width: 52, height: 52, borderRadius: 12, backgroundColor: '#242526',
-    borderWidth: 1, borderColor: colors.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  identityLogoText: { color: colors.foreground, fontSize: 16, fontWeight: '800' },
-  identityName: { color: colors.foreground, fontSize: 15.5, fontWeight: '700' },
-  identityDesc: { color: colors.mutedForeground, fontSize: 12, marginTop: 3 },
-  editSmall: {
-    width: 30, height: 30, borderRadius: 8, backgroundColor: '#242526',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-  socialRow: {
-    flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14, paddingTop: 4,
-  },
-  socialBtn: {
-    width: 34, height: 34, borderRadius: 8, backgroundColor: '#242526',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
-  },
-
-  settingRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
-  settingIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  rowLabel: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
-  rowValue: { color: colors.mutedForeground, fontSize: 13, marginRight: 6 },
-
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  modalCard: {
-    backgroundColor: colors.card, borderRadius: 20, padding: 24, gap: 10, width: '100%',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center',
-  },
-  modalIcon: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: '#3B1D1D',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#7F1D1D',
-  },
-  modalTitle: { color: colors.foreground, fontSize: 18, fontWeight: '700' },
-  modalDesc: { color: colors.mutedForeground, fontSize: 13, textAlign: 'center', marginBottom: 6 },
-  modalBtn: { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-
-  toast: {
-    position: 'absolute', bottom: 24, alignSelf: 'center',
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#26272A', borderWidth: 1, borderColor: colors.border,
-    borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,
-  },
-  toastText: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
-});

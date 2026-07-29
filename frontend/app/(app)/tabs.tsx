@@ -5,13 +5,13 @@
  * SwipePager so they stay mounted across tab switches, preserving scroll
  * positions, loaded data, and avoiding duplicate API requests.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import BottomNavigation from '@/src/components/BottomNavigation';
 import SwipePager from '@/src/components/SwipePager';
 import TopHeader from '@/src/components/TopHeader';
-import colors from '@/src/constants/colors';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 
 // Import tab screens as plain React components.
 // They remain mounted for the lifetime of this screen.
@@ -34,7 +34,21 @@ const PAGES = [
   <SettingsScreen key="settings" />,
 ];
 
+function makeStyles(colors: ThemePalette) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    headerLayer: { zIndex: 2 },
+    quickActionsBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 1,
+    },
+    screen: { flex: 1 },
+  });
+}
+
 export default function TabsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quickActionsExpanded, setQuickActionsExpanded] = useState(false);
 
@@ -76,13 +90,3 @@ export default function TabsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  headerLayer: { zIndex: 2 },
-  quickActionsBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
-  screen: { flex: 1 },
-});

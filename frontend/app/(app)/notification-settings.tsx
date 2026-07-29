@@ -16,7 +16,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import colors from '@/src/constants/colors';
+import { useTheme } from '@/src/providers/ThemeProvider';
 import { storage } from '@/src/utils/storage';
 
 // ─── Storage key ────────────────────────────────────────────────────────────
@@ -99,6 +99,7 @@ function Toggle({
 export default function NotificationSettings() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { colors } = useTheme();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const savedIndividual = useRef<Record<string, boolean>>(DEFAULT_SETTINGS.items);
   const [loaded, setLoaded] = useState(false);
@@ -163,7 +164,7 @@ export default function NotificationSettings() {
   if (!loaded) return null;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <Pressable
@@ -176,7 +177,7 @@ export default function NotificationSettings() {
         >
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={styles.headerTitle}>Notifications &amp; Quick Settings</Text>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Notifications &amp; Quick Settings</Text>
       </View>
 
       <ScrollView
@@ -185,14 +186,14 @@ export default function NotificationSettings() {
       >
         {/* Master toggle card */}
         <View style={styles.section}>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.masterRow}>
               <View style={[styles.itemIcon, { backgroundColor: '#EF4444' }]}>
                 <Feather name="bell" size={14} color="#fff" />
               </View>
               <View style={styles.masterLeft}>
-                <Text style={styles.masterLabel}>Allow Notifications</Text>
-                <Text style={styles.masterDesc}>
+                <Text style={[styles.masterLabel, { color: colors.foreground }]}>Allow Notifications</Text>
+                <Text style={[styles.masterDesc, { color: colors.mutedForeground }]}>
                   {settings.master ? 'Notifications are enabled' : 'All notifications are paused'}
                 </Text>
               </View>
@@ -207,8 +208,8 @@ export default function NotificationSettings() {
 
         {/* Individual toggles */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>NOTIFICATION TYPES</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>NOTIFICATION TYPES</Text>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
             {ITEMS.map((item, i) => (
               <React.Fragment key={item.key}>
                 <View
@@ -220,10 +221,10 @@ export default function NotificationSettings() {
                     <Feather name={item.icon} size={14} color="#fff" />
                   </View>
                   <View style={styles.itemText}>
-                    <Text style={[styles.itemLabel, !settings.master && styles.dimText]}>
+                    <Text style={[styles.itemLabel, { color: colors.foreground }, !settings.master && styles.dimText]}>
                       {item.label}
                     </Text>
-                    <Text style={[styles.itemDesc, !settings.master && styles.dimText]}>
+                    <Text style={[styles.itemDesc, { color: colors.mutedForeground }, !settings.master && styles.dimText]}>
                       {item.desc}
                     </Text>
                   </View>
@@ -234,7 +235,7 @@ export default function NotificationSettings() {
                     label={item.label}
                   />
                 </View>
-                {i < ITEMS.length - 1 && <View style={styles.divider} />}
+                {i < ITEMS.length - 1 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
               </React.Fragment>
             ))}
           </View>
@@ -247,10 +248,9 @@ export default function NotificationSettings() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
   },
 
-  // Header — matches the reference image: plain dark bg, back arrow, title
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    color: colors.foreground,
     fontSize: 17,
     fontWeight: '600',
     letterSpacing: -0.2,
@@ -283,15 +282,12 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 10.5,
     fontWeight: '700',
-    color: colors.mutedForeground,
     letterSpacing: 1,
     marginLeft: 4,
   },
   card: {
-    backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
   },
 
@@ -305,17 +301,15 @@ const styles = StyleSheet.create({
   },
   masterLeft: { flex: 1 },
   masterLabel: {
-    color: colors.foreground,
     fontSize: 15,
     fontWeight: '600',
   },
   masterDesc: {
-    color: colors.mutedForeground,
     fontSize: 12,
     marginTop: 2,
   },
 
-  // Icon container — matches Settings page style
+  // Icon container
   itemIcon: {
     width: 32,
     height: 32,
@@ -335,12 +329,10 @@ const styles = StyleSheet.create({
   },
   itemText: { flex: 1 },
   itemLabel: {
-    color: colors.foreground,
     fontSize: 14,
     fontWeight: '500',
   },
   itemDesc: {
-    color: colors.mutedForeground,
     fontSize: 11.5,
     marginTop: 2,
   },
@@ -350,7 +342,6 @@ const styles = StyleSheet.create({
 
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
     marginLeft: 58, // 14px padding + 32px icon + 12px gap
   },
 

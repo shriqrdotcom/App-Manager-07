@@ -6,8 +6,8 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { router, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '@/src/constants/colors';
 import { useApp } from '@/src/providers/AppProvider';
+import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 
 // ---------- Menu data ----------
 type Category = { key: string; label: string; emoji: string; tint: string };
@@ -58,6 +58,7 @@ const DISHES: Dish[] = [
 export default function AddOrderScreen() {
   const insets = useSafeAreaInsets();
   const { state, selectedRestaurant } = useApp();
+  const { colors } = useTheme();
 
   const [customer, setCustomer] = useState('');
   const [tableNo, setTableNo] = useState('');
@@ -96,11 +97,16 @@ export default function AddOrderScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} testID="add-order-back" accessibilityLabel="Back">
+      <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
+        <TouchableOpacity
+          style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => router.back()}
+          testID="add-order-back"
+          accessibilityLabel="Back"
+        >
           <Feather name="chevron-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Order</Text>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]}>New Order</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -116,14 +122,14 @@ export default function AddOrderScreen() {
         ListHeaderComponent={
           <>
             {/* Customer + Table */}
-            <View style={styles.custCard}>
-              <Text style={styles.sectionLabel}>CUSTOMER DETAILS</Text>
+            <View style={[styles.custCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>CUSTOMER DETAILS</Text>
               <View style={{ gap: 12 }}>
-                <View style={styles.inputRow}>
+                <View style={[styles.inputRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
                   <Feather name="user" size={16} color={colors.mutedForeground} />
                   <TextInput
                     testID="cust-name"
-                    style={styles.input}
+                    style={[styles.input, { color: colors.foreground }]}
                     placeholder="Customer name"
                     placeholderTextColor={colors.mutedForeground}
                     value={customer}
@@ -131,11 +137,11 @@ export default function AddOrderScreen() {
                     autoCapitalize="words"
                   />
                 </View>
-                <View style={styles.inputRow}>
+                <View style={[styles.inputRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
                   <Feather name="hash" size={16} color={colors.mutedForeground} />
                   <TextInput
                     testID="cust-table"
-                    style={styles.input}
+                    style={[styles.input, { color: colors.foreground }]}
                     placeholder="Table number (e.g. T-07)"
                     placeholderTextColor={colors.mutedForeground}
                     value={tableNo}
@@ -146,7 +152,7 @@ export default function AddOrderScreen() {
               </View>
             </View>
 
-            {/* Category ring (styled to reference) */}
+            {/* Category ring */}
             <View style={styles.categoryBoard}>
               <Text style={styles.categoryHeading}>What&apos;s on your mind?</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
@@ -172,7 +178,7 @@ export default function AddOrderScreen() {
 
             {/* Menu section header */}
             <View style={styles.menuHeader}>
-              <Text style={styles.menuHeaderText}>All {filtered.length} Items</Text>
+              <Text style={[styles.menuHeaderText, { color: colors.foreground }]}>All {filtered.length} Items</Text>
             </View>
           </>
         }
@@ -192,34 +198,34 @@ export default function AddOrderScreen() {
       />
 
       {/* Bottom summary bar */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), borderTopColor: colors.border, backgroundColor: colors.background }]}>
         {error && (
           <View style={styles.errorBar} testID="add-order-error">
-            <Feather name="alert-circle" size={13} color={colors.destructive} />
+            <Feather name="alert-circle" size={13} color="#EF4444" />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
         <View style={styles.footerRow}>
           <View>
-            <Text style={styles.footerCount}>{totalItems} item{totalItems === 1 ? '' : 's'}</Text>
-            <Text style={styles.footerTotal}>₹{totalPrice.toLocaleString('en-IN')}</Text>
+            <Text style={[styles.footerCount, { color: colors.mutedForeground }]}>{totalItems} item{totalItems === 1 ? '' : 's'}</Text>
+            <Text style={[styles.footerTotal, { color: colors.foreground }]}>₹{totalPrice.toLocaleString('en-IN')}</Text>
           </View>
           <TouchableOpacity
-            style={[styles.submitBtn, (totalItems === 0) && { opacity: 0.6 }]}
+            style={[styles.submitBtn, { backgroundColor: colors.foreground }, (totalItems === 0) && { opacity: 0.6 }]}
             onPress={placeOrder}
             disabled={totalItems === 0}
             testID="add-order-place"
             activeOpacity={0.9}
           >
             <Feather name="check" size={16} color={colors.background} />
-            <Text style={styles.submitBtnText}>Place Order</Text>
+            <Text style={[styles.submitBtnText, { color: colors.background }]}>Place Order</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {placedMsg && (
         <View style={[styles.successToast, { bottom: insets.bottom + 100 }]} testID="add-order-success">
-          <Feather name="check-circle" size={16} color={colors.success} />
+          <Feather name="check-circle" size={16} color="#22C55E" />
           <Text style={styles.successText}>{placedMsg}</Text>
         </View>
       )}
@@ -227,7 +233,7 @@ export default function AddOrderScreen() {
   );
 }
 
-// ---------- Dish card (Swiggy-like) ----------
+// ---------- Dish card (Swiggy-like) — intentionally uses light card colors ----------
 function DishCard({ dish, qty, onAdd, onDec }: { dish: Dish; qty: number; onAdd: () => void; onDec: () => void }) {
   const hasDiscount = dish.oldPrice && dish.oldPrice > dish.price;
   return (
@@ -299,35 +305,35 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20, backgroundColor: '#1B1C1C',
-    borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center',
+    width: 40, height: 40, borderRadius: 20,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: { color: colors.foreground, fontSize: 17, fontWeight: '700' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
 
   // Customer section
   custCard: {
     marginHorizontal: 16, marginTop: 16, marginBottom: 8,
-    backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border,
+    borderRadius: 16, borderWidth: 1,
     padding: 14, gap: 10,
   },
   sectionLabel: {
-    fontSize: 10.5, fontWeight: '700', color: colors.mutedForeground,
+    fontSize: 10.5, fontWeight: '700',
     letterSpacing: 1, marginBottom: 6,
   },
   inputRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#0F1010', borderWidth: 1, borderColor: colors.border,
+    borderWidth: 1,
     borderRadius: 10, paddingHorizontal: 14,
   },
   input: {
-    flex: 1, color: colors.foreground, fontSize: 15,
+    flex: 1, fontSize: 15,
     paddingVertical: Platform.OS === 'ios' ? 13 : 10,
   },
 
-  // Category section — mimics reference (white/light circles, bold labels)
+  // Category section — intentional light/food-app styling
   categoryBoard: {
     marginHorizontal: 16, marginTop: 4, marginBottom: 6,
     backgroundColor: '#FAFAFA', borderRadius: 20, padding: 16, paddingBottom: 20,
@@ -350,9 +356,9 @@ const styles = StyleSheet.create({
 
   // Menu section header
   menuHeader: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6 },
-  menuHeaderText: { fontSize: 20, fontWeight: '800', color: colors.foreground, letterSpacing: -0.4 },
+  menuHeaderText: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
 
-  // Dish card — mimics reference (white card + photo + yellow price pill + ADD)
+  // Dish card — intentional light food-app card style
   dishCard: {
     flex: 1, backgroundColor: '#FFFFFF', borderRadius: 16, padding: 10,
     borderWidth: 1, borderColor: '#E5E7EB', gap: 4,
@@ -406,8 +412,8 @@ const styles = StyleSheet.create({
 
   // Footer
   footer: {
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border,
-    backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 12, gap: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16, paddingTop: 12, gap: 8,
   },
   errorBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -416,13 +422,13 @@ const styles = StyleSheet.create({
   },
   errorText: { color: '#F87171', fontSize: 12.5, flex: 1 },
   footerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  footerCount: { color: colors.mutedForeground, fontSize: 11.5, fontWeight: '600' },
-  footerTotal: { color: colors.foreground, fontSize: 20, fontWeight: '800' },
+  footerCount: { fontSize: 11.5, fontWeight: '600' },
+  footerTotal: { fontSize: 20, fontWeight: '800' },
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: colors.foreground, paddingHorizontal: 22, paddingVertical: 14, borderRadius: 12,
+    paddingHorizontal: 22, paddingVertical: 14, borderRadius: 12,
   },
-  submitBtnText: { color: colors.background, fontWeight: '800', fontSize: 14.5 },
+  submitBtnText: { fontWeight: '800', fontSize: 14.5 },
 
   successToast: {
     position: 'absolute', alignSelf: 'center',

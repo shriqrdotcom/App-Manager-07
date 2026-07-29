@@ -3,12 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../constants/colors';
+import { useTheme } from '../providers/ThemeProvider';
 
-const ACTIVE_BG = '#26272A';
-const ACTIVE_COLOR = '#F5F5F5';
-const ACTIVE_ICON_COLOR = '#FFFFFF';
-const INACTIVE_COLOR = '#7A7A7E';
 const ICON_SIZE = 20;
 
 type Tab = {
@@ -45,6 +41,13 @@ type Props = {
 export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  // Active colours derived from theme
+  const ACTIVE_BG = colors.border;
+  const ACTIVE_COLOR = colors.foreground;
+  const ACTIVE_ICON_COLOR = colors.foreground;
+  const INACTIVE_COLOR = colors.mutedForeground;
 
   function isActive(tab: Tab, index: number): boolean {
     if (activeIndex !== undefined) return index === activeIndex;
@@ -61,7 +64,10 @@ export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
 
   return (
     <View
-      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      style={[
+        styles.wrapper,
+        { paddingBottom: Math.max(insets.bottom, 8), backgroundColor: colors.background, borderTopColor: colors.border },
+      ]}
       testID="bottom-nav"
     >
       <View style={styles.bar}>
@@ -100,9 +106,7 @@ export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: colors.background,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
   },
   bar: { flexDirection: 'row', paddingTop: 8, paddingHorizontal: 8 },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 4, gap: 4 },
