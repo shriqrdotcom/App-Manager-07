@@ -1,28 +1,38 @@
 # Exzibo Manager
 
-A React Native / Expo app for restaurant management (orders, bookings, analytics, settings).
+A React Native / Expo SDK 54 mobile app for restaurant management (orders, bookings, analytics, settings). Built with Expo Router, Better Auth, and React Query.
 
 ## Stack
-- **Frontend**: Expo SDK 54, React Native 0.81, Expo Router, React Query, Better Auth, Reanimated
-- **Backend**: External — `https://dashboard.exzibo.online` (pre-configured)
-- **Package manager**: Yarn 1.22 (run commands from `frontend/`)
+- **Framework**: Expo SDK 54 + Expo Router 6
+- **Auth**: Better Auth (`@better-auth/expo`)
+- **State**: React Query (`@tanstack/react-query`)
+- **Animations**: React Native Reanimated + Gesture Handler
+- **Language**: TypeScript
 
-## How to run
-The "Start application" workflow runs:
+## Project layout
 ```
-cd frontend && yarn expo start --web --port 5000
+frontend/          # All app code lives here
+  app/             # Expo Router screens ((app), (auth), etc.)
+  src/
+    components/    # Shared UI components
+    api/           # API client / fetch helpers
+    auth/          # Better Auth config
+    hooks/         # Custom React hooks
+    providers/     # Context providers
+    storage/       # Secure/async storage helpers
+    utils/         # Utility functions
+    constants/     # App-wide constants
+  assets/          # Images, fonts, icons
 ```
-App is served on port 5000 as an Expo Web build.
 
-## Environment variables (already set)
-- `EXPO_PUBLIC_BACKEND_URL` — points to the production backend
-- `EXPO_PUBLIC_ENABLE_DEMO_LOGIN` — set to `"false"` (flip to `"true"` to bypass auth)
-- `EXPO_PUBLIC_PREVIEW_DEMO` — set to `"true"` for demo data in preview
+## Running on Replit
+- **Web preview**: uses the `Start application` workflow — `cd frontend && yarn expo start --web --port 5000`
+- **Expo Go (phone)**: uses the `Expo Go (tunnel)` workflow — `cd frontend && yarn expo start --go --tunnel --clear --port 8080`
 
-## Setup status
-- Dependencies installed: `cd frontend && yarn install`
-- App verified running on Expo Web (port 5000) with demo data
+### First-time setup
+Dependencies must be installed before running:
+```bash
+cd frontend && yarn install
+```
 
-## Notes
-- `newArchEnabled` is `false` in `app.json` (required for Expo Go stability — see memory)
-- Dependencies must be installed from `frontend/` directory
+## User preferences
