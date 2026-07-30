@@ -215,6 +215,18 @@ function makeStyles(colors: ThemePalette) {
       color: colors.mutedForeground,
       marginTop: 2,
     },
+    metaMoreWrap: {
+      flex: 0,
+      alignItems: 'flex-end',
+    },
+    moreBtn: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.muted,
+    },
 
     // Avatar
     avatar: {
@@ -277,7 +289,15 @@ function Avatar({ initials, color, styles }: { initials: string; color: string; 
 }
 
 // ─── Member card ──────────────────────────────────────────────────────────────
-function MemberCard({ member, styles }: { member: Member; styles: ReturnType<typeof makeStyles> }) {
+function MemberCard({
+  member,
+  styles,
+  mutedColor,
+}: {
+  member: Member;
+  styles: ReturnType<typeof makeStyles>;
+  mutedColor: string;
+}) {
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -301,7 +321,16 @@ function MemberCard({ member, styles }: { member: Member; styles: ReturnType<typ
           <Text style={styles.metaLabel}>Joined</Text>
         </View>
         {/* Reserved for future setting */}
-        <View style={styles.metaItem} />
+        <View style={[styles.metaItem, styles.metaMoreWrap]}>
+          <Pressable
+            style={styles.moreBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`More options for ${member.name}`}
+            hitSlop={8}
+          >
+            <Feather name="more-horizontal" size={18} color={mutedColor} />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -388,7 +417,7 @@ export default function TeamAccess() {
         showsVerticalScrollIndicator={false}
       >
         {filtered.map((member) => (
-          <MemberCard key={member.id} member={member} styles={styles} />
+          <MemberCard key={member.id} member={member} styles={styles} mutedColor={colors.mutedForeground} />
         ))}
         {filtered.length === 0 && (
           <Text style={styles.emptyText}>No members match "{search}"</Text>
