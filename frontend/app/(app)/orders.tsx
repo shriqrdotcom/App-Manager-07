@@ -104,15 +104,15 @@ function makeStyles(colors: ThemePalette) {
     liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: staticColors.success },
     liveText: { color: colors.mutedForeground, fontSize: 12 },
 
-    summaryRow: { paddingHorizontal: 20, gap: 10, marginBottom: 14 },
+    summaryRow: { paddingHorizontal: 16, gap: 6, marginBottom: 14, flexDirection: 'row' },
     summaryCard: {
-      flexDirection: 'row', alignItems: 'center', gap: 12,
+      flex: 1,
       backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: 12,
-      padding: 12, minWidth: 130,
+      padding: 10,
     },
-    summaryAccent: { width: 3, height: 32, borderRadius: 2 },
-    summaryLabel: { fontSize: 9, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 1 },
-    summaryValue: { fontSize: 18, fontWeight: '800', color: colors.foreground, marginTop: 2 },
+    summaryAccent: { width: 20, height: 2, borderRadius: 1, marginBottom: 6 },
+    summaryLabel: { fontSize: 8, fontWeight: '700', color: colors.mutedForeground, letterSpacing: 0.8 },
+    summaryValue: { fontSize: 15, fontWeight: '800', color: colors.foreground, marginTop: 3 },
 
     chipsRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 12, alignItems: 'center' },
     chip: {
@@ -233,13 +233,13 @@ export default function Orders() {
               <Text style={styles.liveText}>Dinner service · live</Text>
             </View>
 
-            {/* Summary cards */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.summaryRow}>
-              <SummaryCard colors={colors} styles={styles} color={staticColors.info}    label="Active"       value={String(summary.active)} />
-              <SummaryCard colors={colors} styles={styles} color={staticColors.warning} label="Pending"      value={String(summary.pending)} />
-              <SummaryCard colors={colors} styles={styles} color={staticColors.purple}  label="Avg prep"     value={summary.avgPrep} />
-              <SummaryCard colors={colors} styles={styles} color={staticColors.success} label="Revenue"      value={summary.revenue} />
-            </ScrollView>
+            {/* Summary cards — fixed 4-up row, no horizontal scroll */}
+            <View style={styles.summaryRow}>
+              <SummaryCard colors={colors} styles={styles} color={staticColors.info}    label="Active"   value={String(summary.active)} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.warning} label="Pending"  value={String(summary.pending)} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.purple}  label="Avg Prep" value={summary.avgPrep} />
+              <SummaryCard colors={colors} styles={styles} color={staticColors.success} label="Revenue"  value={summary.revenue} />
+            </View>
 
             {/* Status chips */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
@@ -295,10 +295,8 @@ function SummaryCard({ label, value, color, styles }: { label: string; value: st
   return (
     <View style={styles.summaryCard}>
       <View style={[styles.summaryAccent, { backgroundColor: color }]} />
-      <View>
-        <Text style={styles.summaryLabel}>{label.toUpperCase()}</Text>
-        <Text style={styles.summaryValue}>{value}</Text>
-      </View>
+      <Text style={styles.summaryLabel} numberOfLines={1}>{label.toUpperCase()}</Text>
+      <Text style={styles.summaryValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
     </View>
   );
 }
