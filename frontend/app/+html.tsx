@@ -21,7 +21,25 @@ export default function Root({ children }: PropsWithChildren) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-              body > div:first-child { position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; }
+              /*
+               * Constrain the React Native web app to a phone-sized frame,
+               * centered on the screen.  On a real phone the viewport is already
+               * narrow so max-width has no effect.
+               */
+              body {
+                background: #000;
+              }
+              body > div:first-child {
+                position: fixed !important;
+                top: 0;
+                bottom: 0;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 430px;
+                overflow: hidden;
+              }
               [role="tablist"] [role="tab"] * { overflow: visible !important; }
               [role="heading"], [role="heading"] * { overflow: visible !important; }
             `,

@@ -8,9 +8,12 @@
  * Direction convention:
  *   swipe LEFT  (finger moves left)  → next page (higher index)
  *   swipe RIGHT (finger moves right) → prev page (lower index)
+ *
+ * Width is measured from the container via onLayout so it works correctly on
+ * web even when the viewport is constrained to a phone-sized frame via CSS.
  */
-import React, { useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { LayoutChangeEvent, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -18,8 +21,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-
-const W = Dimensions.get('window').width;
 
 const SPRING_CONFIG = {
   damping: 32,
@@ -51,10 +52,18 @@ type SwipePagerProps = {
 export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerProps) {
   const n = pages.length;
 
+  // Use the window width as the starting value so the first render is
+  // correct on native.  On web the CSS phone frame may constrain the
+  // container to a smaller size; onLayout corrects W once the DOM settles.
+  const { width: windowWidth } = useWindowDimensions();
+  const [W, setW] = useState(windowWidth);
+
   // Steady-state: offset = -(activeIndex * W)
   const offset = useSharedValue(-activeIndex * W);
   // Mirror of activeIndex on the UI thread so worklets can read it safely.
   const activeSV = useSharedValue(activeIndex);
+  // Mirror of W on the UI thread so worklets can read the current page width.
+  const wSV = useSharedValue(W);
   // Locked while a snap animation is running to block concurrent gestures.
   const isLocked = useSharedValue(false);
 
@@ -62,6 +71,14 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
   // gesture has already started the animation.
   const fromGesture = useRef(false);
   const isFirstRender = useRef(true);
+
+  // When the container's measured width changes (e.g. web CSS phone frame
+  // constrains the viewport), reset the shared value and snap to the current
+  // active page using the new width.
+  useEffect(() => {
+    wSV.value = W;
+    offset.value = -(activeSV.value * W);
+  }, [W]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // First render: offset is already initialised correctly; just sync the SV.
@@ -88,6 +105,17 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
     [onCommit],
   );
 
+  // Measure the actual rendered container width so pages fill it exactly.
+  const handleLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const w = e.nativeEvent.layout.width;
+      if (w > 0 && w !== W) {
+        setW(w);
+      }
+    },
+    [W],
+  );
+
   const pan = Gesture.Pan()
     // Activate only after clear horizontal movement.
     .activeOffsetX([-10, 10])
@@ -98,18 +126,18 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
 
       // Content follows the finger: right-swipe (positive tx) shifts strip rightward →
       // prev page (lower index) slides into view from the left.
-      const raw = -(activeSV.value * W) + e.translationX;
+      const raw = -(activeSV.value * wSV.value) + e.translationX;
 
       // Clamp so the drag cannot cross more than one page boundary,
       // and cannot drag past the very first or very last page.
       const lo =
         activeSV.value < n - 1
-          ? -((activeSV.value + 1) * W) // hard stop at next page
-          : -(activeSV.value * W);       // at last page: no movement past end
+          ? -((activeSV.value + 1) * wSV.value) // hard stop at next page
+          : -(activeSV.value * wSV.value);       // at last page: no movement past end
       const hi =
         activeSV.value > 0
-          ? -((activeSV.value - 1) * W) // hard stop at prev page
-          : -(activeSV.value * W);       // at first page: no movement past start
+          ? -((activeSV.value - 1) * wSV.value) // hard stop at prev page
+          : -(activeSV.value * wSV.value);       // at first page: no movement past start
       offset.value = Math.max(lo, Math.min(hi, raw));
     })
     .onEnd((e) => {
@@ -140,7 +168,7 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
         runOnJS(handleCommit)(dest);
       }
 
-      offset.value = withSpring(-(dest * W), SPRING_CONFIG, () => {
+      offset.value = withSpring(-(dest * wSV.value), SPRING_CONFIG, () => {
         isLocked.value = false;
       });
     })
@@ -150,7 +178,7 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
       if (!isLocked.value) {
         const cur = activeSV.value;
         isLocked.value = true;
-        offset.value = withSpring(-(cur * W), SPRING_CONFIG, () => {
+        offset.value = withSpring(-(cur * wSV.value), SPRING_CONFIG, () => {
           isLocked.value = false;
         });
       }
@@ -162,11 +190,11 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
 
   return (
     <GestureDetector gesture={pan}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={handleLayout}>
         <Animated.View style={[styles.strip, animStyle]}>
           {pages.map((page, i) => (
             // eslint-disable-next-line react/no-array-index-key
-            <View key={i} style={styles.page}>
+            <View key={i} style={[styles.page, { width: W }]}>
               {page}
             </View>
           ))}
@@ -198,10 +226,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   /**
-   * Each page is exactly one screen wide.  Height is inherited from the
-   * strip (alignItems:'stretch' default) so it fills the viewport.
+   * Each page width is set via inline style from the measured container width.
+   * Height is inherited from the strip (alignItems:'stretch' default).
    */
-  page: {
-    width: W,
-  },
+  page: {},
 });

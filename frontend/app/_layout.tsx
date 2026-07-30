@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Component, useEffect, type ReactNode } from "react";
-import { LogBox, View, Text, StyleSheet, ScrollView } from "react-native";
+import { LogBox, Platform, View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -67,22 +67,43 @@ export default function RootLayout() {
 
   return (
     <RootErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-              <AppProvider>
-                <Stack screenOptions={{ headerShown: false }} />
-              </AppProvider>
-            </ThemeProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
+      {/* On web, wrap in a phone-sized frame centred on the screen so the
+          mobile-first UI doesn't stretch to full desktop width. */}
+      <GestureHandlerRootView style={styles.gestureRoot}>
+        <View style={styles.phoneFrame}>
+          <SafeAreaProvider>
+            <QueryClientProvider client={queryClient}>
+              <ThemeProvider>
+                <AppProvider>
+                  <Stack screenOptions={{ headerShown: false }} />
+                </AppProvider>
+              </ThemeProvider>
+            </QueryClientProvider>
+          </SafeAreaProvider>
+        </View>
       </GestureHandlerRootView>
     </RootErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+    // On web, show a dark letterbox surround so the phone frame stands out.
+    ...(Platform.OS === 'web' && {
+      backgroundColor: '#111',
+      alignItems: 'center' as const,
+    }),
+  },
+  phoneFrame: {
+    flex: 1,
+    width: '100%',
+    // Cap the width on web so the mobile-first UI doesn't stretch to full
+    // desktop width. On native this has no effect.
+    ...(Platform.OS === 'web' && {
+      maxWidth: 430,
+    }),
+  },
   errorContainer: {
     flex: 1,
     backgroundColor: "#000",
