@@ -74,11 +74,8 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
     activeSV.value = activeIndex;
 
     if (!fromGesture.current) {
-      // External change (e.g. bottom-nav tap) — animate to the new page.
-      isLocked.value = true;
-      offset.value = withSpring(-activeIndex * W, SPRING_CONFIG, () => {
-        isLocked.value = false;
-      });
+      // External change (e.g. bottom-nav tap) — jump immediately, no animation.
+      offset.value = -activeIndex * W;
     }
     fromGesture.current = false;
   }, [activeIndex]); // eslint-disable-line react-hooks/exhaustive-deps
