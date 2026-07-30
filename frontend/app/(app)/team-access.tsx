@@ -215,8 +215,11 @@ function makeStyles(colors: ThemePalette) {
       color: colors.mutedForeground,
       marginTop: 2,
     },
+    metaCentered: {
+      alignItems: 'center',
+    },
     metaMoreWrap: {
-      flex: 1,
+      width: 30,
       alignItems: 'flex-end',
     },
     moreBtn: {
@@ -316,12 +319,12 @@ function MemberCard({
           <Text style={styles.metaValue}>{member.workType}</Text>
           <Text style={styles.metaLabel}>Work type</Text>
         </View>
-        <View style={styles.metaItem}>
+        <View style={[styles.metaItem, styles.metaCentered]}>
           <Text style={styles.metaValue}>{member.joined}</Text>
           <Text style={styles.metaLabel}>Joined</Text>
         </View>
         {/* Reserved for future setting */}
-        <View style={[styles.metaItem, styles.metaMoreWrap]}>
+        <View style={styles.metaMoreWrap}>
           <Pressable
             style={styles.moreBtn}
             accessibilityRole="button"
