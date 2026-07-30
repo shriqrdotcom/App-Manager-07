@@ -22,7 +22,7 @@ const TABS: Tab[] = [
   { key: 'booking',   label: 'Booking',   href: '/(app)/booking',   icon: 'calendar-check', iconFamily: 'material-community' },
   { key: 'edit',      label: 'Edit',      href: '/(app)/edit',      icon: 'view-grid', iconFamily: 'material-community' },
   { key: 'analytics', label: 'Analytics', href: '/(app)/analytics', icon: 'chart-donut', iconFamily: 'material-community' },
-  { key: 'settings',  label: 'Settings',  href: '/(app)/settings',  icon: 'cog', iconFamily: 'material-community' },
+  { key: 'settings',  label: 'Profile',   href: '/(app)/settings',  icon: 'account-circle', iconFamily: 'material-community' },
 ];
 
 type Props = {
