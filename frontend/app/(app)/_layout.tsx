@@ -37,6 +37,11 @@ export default function AppLayout() {
         name="coupon-codes"
         options={{ animation: 'slide_from_right', gestureEnabled: true }}
       />
+      {/* Team access — slides in from the right */}
+      <Stack.Screen
+        name="team-access"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }

@@ -203,7 +203,7 @@ export default function Settings() {
               <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
             <View style={styles.rowDivider} />
-            <TouchableOpacity style={styles.teamRow} activeOpacity={0.7} testID="settings-team">
+            <TouchableOpacity style={styles.teamRow} activeOpacity={0.7} testID="settings-team" onPress={() => router.push('/(app)/team-access')}>
               <View style={styles.teamAvatars}>
                 {['#F59E0B', '#8B5CF6', '#3B82F6'].map((c, i) => (
                   <View key={i} style={[styles.teamAvatar, { backgroundColor: c, marginLeft: i === 0 ? 0 : -10, zIndex: 3 - i }]}>
