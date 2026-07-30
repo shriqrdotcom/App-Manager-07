@@ -24,13 +24,13 @@ const C = {
   tabActiveBg:  '#FFFFFF',
   tabActiveText:'#000000',
   tabInactiveText: '#888888',
-  plusBtn:      '#7C3AED',
-  badgeReviewed:    '#C8F25A',   // lime-yellow
-  badgeReviewedText:'#000000',
-  badgeVerified:    '#7C3AED',   // purple
-  badgeVerifiedText:'#FFFFFF',
-  badgeNeeds:       '#22D3EE',   // cyan
-  badgeNeedsText:   '#000000',
+  plusBtn:      '#9B8FD4',
+  badgeReviewed:    '#D8FF6E',   // soft lime-yellow (light)
+  badgeReviewedText:'#1A1A00',
+  badgeVerified:    '#C4B5FD',   // soft lavender (light)
+  badgeVerifiedText:'#1A004A',
+  badgeNeeds:       '#67E8F9',   // soft cyan (light)
+  badgeNeedsText:   '#001A1E',
   divider:      '#242424',
 };
 
