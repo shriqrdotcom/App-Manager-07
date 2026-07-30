@@ -1,0 +1,399 @@
+Execute this task now inside the current exzibo-mag Git repository.
+
+Do not summarize these instructions.
+Do not ask me to run Shell commands manually.
+Do not create, upload, modify, or commit any Pasted-* file.
+
+TASK TITLE
+PR #64 Repair — Step 3 of 7: Identify the Exact Remaining application-tests Failure
+
+PULL REQUEST
+#64
+
+CURRENT BRANCH
+repair/28-ci-quality-gates-shell-20260727-153852-184b215
+
+EXPECTED LOCAL MERGE COMMIT
+831d9a3beffc1d9c0d34459a0d1a4b7f4c1a794b
+
+OBJECTIVE
+
+Diagnose the exact first failure that would prevent the current merged branch from passing:
+
+CI / application-tests
+
+This is diagnosis-only.
+
+Do not fix anything in this task.
+Do not commit.
+Do not push.
+Do not modify tracked files.
+Do not modify GitHub Actions.
+Do not reset or discard the local merge commit.
+
+==================================================
+STRICT RULES
+==================================================
+
+Do not:
+
+- edit source code;
+- edit tests;
+- edit .github/workflows/ci.yml;
+- create another branch;
+- create another pull request;
+- merge or rebase;
+- reset the branch;
+- commit;
+- push;
+- force-push;
+- repeatedly run the full test inventory;
+- use production databases;
+- expose DATABASE_URL or credentials;
+- save logs inside the repository;
+- create reports inside the repository;
+- add attached_assets, screenshots, Pasted-* files, or generated files.
+
+Temporary logs and scripts may be created only under:
+
+/tmp/pr64-diagnosis/
+
+==================================================
+PHASE 1 — VERIFY CURRENT STATE
+==================================================
+
+Run:
+
+git fetch origin --prune
+git switch repair/28-ci-quality-gates-shell-20260727-153852-184b215
+git status --short
+git rev-parse HEAD
+git rev-parse origin/repair/28-ci-quality-gates-shell-20260727-153852-184b215
+git log --oneline --decorate -5
+
+Required local HEAD:
+
+831d9a3beffc1d9c0d34459a0d1a4b7f4c1a794b
+
+The local branch is expected to be ahead of the remote PR branch because Prompt 2 created a local merge commit.
+
+Continue only when:
+
+- working tree is clean;
+- current branch is correct;
+- the Prompt 2 merge commit is present;
+- no merge is still in progress;
+- no unresolved files exist.
+
+Do not reset the branch to the remote SHA.
+
+==================================================
+PHASE 2 — READ THE EXACT CI CONTRACT
+==================================================
+
+Inspect:
+
+.github/workflows/ci.yml
+package.json
+pnpm-workspace.yaml
+tests/release/lib/disposableDb.js
+tests/release/acceptance/order.test.js
+
+Identify the exact application-tests job behavior:
+
+- Node version;
+- PostgreSQL service configuration;
+- environment variables;
+- migration command;
+- application startup command;
+- test discovery command;
+- test ordering;
+- timeout;
+- force-exit behavior;
+- whether test files run sequentially or concurrently;
+- whether the loop stops at the first failure.
+
+Do not modify the workflow.
+
+Return the exact test command later in the diagnosis.
+
+==================================================
+PHASE 3 — TRY TO RETRIEVE THE EXISTING CI LOG
+==================================================
+
+Known failed workflow data:
+
+- workflow run ID: 30426636238
+- application-tests job ID: 90494413083
+
+Check whether authentication is available without printing credentials:
+
+test -n "$GITHUB_TOKEN" && echo "GITHUB_TOKEN available" || echo "GITHUB_TOKEN unavailable"
+test -n "$GH_TOKEN" && echo "GH_TOKEN available" || echo "GH_TOKEN unavailable"
+
+When a token is available, use it only to read the existing job log:
+
+gh run view 30426636238 \
+  --repo shriqrdotcom/exzibo-mag \
+  --job 90494413083 \
+  --log > /tmp/pr64-diagnosis/remote-application-tests.log
+
+Do not display or print the token.
+
+If authenticated log retrieval succeeds, extract:
+
+- first failing test file;
+- failing test name;
+- exact error;
+- expected value;
+- actual value;
+- stack location;
+- pass/fail/cancelled counts.
+
+If authentication is unavailable or GitHub returns 403, continue with local reproduction.
+
+Do not stop only because the remote log is unavailable.
+
+==================================================
+PHASE 4 — PREPARE SAFE LOCAL TEST ENVIRONMENT
+==================================================
+
+Create:
+
+mkdir -p /tmp/pr64-diagnosis
+
+Use only a disposable or confirmed non-production test database.
+
+Before using DATABASE_URL:
+
+- inspect only its hostname and database name in redacted form;
+- never print username, password, query string, or full URL;
+- reject any URL that appears to be production;
+- reject any database connected to the live dashboard or customer application;
+- do not use Neon production data;
+- do not use a production R2, Redis, Worker, or Durable Object resource.
+
+Prefer the repository’s existing disposable test-database mechanism.
+
+If the test harness cannot safely create or access a disposable database, report that as the exact blocker and do not use production resources.
+
+Apply migrations only to the disposable test database using the exact CI migration command.
+
+==================================================
+PHASE 5 — LOCATE THE FIRST FAILING TEST
+==================================================
+
+Do not immediately rerun every test several times.
+
+First reproduce the CI test inventory only once with clear file boundaries.
+
+Create a temporary diagnostic runner under:
+
+/tmp/pr64-diagnosis/
+
+The runner must:
+
+1. discover test files using the same rules and ordering as CI;
+2. print:
+
+   TEST_START: <file>
+
+   before each test file;
+
+3. execute the same Node test command and timeout used by CI;
+4. print:
+
+   TEST_PASS: <file>
+
+   when it succeeds;
+
+5. print:
+
+   TEST_FAIL: <file>
+
+   when it fails;
+
+6. stop immediately after the first failing test file;
+7. preserve the complete output at:
+
+   /tmp/pr64-diagnosis/application-tests-first-failure.log
+
+Do not add this runner to the repository.
+
+Run the diagnostic inventory exactly once.
+
+Do not rerun all passing files afterward.
+
+==================================================
+PHASE 6 — TARGETED CONFIRMATION
+==================================================
+
+After locating the first failing file:
+
+Run only that single failing test file one additional time.
+
+Use the exact CI Node flags, timeout, environment, and database setup.
+
+Save output to:
+
+/tmp/pr64-diagnosis/targeted-failure.log
+
+Extract:
+
+- exact failing file;
+- exact test or subtest name;
+- `not ok` line;
+- error type;
+- error message;
+- expected value;
+- actual value;
+- stack trace;
+- source line;
+- database error code when present;
+- whether the process timed out;
+- whether the process was cancelled;
+- whether open handles prevented exit.
+
+Do not run unrelated test files.
+
+==================================================
+PHASE 7 — ROOT-CAUSE CLASSIFICATION
+==================================================
+
+Inspect only the files directly involved in the failure.
+
+Classify the failure as exactly one primary category:
+
+1. CI database/test-harness failure
+2. database fixture or migration failure
+3. test isolation/shared-state failure
+4. timeout/open-handle/process-exit failure
+5. stale test expectation
+6. genuine application defect
+7. environment/configuration failure
+8. unknown
+
+Identify whether the failure is related to:
+
+- the api/system.js conflict resolution;
+- tests/release/lib/disposableDb.js;
+- test database startup;
+- missing fixture records;
+- test order;
+- shared database state;
+- application startup;
+- authentication or authorization;
+- migration state;
+- Node version or package execution.
+
+Do not fix the root cause yet.
+
+==================================================
+PHASE 8 — VERIFY NO CHANGES
+==================================================
+
+Run:
+
+git status --short
+git diff --stat
+git diff --name-only
+
+Required result:
+
+- no tracked files modified;
+- no new repository files;
+- no commit created;
+- no push performed.
+
+Delete only temporary processes started for diagnosis.
+
+Keep diagnostic logs only under `/tmp/pr64-diagnosis/`.
+
+==================================================
+FINAL RESPONSE
+==================================================
+
+Return exactly:
+
+PR #64 APPLICATION-TEST DIAGNOSIS
+
+Branch:
+- repair/28-ci-quality-gates-shell-20260727-153852-184b215
+
+Local SHA:
+- exact SHA
+
+Remote PR SHA:
+- exact SHA
+
+Working tree before:
+- clean / not clean
+
+CI contract:
+- Node version
+- PostgreSQL setup
+- migration command
+- test discovery command
+- exact test execution command
+- sequential or concurrent
+- fail-fast behavior
+
+Remote CI log:
+- retrieved: YES / NO
+- reason when unavailable
+
+Local reproduction:
+- database mode
+- migration result
+- application startup result
+- diagnostic inventory run count
+- first failing file
+
+Exact first failure:
+- test file
+- test name
+- not-ok line
+- error type
+- exact error message
+- expected
+- actual
+- stack location
+- exit code
+- timeout: YES / NO
+- cancelled: YES / NO
+- open-handle issue: YES / NO / UNKNOWN
+
+Targeted rerun:
+- PASS / FAIL
+- result consistent with inventory: YES / NO
+
+Confirmed root cause:
+- exact explanation
+
+Classification:
+- one category from the required list
+
+Related to api/system.js:
+- YES / NO
+- evidence
+
+Prompt 4 repair scope:
+- exact files allowed
+- exact behavior to repair
+- targeted tests required
+- files that must not be changed
+
+Files modified:
+- None
+
+Commit created:
+- No
+
+Push performed:
+- No
+
+Working tree after:
+- clean / not clean
+
+Ready for Prompt 4:
+- YES / NO
