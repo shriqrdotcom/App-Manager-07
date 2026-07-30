@@ -30,21 +30,20 @@ type Member = {
   id: string;
   name: string;
   role: string;
-  country: string;
-  group: string;
   workType: string;
+  joined: string;
   status: Status;
   initials: string;
   avatarColor: string;
 };
 
 const MEMBERS: Member[] = [
-  { id: '1', name: 'Daniel Carter',   role: 'Product Designer',  country: 'Indonesia', group: 'Appspace', workType: 'Employee',   status: 'Reviewed',     initials: 'DC', avatarColor: '#7C6A5F' },
-  { id: '2', name: 'Aisha Patel',     role: 'HR Specialist',     country: 'India',     group: 'Appspace', workType: 'Employee',   status: 'Verified',     initials: 'AP', avatarColor: '#6B6B8A' },
-  { id: '3', name: 'Noah Bennett',    role: 'Data Analyst',      country: 'Singapore', group: 'Appspace', workType: 'Employee',   status: 'Needs Update', initials: 'NB', avatarColor: '#4E7068' },
-  { id: '4', name: 'Isabella Flores', role: 'Marketing Lead',    country: 'Mexico',    group: 'Appspace', workType: 'Employee',   status: 'Reviewed',     initials: 'IF', avatarColor: '#7A5E42' },
-  { id: '5', name: 'Liam Thompson',   role: 'Backend Engineer',  country: 'Australia', group: 'Appspace', workType: 'Contractor', status: 'Verified',     initials: 'LT', avatarColor: '#3A6478' },
-  { id: '6', name: 'Priya Sharma',    role: 'UX Researcher',     country: 'India',     group: 'Appspace', workType: 'Employee',   status: 'Needs Update', initials: 'PS', avatarColor: '#6A3A7A' },
+  { id: '1', name: 'Daniel Carter',   role: 'Product Designer',  workType: 'Employee',   joined: 'Jan 12, 2023', status: 'Reviewed',     initials: 'DC', avatarColor: '#7C6A5F' },
+  { id: '2', name: 'Aisha Patel',     role: 'HR Specialist',     workType: 'Employee',   joined: 'Mar 4, 2022',  status: 'Verified',     initials: 'AP', avatarColor: '#6B6B8A' },
+  { id: '3', name: 'Noah Bennett',    role: 'Data Analyst',      workType: 'Employee',   joined: 'Jul 19, 2023', status: 'Needs Update', initials: 'NB', avatarColor: '#4E7068' },
+  { id: '4', name: 'Isabella Flores', role: 'Marketing Lead',    workType: 'Employee',   joined: 'Nov 1, 2021',  status: 'Reviewed',     initials: 'IF', avatarColor: '#7A5E42' },
+  { id: '5', name: 'Liam Thompson',   role: 'Backend Engineer',  workType: 'Contractor', joined: 'Feb 28, 2024', status: 'Verified',     initials: 'LT', avatarColor: '#3A6478' },
+  { id: '6', name: 'Priya Sharma',    role: 'UX Researcher',     workType: 'Employee',   joined: 'Sep 9, 2022',  status: 'Needs Update', initials: 'PS', avatarColor: '#6A3A7A' },
 ];
 
 const TABS = ['All members', 'Admin', 'Manager', 'Employee'];
@@ -294,17 +293,15 @@ function MemberCard({ member, styles }: { member: Member; styles: ReturnType<typ
 
       <View style={styles.cardMeta}>
         <View style={styles.metaItem}>
-          <Text style={styles.metaValue}>{member.country}</Text>
-          <Text style={styles.metaLabel}>Country</Text>
-        </View>
-        <View style={styles.metaItem}>
-          <Text style={styles.metaValue}>{member.group}</Text>
-          <Text style={styles.metaLabel}>Group name</Text>
-        </View>
-        <View style={styles.metaItem}>
           <Text style={styles.metaValue}>{member.workType}</Text>
           <Text style={styles.metaLabel}>Work type</Text>
         </View>
+        <View style={styles.metaItem}>
+          <Text style={styles.metaValue}>{member.joined}</Text>
+          <Text style={styles.metaLabel}>Joined</Text>
+        </View>
+        {/* Reserved for future setting */}
+        <View style={styles.metaItem} />
       </View>
     </View>
   );
