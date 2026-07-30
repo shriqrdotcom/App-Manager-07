@@ -47,7 +47,7 @@ const MEMBERS: Member[] = [
   { id: '6', name: 'Priya Sharma',    role: 'UX Researcher',     country: 'India',     group: 'Appspace', workType: 'Employee',   status: 'Needs Update', initials: 'PS', avatarColor: '#6A3A7A' },
 ];
 
-const TABS = ['All members', 'Organization', 'Activity', 'Reports'];
+const TABS = ['All members', 'Admin', 'Manager', 'Employee'];
 
 // ─── Dynamic styles factory ───────────────────────────────────────────────────
 function makeStyles(colors: ThemePalette) {
