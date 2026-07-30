@@ -216,7 +216,7 @@ function makeStyles(colors: ThemePalette) {
       marginTop: 2,
     },
     metaMoreWrap: {
-      flex: 0,
+      flex: 1,
       alignItems: 'flex-end',
     },
     moreBtn: {
