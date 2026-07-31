@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "Exzibo Manager",
+    "owner": "app-manager-07s-team",
     "slug": "exzibo-manager",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,7 +19,7 @@
         "backgroundColor": "#121313"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.emergent.appmanager.ld40cy"
+      "package": "online.exzibo.manager"
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +44,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b83e1161-1f19-4391-becc-dd1e87b9e7f9"
+      }
     }
   }
 }
