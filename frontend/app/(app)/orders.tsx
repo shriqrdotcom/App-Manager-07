@@ -73,7 +73,7 @@ const MOCK: Order[] = [
   },
 ];
 
-const FILTERS: Array<{ key: Status; label: string; color: string }> = [
+const FILTERS: { key: Status; label: string; color: string }[] = [
   { key: 'new', label: 'New', color: staticColors.info },
   { key: 'confirmed', label: 'Confirmed', color: staticColors.purple },
   { key: 'preparing', label: 'Preparing', color: staticColors.warning },

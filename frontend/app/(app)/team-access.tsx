@@ -423,7 +423,7 @@ export default function TeamAccess() {
           <MemberCard key={member.id} member={member} styles={styles} mutedColor={colors.mutedForeground} />
         ))}
         {filtered.length === 0 && (
-          <Text style={styles.emptyText}>No members match "{search}"</Text>
+          <Text style={styles.emptyText}>No members match &quot;{search}&quot;</Text>
         )}
       </ScrollView>
     </View>

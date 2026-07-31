@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -62,7 +61,7 @@ function Toggle({
 
   useEffect(() => {
     progress.value = withTiming(value ? 1 : 0, { duration: 200 });
-  }, [value]);
+  }, [progress, value]);
 
   const trackStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

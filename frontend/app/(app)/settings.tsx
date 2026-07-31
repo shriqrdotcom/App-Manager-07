@@ -3,7 +3,6 @@ import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
 import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
-const TAB_INDEX = 4;
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -11,6 +10,8 @@ import { useApp } from '@/src/providers/AppProvider';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
+
+const TAB_INDEX = 4;
 
 type SettingRow = {
   key: string;
