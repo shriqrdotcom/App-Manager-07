@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, type ReactNode } from 'react';
 import { NormalAppProvider } from './NormalAppProvider';
 import { AppContext, type AppContextValue } from './AppContext';
-import type { BootstrapResponse, BootstrapRestaurant } from '@/src/types/bootstrap';
+import type { BootstrapResponse } from '@/src/types/bootstrap';
 
 export function AppProvider({ children }: { children: ReactNode }) {
   if (process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true') {

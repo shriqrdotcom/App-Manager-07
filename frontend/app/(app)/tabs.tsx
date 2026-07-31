@@ -14,17 +14,14 @@ import SwipePager from '@/src/components/SwipePager';
 import TopHeader from '@/src/components/TopHeader';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import { ScrollHeaderProvider, useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
-
-/** Height of the header row below the safe area (paddingTop + row + paddingBottom). */
-const HEADER_ROW_HEIGHT = 64;
-
-// Import tab screens as plain React components.
-// They remain mounted for the lifetime of this screen.
 import AnalyticsScreen from './analytics';
 import BookingScreen from './booking';
 import EditScreen from './edit';
 import OrdersScreen from './orders';
 import SettingsScreen from './settings';
+
+/** Height of the header row below the safe area (paddingTop + row + paddingBottom). */
+const HEADER_ROW_HEIGHT = 64;
 
 /**
  * Pages array is module-level so the React element references are stable

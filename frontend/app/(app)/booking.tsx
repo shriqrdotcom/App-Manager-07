@@ -5,7 +5,6 @@ import {
 import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
 import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
-const TAB_INDEX = 1;
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,6 +16,8 @@ import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card } from '@/src/components/ui';
 import { api, Booking, BookingStatus } from '@/src/api/client';
 import { useApp } from '@/src/providers/AppProvider';
+
+const TAB_INDEX = 1;
 
 const STATUS_STYLE: Record<BookingStatus, { bg: string; color: string; label: string }> = {
   pending:   { bg: '#F59E0B22', color: '#F59E0B', label: 'Pending' },

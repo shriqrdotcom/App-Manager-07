@@ -193,7 +193,6 @@ export default function SwipePager({ pages, activeIndex, onCommit }: SwipePagerP
       <View style={styles.container} onLayout={handleLayout}>
         <Animated.View style={[styles.strip, animStyle]}>
           {pages.map((page, i) => (
-            // eslint-disable-next-line react/no-array-index-key
             <View key={i} style={[styles.page, { width: W }]}>
               {page}
             </View>

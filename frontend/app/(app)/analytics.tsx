@@ -4,10 +4,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
 import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
-const TAB_INDEX = 3;
 import { Feather } from '@expo/vector-icons';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import { ScreenTitle, Card } from '@/src/components/ui';
+
+const TAB_INDEX = 3;
 
 type Range = 'today' | '7d' | '30d' | 'custom';
 

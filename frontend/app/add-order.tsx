@@ -7,7 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import { router, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/src/providers/AppProvider';
-import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
+import { useTheme } from '@/src/providers/ThemeProvider';
 
 // ---------- Menu data ----------
 type Category = { key: string; label: string; emoji: string; tint: string };
@@ -69,14 +69,6 @@ export default function AddOrderScreen() {
 
   const filtered = useMemo(() => DISHES.filter((d) => d.category === category), [category]);
 
-  if (state === 'signed-out' || state === 'session-loading') return <Redirect href="/" />;
-  if (!selectedRestaurant) return <Redirect href="/" />;
-
-  const totalItems = Object.values(cart).reduce((s, n) => s + n, 0);
-  const totalPrice = Object.entries(cart).reduce((s, [id, n]) => {
-    const dish = DISHES.find((d) => d.id === id); return s + (dish ? dish.price * n : 0);
-  }, 0);
-
   const add = useCallback((id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 })), []);
   const dec = useCallback((id: string) => setCart((c) => {
     const n = (c[id] ?? 0) - 1;
@@ -84,6 +76,14 @@ export default function AddOrderScreen() {
     if (n <= 0) delete next[id]; else next[id] = n;
     return next;
   }), []);
+
+  if (state === 'signed-out' || state === 'session-loading') return <Redirect href="/" />;
+  if (!selectedRestaurant) return <Redirect href="/" />;
+
+  const totalItems = Object.values(cart).reduce((s, n) => s + n, 0);
+  const totalPrice = Object.entries(cart).reduce((s, [id, n]) => {
+    const dish = DISHES.find((d) => d.id === id); return s + (dish ? dish.price * n : 0);
+  }, 0);
 
   const placeOrder = () => {
     setError(null);
