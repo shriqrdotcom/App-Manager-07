@@ -597,7 +597,7 @@ export default function CouponCodes() {
   }, []);
 
   const persist = useCallback((list: Coupon[]) => {
-    storage.setItem(STORAGE_KEY, list as unknown as Record<string, unknown>[]);
+    storage.setItem(STORAGE_KEY, list);
   }, []);
 
   const addCoupon = useCallback((c: Coupon) => {

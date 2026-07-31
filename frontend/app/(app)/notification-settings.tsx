@@ -125,7 +125,7 @@ export default function NotificationSettings() {
   }, []);
 
   const persist = useCallback((next: Settings) => {
-    storage.setItem(STORAGE_KEY, next as unknown as Record<string, unknown>);
+    storage.setItem(STORAGE_KEY, next);
   }, []);
 
   const toggleMaster = useCallback((val: boolean) => {
