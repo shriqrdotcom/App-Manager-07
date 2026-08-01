@@ -86,3 +86,14 @@ android-sdk/
 credentials.json
 *.key
 .credentials
+
+# Prevent generated workspace files from entering commits.
+/.worktrees/
+**/.metro-cache/
+**/coverage/
+/attached_assets/
+/.agents/memory/
+**/.expo/
+**/dist/
+*.apk
+*.aab
