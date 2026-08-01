@@ -9,6 +9,12 @@
     "scheme": "exzibo-manager",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
+    "updates": {
+      "url": "https://u.expo.dev/b83e1161-1f19-4391-becc-dd1e87b9e7f9"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emergent.appmanager.ld40cy"
