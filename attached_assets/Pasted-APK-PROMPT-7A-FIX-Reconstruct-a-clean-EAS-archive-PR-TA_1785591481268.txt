@@ -1,0 +1,208 @@
+APK PROMPT 7A-FIX — Reconstruct a clean EAS archive PR
+
+TASK
+
+Replace polluted PR #21 with a clean branch containing only the verified EAS archive boundary and preventive Git ignore rules.
+
+Do not modify, force-push, merge or close PR #21 in this task.
+
+REPOSITORY
+
+shriqrdotcom/App-Manager-07
+
+VERIFIED CLEAN ARCHIVE COMMIT
+
+b8a386c4cce94b59b3da72f9e531c47bd1131aa7
+
+This commit was previously verified to contain only:
+
+.easignore
+
+The remote branch was later polluted by generated Replit worktree files. Do not use its current HEAD.
+
+1. AUTHENTICATION AND SAFETY
+
+2. Fetch origin.
+
+3. Confirm GitHub authentication and push permission.
+
+4. Confirm origin/main is clean and its latest Mobile CI passed.
+
+5. Confirm commit b8a386c exists.
+
+6. Verify b8a386c changes only `.easignore` relative to its parent.
+
+7. Confirm this new branch does not exist:
+
+fix/eas-archive-boundary-clean
+
+7. Do not reset, rewrite, delete or force-push any existing branch.
+8. Do not modify PR #21.
+9. Do not use a `.worktrees` directory inside the repository.
+
+Stop if b8a386c contains anything except `.easignore`.
+
+2. USE AN EXTERNAL CLEAN WORKTREE
+
+Create a temporary directory with `mktemp -d` outside the repository.
+
+Create a clean Git worktree there directly from the latest origin/main.
+
+Create:
+
+fix/eas-archive-boundary-clean
+
+Do not copy the existing Replit working directory.
+
+Do not copy:
+
+* .worktrees
+* Metro caches
+* Coverage
+* attached_assets
+* Uploaded prompts
+* Agent memory
+* Replit files
+* Untracked files
+
+Copy only the verified `.easignore` content from commit b8a386c into the clean branch.
+
+Confirm its content hash matches the `.easignore` from b8a386c.
+
+3. PREVENT FUTURE WORKSPACE POLLUTION
+
+Inspect the root `.gitignore`.
+
+Without removing existing rules, add narrowly scoped rules when missing:
+
+* `/.worktrees/`
+* `**/.metro-cache/`
+* `**/coverage/`
+* `/attached_assets/`
+* `/.agents/memory/`
+* `**/.expo/`
+* `**/dist/`
+* `*.apk`
+* `*.aab`
+
+These rules prevent future generated files from being staged.
+
+Existing tracked files on main must remain untouched. Do not delete or untrack the 78 historical attached_assets files in this task.
+
+Do not use broad rules that exclude application source or frontend assets.
+
+4. VERIFY THE CLEAN DIFF
+
+The complete branch difference from origin/main may contain only:
+
+* `.easignore`
+* `.gitignore`, only if preventive rules were required
+
+It must contain none of:
+
+* `.worktrees`
+* `.metro-cache`
+* Coverage
+* attached_assets
+* Uploaded transcripts
+* `.agents`
+* `.replit`
+* Generated screenshots
+* Credentials
+* APK or AAB files
+
+If any unrelated file appears, stop without committing.
+
+5. VALIDATE THE EAS ARCHIVE
+
+From the clean external worktree, run the archive inspection using a separate temporary output directory:
+
+eas build:inspect --platform android --stage archive --profile preview --output <temporary-output> --force
+
+Do not use `--non-interactive`.
+
+Confirm the archive:
+
+* Contains all required frontend application files
+* Contains exactly the expected clean application set
+* Contains no `.git`, `.worktrees`, attached_assets, prompts, Replit files, credentials, cache, coverage, node_modules, APK or AAB files
+
+Run Gitleaks against:
+
+* The tracked working tree
+* Relevant Git history
+* The generated EAS archive
+
+Do not weaken or allowlist the `generic-api-key` rule.
+
+Delete temporary archive output afterward.
+
+6. VALIDATION
+
+Run:
+
+* Frozen Yarn installation
+* All Jest tests
+* TypeScript
+* ESLint
+* Release validator
+* Expo dependency check
+* Expo Doctor
+* Android JavaScript export
+* EAS archive inspection
+* Gitleaks working-tree and history scans
+
+Required result:
+
+* All tests pass
+* Zero TypeScript errors
+* Zero lint errors or warnings
+* Release validator passes
+* Expo Doctor passes
+* Android export passes
+* All Gitleaks scans pass
+* No dependency or lockfile change
+* No APK build is submitted
+
+7. COMMIT AND PUSH
+
+Commit as:
+
+build: secure EAS archive boundary
+
+Push only to:
+
+origin/fix/eas-archive-boundary-clean
+
+Do not force-push.
+
+Do not create, close or merge a pull request.
+
+Remove the temporary external worktree after verifying the remote branch.
+
+FINAL RESPONSE
+
+Return:
+
+1. origin/main base commit
+2. Verification of clean commit b8a386c
+3. New branch and commit
+4. Complete changed-file list
+5. `.gitignore` rules added
+6. EAS archive file count and size
+7. Required and prohibited archive checks
+8. Gitleaks results
+9. Test, TypeScript, lint and Expo results
+10. Push verification
+11. Confirmation that PR #21 was untouched
+12. Final result: READY FOR CLEAN PR or NOT READY
+
+End with exactly:
+
+WORK STATUS: DONE
+
+or:
+
+WORK STATUS: NOT DONE
+
+If not done, state the exact blocker and safest next action.
