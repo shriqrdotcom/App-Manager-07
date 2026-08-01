@@ -1,0 +1,124 @@
+name: Mobile CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cancel in-progress runs for the same ref so PRs don't queue up.
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Validate & Test
+    runs-on: ubuntu-latest
+    env:
+      # Required by config.ts at module load time.
+      # Value must match the EAS variable set for the environment.
+      EXPO_PUBLIC_BACKEND_URL: https://dashboard.exzibo.online
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0  # full history for gitleaks branch scan
+
+      # ── Node.js + Yarn ─────────────────────────────────────────────────────
+      - name: Set up Node.js 20.19.x
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: '20.19.x'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Enable Corepack and set Yarn 1.22.22
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+
+      # ── Install dependencies ───────────────────────────────────────────────
+      - name: Install dependencies (frozen lockfile)
+        working-directory: frontend
+        run: yarn install --frozen-lockfile
+
+      # ── Expo CLI checks ────────────────────────────────────────────────────
+      - name: Expo Doctor (18/18 checks)
+        working-directory: frontend
+        run: npx expo-doctor@latest
+
+      # ── Lint ──────────────────────────────────────────────────────────────
+      - name: Lint
+        working-directory: frontend
+        run: yarn lint
+
+      # ── TypeScript ────────────────────────────────────────────────────────
+      - name: TypeScript type-check
+        working-directory: frontend
+        run: yarn tsc --noEmit
+
+      # ── Tests + coverage ──────────────────────────────────────────────────
+      - name: Jest (tests + coverage)
+        working-directory: frontend
+        run: yarn test:ci
+
+      # ── Release validator ─────────────────────────────────────────────────
+      - name: Release config validator
+        working-directory: frontend
+        run: yarn validate:release
+
+      # ── Secret scanning (Gitleaks) ────────────────────────────────────────
+      - name: Install Gitleaks (pinned v8.30.1, SHA-256 verified)
+        run: |
+          GITLEAKS_VERSION="8.30.1"
+          GITLEAKS_ARCHIVE="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          GITLEAKS_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${GITLEAKS_ARCHIVE}"
+          EXPECTED_SHA256="551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+
+          curl -sSL "${GITLEAKS_URL}" -o "/tmp/${GITLEAKS_ARCHIVE}"
+
+          ACTUAL_SHA256="$(sha256sum "/tmp/${GITLEAKS_ARCHIVE}" | awk '{print $1}')"
+          if [ "${ACTUAL_SHA256}" != "${EXPECTED_SHA256}" ]; then
+            echo "❌ SHA-256 mismatch for gitleaks binary"
+            echo "   Expected: ${EXPECTED_SHA256}"
+            echo "   Actual:   ${ACTUAL_SHA256}"
+            exit 1
+          fi
+          echo "✅ SHA-256 verified"
+
+          tar -xzf "/tmp/${GITLEAKS_ARCHIVE}" -C /usr/local/bin gitleaks
+          chmod +x /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Secret scan — working tree
+        run: |
+          gitleaks detect \
+            --config .gitleaks.toml \
+            --source . \
+            --redact \
+            --verbose \
+            --exit-code 1
+
+      - name: Secret scan — full history (origin/main + this branch)
+        run: |
+          gitleaks git \
+            --config .gitleaks.toml \
+            --source . \
+            --redact \
+            --verbose \
+            --exit-code 1
+
+      # ── Android JS export (smoke test — artifact deleted after) ───────────
+      - name: Android JS export (smoke test)
+        working-directory: frontend
+        run: |
+          npx expo export --platform android --output-dir /tmp/expo-export-ci
+        env:
+          EXPO_PUBLIC_BACKEND_URL: https://dashboard.exzibo.online
+          EXPO_PUBLIC_PREVIEW_DEMO: "false"

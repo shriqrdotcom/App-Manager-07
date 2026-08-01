@@ -1,0 +1,27 @@
+# Gitleaks configuration — https://github.com/gitleaks/gitleaks
+title = "Exzibo Manager secret scan"
+
+[extend]
+# Start from the built-in default ruleset (covers API keys, tokens, etc.)
+useDefault = true
+
+[allowlist]
+# ── per-file allowances ──────────────────────────────────────────────────────
+paths = [
+  # Yarn lockfile only contains package registry URLs and SHAs — no secrets.
+  "frontend/yarn.lock",
+  # The EAS project ID is a non-secret public identifier.
+  "frontend/eas.json",
+  # App config contains only public identifiers (scheme, slug, project ID).
+  "frontend/app.json",
+]
+
+# ── global allowances ────────────────────────────────────────────────────────
+# Demo bookings contain fake phone numbers that can trigger false positives.
+regexes = [
+  # Fake phone numbers used in demo data (e.g. "555-0123").
+  '''555-0\d{3}''',
+  # Replit preview / EAS project URLs — not secrets.
+  '''u\.expo\.dev/[0-9a-f-]{36}''',
+  '''exzibo\.online''',
+]

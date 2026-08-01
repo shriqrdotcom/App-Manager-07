@@ -38,3 +38,9 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Jest coverage
+coverage/
+
+# Expo export (CI smoke test)
+/tmp/expo-export-ci/
