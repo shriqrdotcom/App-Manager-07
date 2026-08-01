@@ -8,10 +8,11 @@
  *   3. Runtime version policy = fingerprint
  *   4. Adaptive icon dimensions = 1024 × 1024
  *   5. eas.json build profiles (channels, environments, distribution, build types)
- *   6. yarn.lock contains no private-registry URLs
- *   7. expo-updates is in dependencies
- *   8. EXPO_PUBLIC_BACKEND_URL is present and non-empty (value is NOT printed)
- *   9. No forbidden files tracked in git (attached_assets/, .env, keystores, etc.)
+ *   6. Node.js and Yarn runtime versions are aligned across CI, package.json, and EAS
+ *   7. yarn.lock contains no private-registry URLs
+ *   8. expo-updates is in dependencies
+ *   9. EXPO_PUBLIC_BACKEND_URL is present and non-empty (value is NOT printed)
+ *  10. No forbidden files tracked in git (attached_assets/, .env, keystores, etc.)
  *      If forbidden files were already tracked on origin/main before this branch,
  *      they are reported as a pre-existing platform limitation, not a blocker.
  *
@@ -64,6 +65,9 @@ const expo = appJson.expo;
 
 const EXPECTED_PROJECT_ID = 'b83e1161-1f19-4391-becc-dd1e87b9e7f9';
 const EXPECTED_UPDATE_URL = `https://u.expo.dev/${EXPECTED_PROJECT_ID}`;
+const EXPECTED_NODE_VERSION = '22.23.1';
+const EXPECTED_NODE_ENGINE = '>=22.0.0 <23';
+const EXPECTED_YARN_VERSION = '1.22.22';
 
 // ── Section 1: App identity ───────────────────────────────────────────────────
 
@@ -151,7 +155,40 @@ check(
   build.production?.android?.buildType === 'app-bundle',
 );
 
-// ── Section 5: yarn.lock clean of private registry URLs ──────────────────────
+// ── Section 5: runtime versions ──────────────────────────────────────────────
+
+console.log('\n── Node.js and Yarn runtime versions ──────────────────────────');
+
+let workflowContent = '';
+try {
+  workflowContent = fs.readFileSync(
+    path.join(ROOT, '..', '.github', 'workflows', 'mobile-ci.yml'),
+    'utf8',
+  );
+} catch {
+  fail('GitHub Actions workflow exists');
+}
+check(
+  'GitHub Actions uses Node 22.23.1',
+  /node-version:\s*['"]22\.23\.1['"]/.test(workflowContent),
+);
+check(
+  'package.json requires Node >=22 and <23',
+  pkgJson.engines?.node === EXPECTED_NODE_ENGINE,
+);
+for (const profile of ['development', 'preview', 'production']) {
+  check(
+    `${profile}.node = "${EXPECTED_NODE_VERSION}"`,
+    build[profile]?.node === EXPECTED_NODE_VERSION,
+  );
+}
+check(
+  'package.json keeps Yarn at 1.22.22',
+  typeof pkgJson.packageManager === 'string' &&
+    pkgJson.packageManager.startsWith(`yarn@${EXPECTED_YARN_VERSION}`),
+);
+
+// ── Section 6: yarn.lock clean of private registry URLs ──────────────────────
 
 console.log('\n── yarn.lock cleanliness ──────────────────────────────────────');
 
@@ -164,7 +201,7 @@ check(
   privateUrls.length > 0 ? `First match: ${privateUrls[0]}` : '',
 );
 
-// ── Section 6: expo-updates dependency ───────────────────────────────────────
+// ── Section 7: expo-updates dependency ───────────────────────────────────────
 
 console.log('\n── expo-updates dependency ────────────────────────────────────');
 
@@ -178,7 +215,7 @@ check(
   updatesVersion.startsWith('~29'),
 );
 
-// ── Section 7: EXPO_PUBLIC_BACKEND_URL ────────────────────────────────────────
+// ── Section 8: EXPO_PUBLIC_BACKEND_URL ────────────────────────────────────────
 
 console.log('\n── environment variables ──────────────────────────────────────');
 
@@ -196,7 +233,7 @@ if (backendUrl) {
   );
 }
 
-// ── Section 8: No forbidden tracked files ────────────────────────────────────
+// ── Section 9: No forbidden tracked files ─────────────────────────────────────
 
 console.log('\n── tracked files ──────────────────────────────────────────────');
 

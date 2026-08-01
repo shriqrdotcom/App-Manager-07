@@ -38,6 +38,7 @@ const app = require(path.join(ROOT, 'app.json')) as {
 const eas = require(path.join(ROOT, 'eas.json')) as {
   cli: { appVersionSource: string };
   build: Record<string, {
+    node?: string;
     developmentClient?: boolean;
     distribution: string;
     channel?: string;
@@ -51,6 +52,8 @@ const eas = require(path.join(ROOT, 'eas.json')) as {
 const pkg = require(path.join(ROOT, 'package.json')) as {
   dependencies: Record<string, string>;
   devDependencies: Record<string, string>;
+  engines: { node: string };
+  packageManager: string;
 };
 
 const EXPECTED_PROJECT_ID = 'b83e1161-1f19-4391-becc-dd1e87b9e7f9';
@@ -138,6 +141,13 @@ describe('package.json — expo-updates', () => {
 // ---- EAS build profiles ----
 
 describe('eas.json — build profiles', () => {
+  it.each(['development', 'preview', 'production'])(
+    '%s profile uses Node 22.23.1',
+    (profile) => {
+      expect(eas.build[profile].node).toBe('22.23.1');
+    },
+  );
+
   it('development profile has developmentClient=true', () => {
     expect(eas.build.development.developmentClient).toBe(true);
   });
@@ -196,5 +206,25 @@ describe('eas.json — build profiles', () => {
 
   it('production profile uses remote version source via cli.appVersionSource', () => {
     expect(eas.cli.appVersionSource).toBe('remote');
+  });
+});
+
+// ---- runtime versions ----
+
+describe('package.json and CI — runtime versions', () => {
+  it('requires Node >=22 and <23', () => {
+    expect(pkg.engines.node).toBe('>=22.0.0 <23');
+  });
+
+  it('keeps Yarn at 1.22.22', () => {
+    expect(pkg.packageManager).toMatch(/^yarn@1\.22\.22/);
+  });
+
+  it('GitHub Actions uses Node 22.23.1', () => {
+    const workflow = fs.readFileSync(
+      path.resolve(ROOT, '..', '.github', 'workflows', 'mobile-ci.yml'),
+      'utf8',
+    );
+    expect(workflow).toMatch(/node-version:\s*['"]22\.23\.1['"]/);
   });
 });
