@@ -1,0 +1,238 @@
+APK PROMPT 7A — Secure the EAS upload archive
+
+TASK
+
+Prevent Replit files, prompts, Git history and workspace-only content from entering Exzibo Manager’s EAS Build archive.
+
+This task must create and verify the correct `.easignore` configuration.
+
+Do not create an APK, AAB, EAS Update or Play Store submission.
+
+REPOSITORY
+
+https://github.com/shriqrdotcom/App-Manager-07
+
+Expo application directory:
+
+frontend
+
+CURRENT VERIFIED BASE
+
+origin/main:
+
+cf33a030c33191adc8a490e37f5595b19a904a74 or its latest verified descendant
+
+The latest Mobile CI must be green before continuing.
+
+1. GIT SAFETY
+
+2. Fetch origin without exposing credentials.
+
+3. Confirm the tracked working tree is clean.
+
+4. Confirm the latest origin/main contains the merged Prompt 6 validation.
+
+5. Confirm this branch does not exist locally or remotely:
+
+fix/eas-archive-boundary
+
+5. Create it directly from remotely the latest origin/main.
+6. Never include the uploaded prompt, attached_assets, agent memory or Replit checkpoint commits.
+7. Do not reset, delete or merge backup branches.
+
+Stop if the branch or working-tree safety checks fail.
+
+2. AUDIT THE ARCHIVE ROOT
+
+Before creating `.easignore`, inspect:
+
+* Repository root
+* frontend directory
+* Root and frontend .gitignore files
+* Yarn workspace configuration
+* Package scripts
+* Imports and configuration that reference files outside frontend
+* Existing .easignore files, if any
+
+Determine whether the Expo application requires any repository-root files during installation or building.
+
+Do not assume that every root file can be excluded.
+
+If frontend depends on source, packages or scripts outside its directory, report those exact dependencies and preserve them in the archive.
+
+3. CREATE THE EAS ARCHIVE BOUNDARY
+
+The previous inspection proved that EAS currently creates its archive from the repository root.
+
+Create the effective `.easignore` at the archive root used by EAS.
+
+Prefer a strict allowlist containing the frontend application when frontend has no required dependencies outside that directory.
+
+The `.easignore` must preserve every relevant existing `.gitignore` exclusion because EAS prioritizes `.easignore` over `.gitignore`.
+
+It must exclude:
+
+* .git
+* .git/**
+* .agents
+* .agents/**
+* attached_assets
+* attached_assets/**
+* .emergent
+* .emergent/**
+* .replit
+* Replit-only configuration files
+* .gitconfig
+* Uploaded prompts and transcripts
+* .env and .env.* files
+* EXPO_TOKEN or credential files
+* node_modules
+* coverage
+* dist
+* .expo
+* Temporary exports
+* Existing APK and AAB files
+* Keystores and signing files
+* Service-account JSON files
+* Editor and operating-system temporary files
+
+Do not exclude required application files, Expo assets, app.json, eas.json, package.json, yarn.lock, source code or runtime configuration.
+
+Do not delete the existing 78 attached_assets files in this task. Exclude them only from EAS Build.
+
+Do not add secrets or environment-variable values to `.easignore`.
+
+Keep only the `.easignore` file that EAS actually uses. Do not commit redundant or ineffective copies.
+
+4. VERIFY THE ARCHIVE
+
+Use a temporary output directory outside the repository.
+
+From the frontend application directory, run:
+
+eas build:inspect --platform android --stage archive --profile preview --output <temporary-archive-directory> --force
+
+Do not add the unsupported `--non-interactive` option.
+
+Inspect every archived path.
+
+Required files must include:
+
+* frontend/package.json
+* frontend/yarn.lock
+* frontend/app.json
+* frontend/eas.json
+* frontend/app
+* frontend/src
+* Required frontend/assets
+* Required Expo configuration files
+
+The archive must contain none of:
+
+* attached_assets
+* .agents
+* .git
+* .emergent
+* .replit
+* .gitconfig
+* Prompt files
+* Environment files
+* Credentials
+* Signing files
+* node_modules
+* Coverage
+* Temporary exports
+* APK or AAB files
+
+Run the existing pinned Gitleaks scanner against the generated archive.
+
+Report:
+
+* File count before and after
+* Archive size before and after, when available
+* Exact `.easignore` location used
+* Required-file result
+* Prohibited-file result
+* Gitleaks result
+
+Delete the temporary archive afterward.
+
+If any prohibited file remains, stop. Do not weaken the check and do not submit an EAS build.
+
+5. VALIDATION
+
+Run:
+
+* Frozen Yarn installation
+* All Jest tests
+* TypeScript
+* ESLint
+* Release validator
+* Expo dependency check
+* Expo Doctor
+* Android JavaScript export
+* Gitleaks on tracked files and relevant history
+* EAS archive inspection a second time from a clean temporary checkout
+
+Confirm:
+
+* All tests pass
+* Zero TypeScript errors
+* Zero lint errors or warnings
+* Expo Doctor passes
+* Android export passes
+* Lockfile remains unchanged
+* App and EAS identity remain unchanged
+* EAS archive is clean
+* Replit preview still starts
+
+Do not submit an EAS build.
+
+6. COMMIT AND PUSH
+
+Inspect the complete diff.
+
+Expected change:
+
+* The effective `.easignore` file
+* A narrowly scoped validation test only if genuinely required
+
+Do not modify application source, dependencies, lockfile, app.json, eas.json, version numbers, UI or authentication.
+
+Commit as:
+
+build: secure EAS upload archive
+
+Push only to:
+
+origin/fix/eas-archive-boundary
+
+Do not force-push, merge, create an APK or publish an EAS Update.
+
+FINAL RESPONSE
+
+Return:
+
+1. Base commit
+2. Branch and commit
+3. EAS archive root
+4. Files required outside frontend, if any
+5. `.easignore` location and rule summary
+6. Archive file count and size
+7. Required-file verification
+8. Prohibited-file verification
+9. Gitleaks result
+10. Test, TypeScript, lint and Expo results
+11. Files changed
+12. Commit and push verification
+13. Final result: READY FOR PR or NOT READY
+
+End with exactly:
+
+WORK STATUS: DONE
+
+or:
+
+WORK STATUS: NOT DONE
+
+If not done, state the exact blocker and safest next action.
