@@ -1,0 +1,252 @@
+APK PROMPT 5C — Reconstruct the clean release branch and finish Prompt 5
+
+Repository:
+
+https://github.com/shriqrdotcom/App-Manager-07
+
+Application folder:
+
+frontend
+
+Known state:
+
+* Local `main` is two commits ahead of `origin/main`
+* Those commits contain the approved Prompt 5 files plus prohibited Replit prompt and memory files
+* All local commits must be preserved
+* Only the five approved release files may reach GitHub
+* EAS authentication is now available
+* GitHub commands must ignore any overriding `GH_TOKEN` or `GITHUB_TOKEN` environment variables and use the verified GitHub CLI credential
+
+Do not redo the release implementation.
+
+### 1. Safety audit
+
+1. Confirm the tracked working tree is clean.
+
+2. Fetch origin using GitHub authentication without the overriding token variables.
+
+3. Confirm local `main` is exactly two commits ahead and zero behind `origin/main`.
+
+4. Record:
+
+   * current local `main` hash
+   * current `origin/main` hash
+   * both local-only commits
+   * complete changed-file list
+
+5. Confirm the approved release versions of these files exist at current local `main`:
+
+```text
+frontend/assets/images/adaptive-icon.png
+frontend/app.json
+frontend/eas.json
+frontend/package.json
+frontend/yarn.lock
+```
+
+6. Confirm the additional changes are limited to Replit prompt or agent-memory files.
+
+Stop if application source files beyond the approved five were changed.
+
+### 2. Preserve all local history
+
+Create a local-only backup branch from the current local `main`:
+
+```text
+backup/prompt5-local-history
+```
+
+If it already exists, use:
+
+```text
+backup/prompt5-local-history-2
+```
+
+Verify the backup branch points to the original local `main` hash.
+
+Do not push the backup branch.
+
+### 3. Reconstruct clean branches
+
+After the backup is verified:
+
+1. Rename or replace the local `main` branch so that a new local `main` can be created directly from `origin/main`.
+2. Configure the new local `main` to track `origin/main`.
+3. Confirm local `main` exactly equals `origin/main`.
+4. Create:
+
+```text
+fix/expo-release-configuration
+```
+
+directly from `origin/main`.
+
+If that feature branch already exists locally or remotely, stop unless it is proven safe and empty of unrelated work.
+
+Do not use:
+
+* `git reset --hard`
+* rebase
+* cherry-picking either dirty commit
+* force-push
+* deletion of the backup branch
+
+### 4. Restore only the approved files
+
+From the local backup branch, restore only:
+
+```text
+frontend/assets/images/adaptive-icon.png
+frontend/app.json
+frontend/eas.json
+frontend/package.json
+frontend/yarn.lock
+```
+
+Do not restore or copy:
+
+```text
+.agents/
+attached_assets/
+prompt files
+memory files
+workspace configuration
+```
+
+Confirm the complete feature-branch diff against `origin/main` contains exactly the five approved files.
+
+### 5. Verify the release configuration
+
+Confirm:
+
+* adaptive icon is `1024×1024`
+* existing artwork is unchanged except transparent padding
+* app version is `1.0.0`
+* Android package is `online.exzibo.manager`
+* owner is `app-manager-07s-team`
+* EAS Project ID is `b83e1161-1f19-4391-becc-dd1e87b9e7f9`
+* `expo-updates` is `~29.0.19`
+* runtime policy is `fingerprint`
+* update URL uses the verified project ID
+* development and preview produce APKs
+* production produces an AAB
+* no private registry URL exists
+
+### 6. Verify GitHub before remote EAS changes
+
+Perform another dry-run push of the feature branch.
+
+Run all network Git commands with overriding `GH_TOKEN` and `GITHUB_TOKEN` removed from that command’s environment.
+
+Stop before EAS changes if the dry-run fails.
+
+### 7. Configure the EAS backend variable
+
+Verify the EAS project is exactly:
+
+```text
+@app-manager-07s-team/exzibo-manager
+```
+
+Verify the unauthenticated bootstrap endpoint returns HTTPS JSON with status `401`:
+
+```text
+https://dashboard.exzibo.online/api/mobile/v1/bootstrap
+```
+
+Then set only:
+
+```text
+Name: EXPO_PUBLIC_BACKEND_URL
+Value: https://dashboard.exzibo.online
+Scope: project
+Visibility: plaintext
+```
+
+Required environments:
+
+```text
+development
+preview
+production
+```
+
+Rules:
+
+* create it if missing
+* leave it unchanged if already correct
+* stop rather than overwrite if an existing value differs
+* do not modify any other EAS variable
+* do not print `EXPO_TOKEN`
+* do not create local `.env` files
+
+Verify the variable exists correctly in all three environments without printing its value.
+
+### 8. Final validation
+
+Run:
+
+* Expo Doctor
+* ESLint
+* TypeScript
+* Expo dependency check
+* clean frozen Yarn installation
+* Android JavaScript export using the preview EAS environment
+* read-only EAS project verification
+
+Require:
+
+* Expo Doctor passes
+* lint has zero errors
+* TypeScript has zero errors
+* Android export succeeds
+* no `.env`, secret, APK, AAB, native directory, prompt, memory or generated output is included
+
+Delete temporary outputs.
+
+Do not set a remote Android version. It will be initialized by the first build.
+
+### 9. Commit and push
+
+Commit exactly the five approved files with:
+
+```text
+chore: prepare Expo Android release configuration
+```
+
+Fetch origin again and confirm `origin/main` did not move.
+
+Push only:
+
+```text
+origin/fix/expo-release-configuration
+```
+
+Use the verified GitHub CLI credential without overriding token environment variables.
+
+Do not push:
+
+* local `main`
+* the backup branch
+* prompt or memory commits
+
+Do not force-push, merge, create a pull request, create an APK/AAB or publish an EAS Update.
+
+Return:
+
+1. Original local-main hash
+2. Backup branch and verification
+3. Reconstructed local-main status
+4. Clean feature-branch base
+5. Exact committed-file list
+6. GitHub authentication and dry-run results
+7. EAS environment status
+8. Validation results
+9. Commit hash and remote verification
+10. Confirmation that dirty checkpoint history remains only on the local backup branch
+11. Remaining blockers
+12. `WORK STATUS: DONE` or `WORK STATUS: NOT DONE`
+
+Mark DONE only when all dirty history is preserved locally, local `main` equals `origin/main`, the clean five-file commit is pushed, and all three EAS environments are configured correctly.
+
+If not done, provide the exact blocker and safest next action.
