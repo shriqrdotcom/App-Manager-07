@@ -31,6 +31,7 @@ const app = require(path.join(ROOT, 'app.json')) as {
     extra: { eas: { projectId: string } };
     updates: { url: string };
     runtimeVersion: { policy: string };
+    newArchEnabled: boolean;
   };
 };
 
@@ -104,6 +105,10 @@ describe('app.json — EAS and updates', () => {
 
   it('runtime version policy is "fingerprint"', () => {
     expect(app.expo.runtimeVersion.policy).toBe('fingerprint');
+  });
+
+  it('New Architecture is enabled for Android compatibility', () => {
+    expect(app.expo.newArchEnabled).toBe(true);
   });
 });
 

@@ -93,6 +93,10 @@ check(
   'runtimeVersion.policy = "fingerprint"',
   expo.runtimeVersion?.policy === 'fingerprint',
 );
+check(
+  'newArchEnabled = true for Android compatibility',
+  expo.newArchEnabled === true,
+);
 
 // ── Section 3: Adaptive icon dimensions ──────────────────────────────────────
 
