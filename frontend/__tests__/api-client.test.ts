@@ -82,8 +82,8 @@ describe('apiFetch — network error', () => {
 
   it('error message is user-friendly (no raw TypeError)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
-    const err = await apiFetch('/path').catch((e: unknown) => e as ApiError);
-    expect(err.message).toMatch(/unable to reach/i);
+    const request = apiFetch('/path');
+    await expect(request).rejects.toThrow(/unable to reach/i);
   });
 });
 
@@ -144,9 +144,9 @@ describe('apiFetch — success', () => {
       ok: true,
       text: async () => 'not-json{{',
     });
-    const err = await apiFetch('/broken').catch((e: unknown) => e as ApiError);
-    expect(err.name).toBe('ApiError');
-    expect(err.message).toMatch(/unexpected response/i);
+    const request = apiFetch('/broken');
+    await expect(request).rejects.toBeInstanceOf(ApiError);
+    await expect(request).rejects.toThrow(/unexpected response/i);
   });
 });
 

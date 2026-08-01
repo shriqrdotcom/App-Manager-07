@@ -8,8 +8,6 @@ useDefault = true
 [allowlist]
 # ── per-file allowances ──────────────────────────────────────────────────────
 paths = [
-  # Yarn lockfile only contains package registry URLs and SHAs — no secrets.
-  "frontend/yarn.lock",
   # The EAS project ID is a non-secret public identifier.
   "frontend/eas.json",
   # App config contains only public identifiers (scheme, slug, project ID).

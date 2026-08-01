@@ -212,8 +212,8 @@ describe('eas.json — build profiles', () => {
 // ---- runtime versions ----
 
 describe('package.json and CI — runtime versions', () => {
-  it('requires Node >=22 and <23', () => {
-    expect(pkg.engines.node).toBe('>=22.0.0 <23');
+  it('supports Node 22 and Node 24', () => {
+    expect(pkg.engines.node).toBe('>=22.0.0 <23 || >=24.0.0 <25');
   });
 
   it('keeps Yarn at 1.22.22', () => {

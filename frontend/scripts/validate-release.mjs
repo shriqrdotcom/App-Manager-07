@@ -66,7 +66,7 @@ const expo = appJson.expo;
 const EXPECTED_PROJECT_ID = 'b83e1161-1f19-4391-becc-dd1e87b9e7f9';
 const EXPECTED_UPDATE_URL = `https://u.expo.dev/${EXPECTED_PROJECT_ID}`;
 const EXPECTED_NODE_VERSION = '22.23.1';
-const EXPECTED_NODE_ENGINE = '>=22.0.0 <23';
+const EXPECTED_NODE_ENGINE = '>=22.0.0 <23 || >=24.0.0 <25';
 const EXPECTED_YARN_VERSION = '1.22.22';
 
 // ── Section 1: App identity ───────────────────────────────────────────────────
@@ -173,7 +173,7 @@ check(
   /node-version:\s*['"]22\.23\.1['"]/.test(workflowContent),
 );
 check(
-  'package.json requires Node >=22 and <23',
+  'package.json supports Node 22 and Node 24',
   pkgJson.engines?.node === EXPECTED_NODE_ENGINE,
 );
 for (const profile of ['development', 'preview', 'production']) {
