@@ -109,10 +109,10 @@ jobs:
         run: |
           gitleaks git \
             --config .gitleaks.toml \
-            --source . \
             --redact \
             --verbose \
-            --exit-code 1
+            --exit-code 1 \
+            .
 
       # ── Android JS export (smoke test — artifact deleted after) ───────────
       - name: Android JS export (smoke test)
