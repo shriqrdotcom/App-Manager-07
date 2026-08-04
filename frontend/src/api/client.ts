@@ -14,6 +14,28 @@ export class ApiError extends Error {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object';
+}
+
+function safeForbiddenMessage(body: unknown): string {
+  const serverMessage =
+    isRecord(body) && typeof body.message === 'string' ? body.message : '';
+
+  if (/no active mobile membership/i.test(serverMessage)) {
+    return 'No active restaurant access was found for this Google account.';
+  }
+
+  return 'You do not have permission to access this restaurant.';
+}
+
+function safeHttpErrorMessage(status: number, body: unknown): string {
+  if (status === 403) return safeForbiddenMessage(body);
+  if (status === 429) return 'Too many requests. Please wait a moment and try again.';
+  if (status === 503) return 'Service temporarily unavailable. Please try again later.';
+  return `Request failed (${status}). Please try again.`;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -62,8 +84,19 @@ export async function apiFetch<T>(
   }
 
   if (!response.ok) {
+    let body: unknown;
+    if (typeof response.text === 'function') {
+      const text = await response.text();
+      if (text) {
+        try {
+          body = JSON.parse(text) as unknown;
+        } catch {
+          // Keep the user-facing message generic for non-JSON error bodies.
+        }
+      }
+    }
     throw new ApiError(
-      `Request failed (${response.status}). Please try again.`,
+      safeHttpErrorMessage(response.status, body),
       response.status,
     );
   }

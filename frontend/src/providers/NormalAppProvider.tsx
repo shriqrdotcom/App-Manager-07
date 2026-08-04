@@ -6,6 +6,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { AppState as NativeAppState } from 'react-native';
 import { authClient } from '@/src/auth/client';
 import { fetchBootstrap } from '@/src/api/bootstrap';
 import { ApiError } from '@/src/api/client';
@@ -65,14 +66,19 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   );
 
   const loadBootstrap = useCallback(async (authenticatedUserId: string) => {
+    const isCurrentSession = () => currentUserIdRef.current === authenticatedUserId;
+
     setBootstrapLoading(true);
     setNetworkError(false);
     setErrorMessage(null);
     try {
       const bs = await fetchBootstrap(authenticatedUserId);
+      if (!isCurrentSession()) return;
       setBootstrap(bs);
       await resolveRestaurant(bs);
+      if (!isCurrentSession()) return;
     } catch (err: unknown) {
+      if (!isCurrentSession()) return;
       if (err instanceof ApiError && err.isAuthError) {
         // Session is invalid — sign out so auth flow restarts
         await authClient.signOut();
@@ -83,7 +89,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
         );
       }
     } finally {
-      setBootstrapLoading(false);
+      if (isCurrentSession()) setBootstrapLoading(false);
     }
   }, [resolveRestaurant]);
 
@@ -108,6 +114,20 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
       setBootstrapLoading(false);
     }
   }, [sessionLoading, session?.user?.id, loadBootstrap]);
+
+  // Revalidate membership when returning from the background. This ensures
+  // suspended or revoked memberships cannot keep a stale dashboard visible.
+  useEffect(() => {
+    const previousState = { current: NativeAppState.currentState };
+    const subscription = NativeAppState.addEventListener('change', (nextState) => {
+      const resumed = previousState.current !== 'active' && nextState === 'active';
+      previousState.current = nextState;
+      const userId = session?.user?.id;
+      if (resumed && userId) void loadBootstrap(userId);
+    });
+
+    return () => subscription.remove();
+  }, [loadBootstrap, session?.user?.id]);
 
   const state: AppState = useMemo((): AppState => {
     if (sessionLoading) return 'session-loading';
@@ -145,12 +165,17 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await authClient.signOut();
-    await clearStoredRestaurantId();
-    setBootstrap(null);
-    setSelectedRestaurant(null);
-    setNetworkError(false);
-    setErrorMessage(null);
+    currentUserIdRef.current = undefined;
+    try {
+      await authClient.signOut();
+    } finally {
+      await clearStoredRestaurantId();
+      setBootstrap(null);
+      setSelectedRestaurant(null);
+      setNetworkError(false);
+      setErrorMessage(null);
+      setBootstrapLoading(false);
+    }
   }, []);
 
   const retryBootstrap = useCallback(() => {

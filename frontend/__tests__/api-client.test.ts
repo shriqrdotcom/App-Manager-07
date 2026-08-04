@@ -107,6 +107,39 @@ describe('apiFetch — 403 Forbidden', () => {
       isAuthError: false,
     });
   });
+
+  it('maps a missing mobile membership to a safe access message', async () => {
+    mockFetch.mockResolvedValueOnce({
+      status: 403,
+      ok: false,
+      text: async () =>
+        JSON.stringify({
+          code: 'FORBIDDEN',
+          message: 'No active mobile membership found',
+          error: 'No active mobile membership found',
+        }),
+    });
+
+    await expect(apiFetch('/api/mobile/v1/bootstrap')).rejects.toThrow(
+      'No active restaurant access was found for this Google account.',
+    );
+  });
+
+  it('does not expose arbitrary server error details for forbidden requests', async () => {
+    mockFetch.mockResolvedValueOnce({
+      status: 403,
+      ok: false,
+      text: async () =>
+        JSON.stringify({
+          code: 'FORBIDDEN',
+          message: 'select * from private_table failed at database.internal',
+        }),
+    });
+
+    await expect(apiFetch('/api/private')).rejects.toThrow(
+      'You do not have permission to access this restaurant.',
+    );
+  });
 });
 
 describe('apiFetch — other non-ok responses', () => {

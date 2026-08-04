@@ -10,6 +10,10 @@ export default function AppLayout() {
     return <Redirect href="/" />;
   }
 
+  if (state === 'bootstrap-loading' || state === 'network-error' || state === 'no-restaurants') {
+    return <Redirect href="/" />;
+  }
+
   return (
     <Stack
       screenOptions={{
