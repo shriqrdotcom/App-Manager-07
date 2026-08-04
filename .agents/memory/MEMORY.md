@@ -5,3 +5,4 @@
 - [Expo dependency install location](expo-dependency-install-location.md) — Imported Expo apps under `frontend/` must install dependencies from that directory so the workflow can resolve the local Expo CLI.
 - [Expo Replit preview workflow](expo-replit-preview-workflow.md) — Replit previews should use Expo Web locally; Expo Go ngrok tunnels can fail before Metro serves the app.
 - [Mobile bootstrap contract](mobile-bootstrap-contract.md) — Backend omits user.id and returns permanent restaurant uid; identity comes from the verified Better Auth session.
+- [Mobile session boundary](mobile-session-boundary.md) — Recheck the current Better Auth user after async bootstrap, SecureStore, selection, and logout transitions.

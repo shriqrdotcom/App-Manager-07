@@ -33,8 +33,10 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   const currentUserIdRef = useRef<string | undefined>(undefined);
 
   const resolveRestaurant = useCallback(
-    async (bs: BootstrapResponse) => {
+    async (bs: BootstrapResponse, isCurrentSession: () => boolean) => {
       const storedId = await getStoredRestaurantId();
+      if (!isCurrentSession()) return;
+
       const available = bs.restaurants;
 
       if (available.length === 0) {
@@ -45,6 +47,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
       if (available.length === 1) {
         const only = available[0]!;
         await storeRestaurantId(only.uid);
+        if (!isCurrentSession()) return;
         setSelectedRestaurant(only);
         return;
       }
@@ -57,6 +60,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
         }
         // Access was removed — clear stale selection
         await clearStoredRestaurantId();
+        if (!isCurrentSession()) return;
       }
 
       // Multiple restaurants, none selected → show selection screen
@@ -75,7 +79,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
       const bs = await fetchBootstrap(authenticatedUserId);
       if (!isCurrentSession()) return;
       setBootstrap(bs);
-      await resolveRestaurant(bs);
+      await resolveRestaurant(bs, isCurrentSession);
       if (!isCurrentSession()) return;
     } catch (err: unknown) {
       if (!isCurrentSession()) return;
@@ -151,9 +155,13 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   const selectRestaurant = useCallback(
     async (id: string) => {
       if (!bootstrap) return;
+      const authenticatedUserId = currentUserIdRef.current;
+      if (!authenticatedUserId) return;
+
       const restaurant = bootstrap.restaurants.find((r) => r.uid === id);
       if (!restaurant) return;
       await storeRestaurantId(restaurant.uid);
+      if (currentUserIdRef.current !== authenticatedUserId) return;
       setSelectedRestaurant(restaurant);
     },
     [bootstrap],

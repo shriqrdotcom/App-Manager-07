@@ -6,7 +6,7 @@
  * - validateBootstrapResponse: rejects wrong/missing apiVersion
  * - validateBootstrapResponse: rejects missing or malformed user
  * - validateBootstrapResponse: rejects missing or non-array restaurants
- * - validateBootstrapResponse: accepts all four valid roles
+ * - validateBootstrapResponse: accepts all three valid mobile roles
  * - validateBootstrapResponse: rejects invalid roles
  * - validateBootstrapResponse: rejects invalid permissions
  * - fetchBootstrap: calls apiFetch with the correct path and validates
