@@ -488,8 +488,8 @@ export default function TimingSettings() {
         Math.abs(event.translationX) >= DAY_SWIPE_MIN_DISTANCE;
 
       if (hasClearDistance || hasClearVelocity) {
-        // Per the requested interaction: right advances, left goes back.
-        runOnJS(changeDayBySwipe)(event.translationX > 0 ? 1 : -1);
+        // Right swipe goes to the previous day; left swipe advances.
+        runOnJS(changeDayBySwipe)(event.translationX > 0 ? -1 : 1);
       }
     });
 
