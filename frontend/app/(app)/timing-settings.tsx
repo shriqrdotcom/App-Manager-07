@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
 import Animated, {
   interpolateColor,
   runOnJS,
@@ -431,6 +432,7 @@ export default function TimingSettings() {
   const [schedule, setSchedule] = useState<Schedule>(DEFAULT_SCHEDULE);
   const [loaded, setLoaded] = useState(false);
   const [selectedDayIdx, setSelectedDayIdx] = useState(todayIdx);
+  const selectedDayRef = useRef(todayIdx);
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -458,17 +460,27 @@ export default function TimingSettings() {
   }, []);
 
   const changeDayBySwipe = useCallback((direction: 1 | -1) => {
-    setSelectedDayIdx((current) => {
-      const next = current + direction;
-      return Math.max(0, Math.min(DAYS_SHORT.length - 1, next));
-    });
+    const current = selectedDayRef.current;
+    const next = Math.max(0, Math.min(DAYS_SHORT.length - 1, current + direction));
+
+    if (next === current) return;
+
+    selectedDayRef.current = next;
+    setSelectedDayIdx(next);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }, []);
 
-  const dayStripGesture = Gesture.Pan()
-    // Wait for a deliberate horizontal gesture so taps remain taps.
-    .activeOffsetX([-12, 12])
-    // Let the vertical page ScrollView own vertical movement.
+  const selectDay = useCallback((dayIdx: number) => {
+    selectedDayRef.current = dayIdx;
+    setSelectedDayIdx(dayIdx);
+  }, []);
+
+  const daySwipeGesture = Gesture.Pan()
+    // The gesture is attached to the full screen, but only activates after
+    // clear horizontal movement so buttons and vertical scrolling keep working.
+    .activeOffsetX([-24, 24])
     .failOffsetY([-18, 18])
+    .maxPointers(1)
     .onEnd((event) => {
       const hasClearDistance = Math.abs(event.translationX) >= DAY_SWIPE_DISTANCE;
       const hasClearVelocity =
@@ -520,7 +532,8 @@ export default function TimingSettings() {
   if (!loaded) return null;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <GestureDetector gesture={daySwipeGesture}>
+      <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* ── Fixed header ── */}
       <View
         style={[
@@ -549,14 +562,13 @@ export default function TimingSettings() {
         </View>
 
         {/* Day strip */}
-        <GestureDetector gesture={dayStripGesture}>
-          <View style={styles.dayStrip}>
+        <View style={styles.dayStrip}>
           {DAYS_SHORT.map((d, i) => {
             const isSelected = i === selectedDayIdx;
             return (
               <Pressable
                 key={d}
-                onPress={() => setSelectedDayIdx(i)}
+                onPress={() => selectDay(i)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
                 accessibilityLabel={`Show ${DAYS_FULL[i]} timing`}
@@ -577,8 +589,7 @@ export default function TimingSettings() {
               </Pressable>
             );
           })}
-          </View>
-        </GestureDetector>
+        </View>
       </View>
 
       {/* ── Scrollable day cards ── */}
@@ -662,7 +673,8 @@ export default function TimingSettings() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+      </View>
+    </GestureDetector>
   );
 }
 
