@@ -32,6 +32,16 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "production-apk": {
+      "node": "22.23.1",
+      "distribution": "internal",
+      "channel": "production",
+      "environment": "production",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     }
   }
 }
