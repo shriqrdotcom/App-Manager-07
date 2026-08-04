@@ -104,7 +104,7 @@ export default function AddBookingScreen() {
     setSubmitting(true);
     try {
       const created = await api.createBooking({
-        restaurant_id: selectedRestaurant.id,
+        restaurant_id: selectedRestaurant.uid,
         guest_name: guestName.trim(),
         phone_code: countryCode,
         phone: phone.trim(),

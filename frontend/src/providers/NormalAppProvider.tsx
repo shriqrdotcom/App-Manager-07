@@ -43,13 +43,13 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
 
       if (available.length === 1) {
         const only = available[0]!;
-        await storeRestaurantId(only.id);
+        await storeRestaurantId(only.uid);
         setSelectedRestaurant(only);
         return;
       }
 
       if (storedId) {
-        const match = available.find((r) => r.id === storedId);
+        const match = available.find((r) => r.uid === storedId);
         if (match) {
           setSelectedRestaurant(match);
           return;
@@ -64,12 +64,12 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const loadBootstrap = useCallback(async () => {
+  const loadBootstrap = useCallback(async (authenticatedUserId: string) => {
     setBootstrapLoading(true);
     setNetworkError(false);
     setErrorMessage(null);
     try {
-      const bs = await fetchBootstrap();
+      const bs = await fetchBootstrap(authenticatedUserId);
       setBootstrap(bs);
       await resolveRestaurant(bs);
     } catch (err: unknown) {
@@ -98,7 +98,7 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
 
     if (userId && userId !== currentUserIdRef.current) {
       currentUserIdRef.current = userId;
-      void loadBootstrap();
+      void loadBootstrap(userId);
     } else if (!userId) {
       currentUserIdRef.current = undefined;
       setBootstrap(null);
@@ -131,9 +131,9 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   const selectRestaurant = useCallback(
     async (id: string) => {
       if (!bootstrap) return;
-      const restaurant = bootstrap.restaurants.find((r) => r.id === id);
+      const restaurant = bootstrap.restaurants.find((r) => r.uid === id);
       if (!restaurant) return;
-      await storeRestaurantId(restaurant.id);
+      await storeRestaurantId(restaurant.uid);
       setSelectedRestaurant(restaurant);
     },
     [bootstrap],
@@ -154,8 +154,9 @@ export function NormalAppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const retryBootstrap = useCallback(() => {
-    void loadBootstrap();
-  }, [loadBootstrap]);
+    const userId = session?.user?.id;
+    if (userId) void loadBootstrap(userId);
+  }, [loadBootstrap, session?.user?.id]);
 
   const value = useMemo(
     (): AppContextValue => ({

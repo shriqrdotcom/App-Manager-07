@@ -25,7 +25,10 @@ jest.mock('@/src/api/client', () => {
   return { ...actual, apiFetch: jest.fn() };
 });
 
-import { validateBootstrapResponse, fetchBootstrap } from '@/src/api/bootstrap';
+import {
+  validateBootstrapResponse as parseBootstrapResponse,
+  fetchBootstrap,
+} from '@/src/api/bootstrap';
 import { apiFetch } from '@/src/api/client';
 import type { BootstrapResponse } from '@/src/types/bootstrap';
 
@@ -33,10 +36,15 @@ const mockApiFetch = apiFetch as jest.MockedFunction<typeof apiFetch>;
 
 // ---- helpers ----
 
-const validUser = { id: 'u1', email: 'user@example.com', name: 'Alice' };
+const authenticatedUserId = 'better-auth-user-1';
+const validUser = { email: 'user@example.com', name: 'Alice', image: null };
+const validateBootstrapResponse = (
+  data: unknown,
+  userId = authenticatedUserId,
+) => parseBootstrapResponse(data, userId);
 
 const validRestaurant = (role = 'owner') => ({
-  id: 'r1',
+  uid: '1234567890',
   name: 'Demo Diner',
   role,
   permissions: ['manage_orders'],
@@ -97,24 +105,23 @@ describe('validateBootstrapResponse — user', () => {
     );
   });
 
-  it('rejects user without id', () => {
-    expect(() =>
-      validateBootstrapResponse(validPayload({ user: { email: 'x@y.com', name: 'X' } })),
-    ).toThrow(/missing id/i);
+  it('rejects when the authenticated session ID is missing', () => {
+    expect(() => validateBootstrapResponse(validPayload(), '')).toThrow(
+      /session missing user id/i,
+    );
   });
 
   it('rejects user without email', () => {
     expect(() =>
-      validateBootstrapResponse(validPayload({ user: { id: 'u1', name: 'X' } })),
+      validateBootstrapResponse(validPayload({ user: { name: 'X' } })),
     ).toThrow(/missing email/i);
   });
 
-  it('rejects user with empty id', () => {
-    expect(() =>
-      validateBootstrapResponse(
-        validPayload({ user: { id: '', email: 'x@y.com', name: 'X' } }),
-      ),
-    ).toThrow(/missing id/i);
+  it('allows the nullable name returned by the backend', () => {
+    const result = validateBootstrapResponse(
+      validPayload({ user: { email: 'x@y.com', name: null, image: null } }),
+    );
+    expect(result.user.name).toBeNull();
   });
 });
 
@@ -148,27 +155,42 @@ describe('validateBootstrapResponse — restaurants', () => {
     );
   });
 
-  it('rejects restaurant without id', () => {
+  it('rejects restaurant without permanent uid', () => {
     const bad = { name: 'X', role: 'owner', permissions: [] };
     expect(() => validateBootstrapResponse(validPayload({ restaurants: [bad] }))).toThrow(
-      /missing id/i,
+      /missing valid permanent uid/i,
     );
+  });
+
+  it('rejects an internal UUID or malformed restaurant uid', () => {
+    for (const uid of ['r-12345678', '123456789', '12345678901']) {
+      expect(() =>
+        validateBootstrapResponse(
+          validPayload({ restaurants: [{ ...validRestaurant(), uid }] }),
+        ),
+      ).toThrow(/missing valid permanent uid/i);
+    }
+  });
+
+  it('preserves the permanent restaurant uid', () => {
+    const result = validateBootstrapResponse(validPayload());
+    expect(result.restaurants[0]?.uid).toBe('1234567890');
   });
 });
 
 // ---- roles ----
 
 describe('validateBootstrapResponse — roles', () => {
-  it.each(['owner', 'admin', 'manager', 'staff'])('accepts role "%s"', (role) => {
+  it.each(['owner', 'admin', 'staff'])('accepts role "%s"', (role) => {
     expect(() =>
       validateBootstrapResponse(validPayload({ restaurants: [validRestaurant(role)] })),
     ).not.toThrow();
   });
 
-  it('rejects invalid role "superuser"', () => {
+  it.each(['manager', 'superuser'])('rejects unsupported role "%s"', (role) => {
     expect(() =>
       validateBootstrapResponse(
-        validPayload({ restaurants: [validRestaurant('superuser')] }),
+        validPayload({ restaurants: [validRestaurant(role)] }),
       ),
     ).toThrow(/invalid role/i);
   });
@@ -218,25 +240,26 @@ describe('fetchBootstrap', () => {
 
   it('calls apiFetch with the bootstrap path', async () => {
     mockApiFetch.mockResolvedValueOnce(validPayload());
-    await fetchBootstrap();
+    await fetchBootstrap(authenticatedUserId);
     expect(mockApiFetch).toHaveBeenCalledWith('/api/mobile/v1/bootstrap');
   });
 
   it('validates and returns parsed bootstrap response', async () => {
     mockApiFetch.mockResolvedValueOnce(validPayload());
-    const result = await fetchBootstrap();
+    const result = await fetchBootstrap(authenticatedUserId);
     expect(result.apiVersion).toBe('v1');
-    expect(result.user.id).toBe('u1');
+    expect(result.user.id).toBe(authenticatedUserId);
+    expect(result.restaurants[0]?.uid).toBe('1234567890');
   });
 
   it('propagates ApiError from apiFetch', async () => {
     const { ApiError } = jest.requireActual('@/src/api/client') as typeof import('@/src/api/client');
     mockApiFetch.mockRejectedValueOnce(new ApiError('Network error', undefined, false, true));
-    await expect(fetchBootstrap()).rejects.toThrow('Network error');
+    await expect(fetchBootstrap(authenticatedUserId)).rejects.toThrow('Network error');
   });
 
   it('throws on malformed bootstrap data from server', async () => {
     mockApiFetch.mockResolvedValueOnce({ apiVersion: 'v1', user: null, restaurants: [] });
-    await expect(fetchBootstrap()).rejects.toThrow(/missing user/i);
+    await expect(fetchBootstrap(authenticatedUserId)).rejects.toThrow(/missing user/i);
   });
 });

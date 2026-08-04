@@ -4,3 +4,4 @@
 - [Expo gesture animations](expo-gesture-animations.md) — Prefer Gesture Handler + Reanimated for shared swipe animations; legacy Animated native-driver fallback can produce preview runtime errors.
 - [Expo dependency install location](expo-dependency-install-location.md) — Imported Expo apps under `frontend/` must install dependencies from that directory so the workflow can resolve the local Expo CLI.
 - [Expo Replit preview workflow](expo-replit-preview-workflow.md) — Replit previews should use Expo Web locally; Expo Go ngrok tunnels can fail before Metro serves the app.
+- [Mobile bootstrap contract](mobile-bootstrap-contract.md) — Backend omits user.id and returns permanent restaurant uid; identity comes from the verified Better Auth session.

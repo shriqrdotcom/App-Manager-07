@@ -155,7 +155,7 @@ export default function BookingScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.listBookings(selectedRestaurant.id, dateIso);
+      const data = await api.listBookings(selectedRestaurant.uid, dateIso);
       setBookings(data);
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load bookings');

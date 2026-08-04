@@ -6,7 +6,7 @@ import { useApp } from '@/src/providers/AppProvider';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 
 const ROLE_LABELS: Record<string, string> = {
-  owner: 'Owner', admin: 'Admin', manager: 'Manager', staff: 'Staff',
+  owner: 'Owner', admin: 'Admin', staff: 'Staff',
 };
 
 function makeStyles(colors: ThemePalette) {
@@ -56,17 +56,17 @@ export default function SelectRestaurant() {
 
       <FlatList
         data={restaurants}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.uid}
         contentContainerStyle={{ gap: 10, paddingHorizontal: 20, paddingBottom: 16 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
             onPress={async () => {
-                await selectRestaurant(item.id);
-                router.replace('/(app)/tabs');
-              }}
+              await selectRestaurant(item.uid);
+              router.replace('/(app)/tabs');
+            }}
             activeOpacity={0.75}
-            testID={`restaurant-card-${item.id}`}
+            testID={`restaurant-card-${item.uid}`}
           >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>

@@ -61,7 +61,7 @@ externalPort = 8081
 
 [userenv.shared]
 EXPO_PUBLIC_ENABLE_DEMO_LOGIN = "false"
-EXPO_PUBLIC_PREVIEW_DEMO = "true"
+EXPO_PUBLIC_PREVIEW_DEMO = "false"
 EXPO_PUBLIC_BACKEND_URL = "https://dashboard.exzibo.online"
 
 [deployment]

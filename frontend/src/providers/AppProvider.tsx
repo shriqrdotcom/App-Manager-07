@@ -25,9 +25,9 @@ const DEMO_BOOTSTRAP: BootstrapResponse = {
   },
   restaurants: [
     {
-      id: 'demo-restaurant',
+      uid: 'demo-restaurant',
       name: 'Demo Diner',
-      role: 'manager',
+      role: 'admin',
       permissions: ['read:orders', 'read:bookings', 'read:menu', 'read:analytics', 'read:settings'],
     },
   ],

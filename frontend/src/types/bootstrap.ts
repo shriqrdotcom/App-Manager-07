@@ -1,16 +1,17 @@
-export type RestaurantRole = 'owner' | 'admin' | 'manager' | 'staff';
+export type RestaurantRole = 'owner' | 'admin' | 'staff';
 
 export type RestaurantPermission = string;
 
 export interface BootstrapUser {
   id: string;
   email: string;
-  name: string;
+  name: string | null;
   image?: string;
 }
 
 export interface BootstrapRestaurant {
-  id: string;
+  /** Permanent restaurant UID returned by the server; never an internal DB UUID. */
+  uid: string;
   name: string;
   role: RestaurantRole;
   permissions: RestaurantPermission[];
