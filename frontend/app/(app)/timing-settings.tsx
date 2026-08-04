@@ -403,6 +403,7 @@ export default function TimingSettings() {
 
   const [schedule, setSchedule] = useState<Schedule>(DEFAULT_SCHEDULE);
   const [loaded, setLoaded] = useState(false);
+  const [selectedDayIdx, setSelectedDayIdx] = useState(todayIdx);
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -503,25 +504,29 @@ export default function TimingSettings() {
           contentContainerStyle={styles.dayStrip}
         >
           {DAYS_SHORT.map((d, i) => {
-            const isToday = i === todayIdx;
+            const isSelected = i === selectedDayIdx;
             return (
-              <View
+              <Pressable
                 key={d}
+                onPress={() => setSelectedDayIdx(i)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`Show ${DAYS_FULL[i]} timing`}
                 style={[
                   styles.dayPill,
-                  isToday && { backgroundColor: '#22C55E' },
+                  isSelected && { backgroundColor: '#22C55E' },
                 ]}
               >
                 <Text
                   style={[
                     styles.dayPillText,
-                    { color: isToday ? '#fff' : colors.mutedForeground },
-                    isToday && { fontWeight: '700' },
+                    { color: isSelected ? '#fff' : colors.mutedForeground },
+                    isSelected && { fontWeight: '700' },
                   ]}
                 >
                   {d}
                 </Text>
-              </View>
+              </Pressable>
             );
           })}
         </ScrollView>
@@ -535,17 +540,15 @@ export default function TimingSettings() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {DAYS_FULL.map((_, dayIdx) => (
-          <DayCard
-            key={dayIdx}
-            dayIdx={dayIdx}
-            dayState={schedule[dayIdx]!}
-            isToday={dayIdx === todayIdx}
-            onDayChange={(d) => handleDayChange(dayIdx, d)}
-            onSave={handleSave}
-            colors={colors}
-          />
-        ))}
+        <DayCard
+          key={selectedDayIdx}
+          dayIdx={selectedDayIdx}
+          dayState={schedule[selectedDayIdx]!}
+          isToday={selectedDayIdx === todayIdx}
+          onDayChange={(d) => handleDayChange(selectedDayIdx, d)}
+          onSave={handleSave}
+          colors={colors}
+        />
       </ScrollView>
 
       {/* ── Toast ── */}
