@@ -11,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolateColor,
   runOnJS,
@@ -28,6 +29,9 @@ const STORAGE_KEY = 'timing_settings_v1';
 const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAYS_FULL  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MONTHS     = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_SWIPE_DISTANCE = 40;
+const DAY_SWIPE_VELOCITY = 450;
+const DAY_SWIPE_MIN_DISTANCE = 18;
 
 /** Today's day index: Mon=0 … Sun=6 */
 function todayDayIdx(): number {
@@ -235,16 +239,36 @@ function SlotRow({
   canDelete,
   onUpdate,
   onDelete,
+  fadeKey,
   colors,
 }: {
   slot: TimeSlot;
   canDelete: boolean;
   onUpdate: (s: TimeSlot) => void;
   onDelete: () => void;
+  fadeKey: number;
   colors: ReturnType<typeof useTheme>['colors'];
 }) {
+  const fadeProgress = useSharedValue(0);
+
+  useEffect(() => {
+    fadeProgress.value = 0;
+    fadeProgress.value = withTiming(1, { duration: 180 });
+  }, [fadeKey, fadeProgress]);
+
+  const fadeStyle = useAnimatedStyle(() => ({
+    opacity: fadeProgress.value,
+    transform: [{ translateY: (1 - fadeProgress.value) * 5 }],
+  }));
+
   return (
-    <View style={[styles.slotRow, { backgroundColor: colors.muted, borderColor: colors.border }]}>
+    <Animated.View
+      style={[
+        styles.slotRow,
+        { backgroundColor: colors.muted, borderColor: colors.border },
+        fadeStyle,
+      ]}
+    >
       <View style={styles.slotSteppers}>
         <TimeStepper
           label="Opens"
@@ -272,7 +296,7 @@ function SlotRow({
           <Feather name="x" size={15} color={colors.mutedForeground} />
         </TouchableOpacity>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -281,6 +305,7 @@ function DayCard({
   dayIdx,
   dayState,
   isToday,
+  fadeKey,
   onDayChange,
   onSave,
   colors,
@@ -288,6 +313,7 @@ function DayCard({
   dayIdx: number;
   dayState: DayState;
   isToday: boolean;
+  fadeKey: number;
   onDayChange: (d: DayState) => void;
   onSave: (dayIdx: number) => void;
   colors: ReturnType<typeof useTheme>['colors'];
@@ -344,6 +370,7 @@ function DayCard({
               canDelete={dayState.slots.length > 1}
               onUpdate={(updated) => updateSlot(idx, updated)}
               onDelete={() => deleteSlot(idx)}
+              fadeKey={fadeKey}
               colors={colors}
             />
           ))}
@@ -430,6 +457,30 @@ export default function TimingSettings() {
     setSchedule((prev) => prev.map((d, i) => (i === dayIdx ? updated : d)));
   }, []);
 
+  const changeDayBySwipe = useCallback((direction: 1 | -1) => {
+    setSelectedDayIdx((current) => {
+      const next = current + direction;
+      return Math.max(0, Math.min(DAYS_SHORT.length - 1, next));
+    });
+  }, []);
+
+  const dayStripGesture = Gesture.Pan()
+    // Wait for a deliberate horizontal gesture so taps remain taps.
+    .activeOffsetX([-12, 12])
+    // Let the vertical page ScrollView own vertical movement.
+    .failOffsetY([-18, 18])
+    .onEnd((event) => {
+      const hasClearDistance = Math.abs(event.translationX) >= DAY_SWIPE_DISTANCE;
+      const hasClearVelocity =
+        Math.abs(event.velocityX) >= DAY_SWIPE_VELOCITY &&
+        Math.abs(event.translationX) >= DAY_SWIPE_MIN_DISTANCE;
+
+      if (hasClearDistance || hasClearVelocity) {
+        // Per the requested interaction: right advances, left goes back.
+        runOnJS(changeDayBySwipe)(event.translationX > 0 ? 1 : -1);
+      }
+    });
+
   // Tap Save on a day card → show apply-to-all modal
   const handleSave = useCallback((dayIdx: number) => {
     setPendingDayIdx(dayIdx);
@@ -498,11 +549,8 @@ export default function TimingSettings() {
         </View>
 
         {/* Day strip */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.dayStrip}
-        >
+        <GestureDetector gesture={dayStripGesture}>
+          <View style={styles.dayStrip}>
           {DAYS_SHORT.map((d, i) => {
             const isSelected = i === selectedDayIdx;
             return (
@@ -529,7 +577,8 @@ export default function TimingSettings() {
               </Pressable>
             );
           })}
-        </ScrollView>
+          </View>
+        </GestureDetector>
       </View>
 
       {/* ── Scrollable day cards ── */}
@@ -545,6 +594,7 @@ export default function TimingSettings() {
           dayIdx={selectedDayIdx}
           dayState={schedule[selectedDayIdx]!}
           isToday={selectedDayIdx === todayIdx}
+          fadeKey={selectedDayIdx}
           onDayChange={(d) => handleDayChange(selectedDayIdx, d)}
           onSave={handleSave}
           colors={colors}
