@@ -46,6 +46,11 @@ export default function AppLayout() {
         name="team-access"
         options={{ animation: 'slide_from_right', gestureEnabled: true }}
       />
+      {/* Timing settings — slides in from the right */}
+      <Stack.Screen
+        name="timing-settings"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }

@@ -144,7 +144,7 @@ export default function Settings() {
   ];
 
   const restRows: SettingRow[] = [
-    { key: 'hours',    icon: 'clock',    color: '#22C55E', label: 'Timing',          value: '11am · 11pm', onPress: () => openRow('Timing') },
+    { key: 'hours',    icon: 'clock',    color: '#22C55E', label: 'Timing',          value: '11am · 11pm', onPress: () => router.push('/(app)/timing-settings') },
     { key: 'email',    icon: 'mail',     color: '#3B82F6', label: 'Contact Email',    value: user?.email ?? '—', onPress: () => openRow('Contact Email') },
     { key: 'phone',    icon: 'phone',    color: '#22C55E', label: 'Mobile Number',    value: '+91 90000 12345', onPress: () => openRow('Mobile Number') },
     { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => openRow('Restaurant Location') },
