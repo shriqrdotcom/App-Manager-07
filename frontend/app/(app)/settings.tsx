@@ -120,7 +120,7 @@ function makeStyles(colors: ThemePalette) {
     emailCloseButton: {
       position: 'absolute',
       alignSelf: 'center',
-      top: -48,
+      top: -56,
       width: 48,
       height: 48,
       borderRadius: 24,
