@@ -536,7 +536,7 @@ export default function Settings() {
   ];
 
   const publicRows: SettingRow[] = [
-    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: openGoogleReviewLink },
+    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review',      onPress: openGoogleReviewLink },
     { key: 'hero-gallery',  icon: 'image',   color: '#F59E0B', label: 'Gallery',            onPress: () => openRow('Hero Image Gallery') },
     { key: 'gallery-text',  icon: 'type',    color: '#06B6D4', label: 'Gallery Text',       onPress: () => openRow('Gallery Text') },
     { key: 'about',         icon: 'info',    color: '#EC4899', label: 'Philosophy / About Us', onPress: () => openRow('About') },
