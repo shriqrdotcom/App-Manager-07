@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { useAnimatedScrollHandler, runOnJS } from 'react-native-reanimated';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,8 +10,10 @@ import { useApp } from '@/src/providers/AppProvider';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
+import { storage } from '@/src/utils/storage';
 
 const TAB_INDEX = 4;
+const CONTACT_EMAIL_STORAGE_KEY = 'restaurant_contact_email_v1';
 
 type SettingRow = {
   key: string;
@@ -98,6 +100,185 @@ function makeStyles(colors: ThemePalette) {
       borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10,
     },
     toastText: { color: colors.foreground, fontSize: 13, fontWeight: '600' },
+
+    emailModalBackdrop: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.72)',
+    },
+    emailSheet: {
+      backgroundColor: '#000000',
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: '#2B2B2B',
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 20,
+    },
+    emailSheetHandle: {
+      alignSelf: 'center',
+      width: 38,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: '#595959',
+      marginBottom: 22,
+    },
+    emailSheetHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 14,
+      marginBottom: 24,
+    },
+    emailSheetIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emailSheetEyebrow: {
+      color: '#8C8C8C',
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1.5,
+      marginBottom: 5,
+    },
+    emailSheetTitle: {
+      color: '#FFFFFF',
+      fontSize: 25,
+      fontWeight: '800',
+      letterSpacing: -0.6,
+    },
+    emailSheetSubtitle: {
+      color: '#A3A3A3',
+      fontSize: 13,
+      lineHeight: 19,
+      marginTop: 5,
+    },
+    emailSectionLabel: {
+      color: '#8C8C8C',
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1.4,
+      marginBottom: 9,
+    },
+    currentEmailCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#111111',
+      borderWidth: 1,
+      borderColor: '#2B2B2B',
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 22,
+    },
+    currentEmailIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: '#242424',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 11,
+    },
+    currentEmailText: {
+      flex: 1,
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    activePill: {
+      borderWidth: 1,
+      borderColor: '#474747',
+      borderRadius: 999,
+      paddingHorizontal: 9,
+      paddingVertical: 5,
+    },
+    activePillText: {
+      color: '#FFFFFF',
+      fontSize: 9,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+    },
+    emailInputWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#111111',
+      borderWidth: 1,
+      borderColor: '#3A3A3A',
+      borderRadius: 16,
+      paddingHorizontal: 14,
+      minHeight: 54,
+    },
+    emailInputWrapInvalid: {
+      borderColor: '#FFFFFF',
+    },
+    emailInput: {
+      flex: 1,
+      color: '#FFFFFF',
+      fontSize: 15,
+      paddingVertical: 14,
+      paddingHorizontal: 10,
+    },
+    emailInputClear: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: '#303030',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emailError: {
+      color: '#FFFFFF',
+      fontSize: 11,
+      marginTop: 8,
+    },
+    emailHint: {
+      color: '#777777',
+      fontSize: 11,
+      lineHeight: 16,
+      marginTop: 9,
+    },
+    emailSheetActions: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 26,
+    },
+    emailCancelButton: {
+      flex: 1,
+      minHeight: 52,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: '#343434',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emailCancelText: {
+      color: '#B3B3B3',
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    emailSaveButton: {
+      flex: 1.35,
+      minHeight: 52,
+      borderRadius: 14,
+      backgroundColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 8,
+    },
+    emailSaveButtonDisabled: {
+      opacity: 0.45,
+    },
+    emailSaveText: {
+      color: '#000000',
+      fontSize: 14,
+      fontWeight: '800',
+    },
   });
 }
 
@@ -109,11 +290,37 @@ export default function Settings() {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
+  const user = bootstrap?.user;
   const [search, setSearch] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [contactEmail, setContactEmail] = useState(user?.email ?? 'demo@exzibo.com');
+  const [emailDraft, setEmailDraft] = useState(contactEmail);
+  const [emailSheetVisible, setEmailSheetVisible] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const emailSheetProgress = useSharedValue(0);
+  const emailSheetAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: emailSheetProgress.value,
+    transform: [{ translateY: (1 - emailSheetProgress.value) * 420 }],
+  }));
 
-  const user = bootstrap?.user;
+  useEffect(() => {
+    const fallbackEmail = user?.email ?? 'demo@exzibo.com';
+    setContactEmail(fallbackEmail);
+    setEmailDraft(fallbackEmail);
+
+    let active = true;
+    void storage.getItem(CONTACT_EMAIL_STORAGE_KEY, fallbackEmail).then((saved) => {
+      if (active && typeof saved === 'string' && saved.trim()) {
+        setContactEmail(saved);
+        setEmailDraft(saved);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.email]);
 
   const restaurantName = selectedRestaurant?.name ?? 'Exzibo Manager';
   const restaurantInitials = restaurantName
@@ -128,6 +335,36 @@ export default function Settings() {
   const openRow = (label: string) => {
     setToast(`${label} — coming soon`);
     setTimeout(() => setToast(null), 1500);
+  };
+
+  const openContactEmail = () => {
+    setEmailDraft(contactEmail);
+    setEmailError(null);
+    setEmailSheetVisible(true);
+    emailSheetProgress.value = 0;
+    emailSheetProgress.value = withTiming(1, { duration: 280 });
+  };
+
+  const closeContactEmail = useCallback(() => {
+    emailSheetProgress.value = withTiming(0, { duration: 220 }, (finished) => {
+      if (finished) runOnJS(setEmailSheetVisible)(false);
+    });
+  }, [emailSheetProgress]);
+
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+  const saveContactEmail = async () => {
+    const nextEmail = emailDraft.trim().toLowerCase();
+    if (!isValidEmail(nextEmail)) {
+      setEmailError('Enter a valid email address, like hello@restaurant.com.');
+      return;
+    }
+
+    setContactEmail(nextEmail);
+    await storage.setItem(CONTACT_EMAIL_STORAGE_KEY, nextEmail);
+    closeContactEmail();
+    setToast('Contact email updated');
+    setTimeout(() => setToast(null), 1800);
   };
 
   const accountRows: SettingRow[] = [
@@ -145,7 +382,7 @@ export default function Settings() {
 
   const restRows: SettingRow[] = [
     { key: 'hours',    icon: 'clock',    color: '#22C55E', label: 'Timing',          value: '11am · 11pm', onPress: () => router.push('/(app)/timing-settings') },
-    { key: 'email',    icon: 'mail',     color: '#3B82F6', label: 'Contact Email',    value: user?.email ?? '—', onPress: () => openRow('Contact Email') },
+    { key: 'email',    icon: 'mail',     color: '#3B82F6', label: 'Contact Email',    value: contactEmail, onPress: openContactEmail },
     { key: 'phone',    icon: 'phone',    color: '#22C55E', label: 'Mobile Number',    value: '+91 90000 12345', onPress: () => openRow('Mobile Number') },
     { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => openRow('Restaurant Location') },
   ];
@@ -280,6 +517,114 @@ export default function Settings() {
             </View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Contact email editor */}
+      <Modal
+        visible={emailSheetVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeContactEmail}
+      >
+        <View style={styles.emailModalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeContactEmail}
+            accessibilityLabel="Close contact email editor"
+          />
+          <Animated.View
+            style={[styles.emailSheet, { paddingBottom: insets.bottom + 20 }, emailSheetAnimatedStyle]}
+            testID="contact-email-sheet"
+          >
+            <View style={styles.emailSheetHandle} />
+
+            <View style={styles.emailSheetHeader}>
+              <View style={styles.emailSheetIcon}>
+                <Feather name="mail" size={22} color="#000000" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emailSheetEyebrow}>RESTAURANT PROFILE</Text>
+                <Text style={styles.emailSheetTitle}>Contact email</Text>
+                <Text style={styles.emailSheetSubtitle}>
+                  Keep your restaurant&apos;s inbox ready for guest messages.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CURRENT ADDRESS</Text>
+            <View style={styles.currentEmailCard}>
+              <View style={styles.currentEmailIcon}>
+                <Feather name="check" size={16} color="#FFFFFF" />
+              </View>
+              <Text style={styles.currentEmailText} numberOfLines={1}>{contactEmail}</Text>
+              <View style={styles.activePill}>
+                <Text style={styles.activePillText}>ACTIVE</Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CHANGE EMAIL</Text>
+            <View style={[styles.emailInputWrap, emailError && styles.emailInputWrapInvalid]}>
+              <Feather name="at-sign" size={17} color="#8C8C8C" />
+              <TextInput
+                value={emailDraft}
+                onChangeText={(value) => {
+                  setEmailDraft(value);
+                  if (emailError) setEmailError(null);
+                }}
+                placeholder="hello@restaurant.com"
+                placeholderTextColor="#666666"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor="#FFFFFF"
+                style={styles.emailInput}
+                testID="contact-email-input"
+                accessibilityLabel="New restaurant contact email"
+              />
+              {emailDraft.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setEmailDraft('');
+                    setEmailError(null);
+                  }}
+                  style={styles.emailInputClear}
+                  accessibilityLabel="Clear email"
+                  hitSlop={8}
+                >
+                  <Feather name="x" size={13} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+            </View>
+            {emailError ? (
+              <Text style={styles.emailError}>{emailError}</Text>
+            ) : (
+              <Text style={styles.emailHint}>This is where guest enquiries and restaurant notifications will arrive.</Text>
+            )}
+
+            <View style={styles.emailSheetActions}>
+              <TouchableOpacity
+                style={styles.emailCancelButton}
+                onPress={closeContactEmail}
+                activeOpacity={0.8}
+                testID="contact-email-cancel"
+              >
+                <Text style={styles.emailCancelText}>Not now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.emailSaveButton,
+                  !isValidEmail(emailDraft) && styles.emailSaveButtonDisabled,
+                ]}
+                onPress={saveContactEmail}
+                activeOpacity={0.8}
+                testID="contact-email-save"
+              >
+                <Feather name="check" size={16} color="#000000" />
+                <Text style={styles.emailSaveText}>Save email</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
       </Modal>
 
       {toast && (

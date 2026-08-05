@@ -7,3 +7,4 @@
 - [Expo Replit preview workflow](expo-replit-preview-workflow.md) — Replit previews should use Expo Web locally; Expo Go ngrok tunnels can fail before Metro serves the app.
 - [Mobile bootstrap contract](mobile-bootstrap-contract.md) — Backend omits user.id and returns permanent restaurant uid; identity comes from the verified Better Auth session.
 - [Mobile session boundary](mobile-session-boundary.md) — Recheck the current Better Auth user after async bootstrap, SecureStore, selection, and logout transitions.
+- [Expo animated sheet interaction](expo-animated-sheet-interaction.md) — Keep the backdrop press target separate from the Animated.View sheet for reliable typed dismissal across web and native.
