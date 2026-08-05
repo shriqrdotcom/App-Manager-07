@@ -434,7 +434,7 @@ export default function Settings() {
     { key: 'hours',    icon: 'clock',    color: '#22C55E', label: 'Timing',          value: '11am · 11pm', onPress: () => router.push('/(app)/timing-settings') },
     { key: 'email',    icon: 'mail',     color: '#3B82F6', label: 'Contact Email',    value: contactEmail, onPress: openContactEmail },
     { key: 'phone',    icon: 'phone',    color: '#22C55E', label: 'Mobile Number',    value: contactPhone, onPress: openMobileNumber },
-    { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => openRow('Restaurant Location') },
+    { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => router.push('/(app)/restaurant-location') },
   ];
 
   const promoRows: SettingRow[] = [

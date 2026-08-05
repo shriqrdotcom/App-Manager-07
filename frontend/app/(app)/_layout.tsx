@@ -51,6 +51,11 @@ export default function AppLayout() {
         name="timing-settings"
         options={{ animation: 'slide_from_right', gestureEnabled: true }}
       />
+      {/* Restaurant location — slides in from the right */}
+      <Stack.Screen
+        name="restaurant-location"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }
