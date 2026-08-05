@@ -4,7 +4,7 @@ import Animated, { runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useShare
 import { useScrollHeader } from '@/src/providers/ScrollHeaderProvider';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useApp } from '@/src/providers/AppProvider';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
@@ -21,7 +21,8 @@ const DEFAULT_CONTACT_PHONE = '+91 90000 12345';
 
 type SettingRow = {
   key: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon?: keyof typeof Feather.glyphMap;
+  brandIcon?: 'google';
   color: string;
   label: string;
   value?: string;
@@ -74,6 +75,7 @@ function makeStyles(colors: ThemePalette) {
 
     settingRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
     settingIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+    googleSettingIcon: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2F80ED' },
     rowLabel: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
     rowValue: { color: colors.mutedForeground, fontSize: 13, marginRight: 6 },
 
@@ -536,7 +538,7 @@ export default function Settings() {
   ];
 
   const publicRows: SettingRow[] = [
-    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review',      onPress: openGoogleReviewLink },
+    { key: 'google-review', brandIcon: 'google', color: '#3B82F6', label: 'Google Review', onPress: openGoogleReviewLink },
     { key: 'hero-gallery',  icon: 'image',   color: '#F59E0B', label: 'Gallery',            onPress: () => openRow('Hero Image Gallery') },
     { key: 'gallery-text',  icon: 'type',    color: '#06B6D4', label: 'Gallery Text',       onPress: () => openRow('Gallery Text') },
     { key: 'about',         icon: 'info',    color: '#EC4899', label: 'Philosophy / About Us', onPress: () => openRow('About') },
@@ -1019,8 +1021,12 @@ function Section({ title, rows, colors, styles }: { title: string; rows: Setting
         {rows.map((r, i) => (
           <React.Fragment key={r.key}>
             <TouchableOpacity style={styles.settingRow} onPress={r.onPress} activeOpacity={0.7} testID={`setting-${r.key}`}>
-              <View style={[styles.settingIcon, { backgroundColor: r.color }]}>
-                <Feather name={r.icon} size={14} color="#fff" />
+              <View style={[styles.settingIcon, r.brandIcon === 'google' ? styles.googleSettingIcon : { backgroundColor: r.color }]}>
+                {r.brandIcon === 'google' ? (
+                  <FontAwesome6 name="google" size={17} color="#FFFFFF" />
+                ) : r.icon ? (
+                  <Feather name={r.icon} size={14} color="#fff" />
+                ) : null}
               </View>
               <Text style={[styles.rowLabel, r.destructive && { color: staticColors.destructive }]}>{r.label}</Text>
               {r.value && <Text style={styles.rowValue}>{r.value}</Text>}
