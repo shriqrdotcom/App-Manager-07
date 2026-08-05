@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StatusBar,
@@ -11,8 +12,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
+  interpolate,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -26,6 +30,13 @@ import { storage } from '@/src/utils/storage';
 
 const STORAGE_KEY = 'restaurant_gallery_layout_v1';
 const IMAGE_SLOTS = [1, 2, 3, 4];
+const MAX_SELECTED_IMAGES = 20;
+
+type SelectedGalleryImage = {
+  id: string;
+  uri: string;
+  label: string;
+};
 
 type GalleryState = {
   heroTitle: string;
@@ -37,11 +48,13 @@ function GalleryRow({
   index,
   colors,
   reduceMotion,
+  image,
 }: {
   number: number;
   index: number;
   colors: ThemePalette;
   reduceMotion: boolean;
+  image?: SelectedGalleryImage;
 }) {
   const progress = useSharedValue(reduceMotion ? 1 : 0);
 
@@ -58,23 +71,34 @@ function GalleryRow({
 
   return (
     <Animated.View style={[styles.imageRow, { backgroundColor: colors.card, borderColor: colors.border }, animatedStyle]}>
-      <View style={styles.imageThumb} accessibilityLabel={`Image placeholder ${number}`}>
-        <LinearGradient
-          colors={['#F7F7F7', '#DADDE0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={styles.thumbFrame}>
-          <View style={styles.thumbSun} />
-          <View style={styles.thumbMountainOne} />
-          <View style={styles.thumbMountainTwo} />
-        </View>
-        <Feather name="image" size={15} color="#6E747B" />
+      <View style={styles.imageThumb} accessibilityLabel={image?.label ?? `Image placeholder ${number}`}>
+        {image ? (
+          <Image
+            source={{ uri: image.uri }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            accessibilityLabel={image.label}
+          />
+        ) : (
+          <>
+            <LinearGradient
+              colors={['#F7F7F7', '#DADDE0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.thumbFrame}>
+              <View style={styles.thumbSun} />
+              <View style={styles.thumbMountainOne} />
+              <View style={styles.thumbMountainTwo} />
+            </View>
+            <Feather name="image" size={15} color="#6E747B" />
+          </>
+        )}
       </View>
 
       <Text style={[styles.imageLabel, { color: colors.foreground }]}>
-        Image no {number}
+        {image?.label ?? `Image no ${number}`}
       </Text>
     </Animated.View>
   );
@@ -112,21 +136,25 @@ function LiquidGlassLayers() {
 
 function GalleryActionButtons({
   onPress,
+  onAddImages,
   saved,
   saving,
 }: {
   onPress: () => void;
+  onAddImages: () => Promise<void>;
   saved: boolean;
   saving: boolean;
 }) {
   const pressedProgress = useSharedValue(0);
   const plusPressedProgress = useSharedValue(0);
+  const plusRotationProgress = useSharedValue(0);
   const saveHoverProgress = useSharedValue(0);
   const plusHoverProgress = useSharedValue(0);
   const savedProgress = useSharedValue(saved ? 1 : 0);
   const reduceMotion = useReducedMotion();
   const [saveFocused, setSaveFocused] = useState(false);
   const [plusFocused, setPlusFocused] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -151,6 +179,10 @@ function GalleryActionButtons({
     transform: [{ scale: 1 - plusPressedProgress.value * 0.03 }],
   }));
 
+  const plusIconStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(plusRotationProgress.value, [0, 1], [0, 45])}deg` }],
+  }));
+
   const saveHoverStyle = useAnimatedStyle(() => ({
     opacity: saveHoverProgress.value * 0.16,
   }));
@@ -173,6 +205,25 @@ function GalleryActionButtons({
     opacity: savedProgress.value * 0.3,
     transform: [{ scale: 1 + savedProgress.value * 0.08 }],
   }));
+
+  const handleAddImages = useCallback(async () => {
+    if (picking) return;
+    setPicking(true);
+    plusRotationProgress.value = withTiming(1, { duration: 220 });
+    try {
+      await onAddImages();
+    } finally {
+      plusRotationProgress.value = withTiming(0, { duration: 180 });
+      setPicking(false);
+    }
+  }, [onAddImages, picking, plusRotationProgress]);
+
+  const handlePlusKeyDown = useCallback((event: { key: string; preventDefault?: () => void }) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault?.();
+      void handleAddImages();
+    }
+  }, [handleAddImages]);
 
   return (
     <View style={styles.actionGroup}>
@@ -232,7 +283,9 @@ function GalleryActionButtons({
       </View>
 
       <Pressable
-        onPress={() => undefined}
+        onPress={() => {
+          void handleAddImages();
+        }}
         onPressIn={() => {
           plusPressedProgress.value = reduceMotion
             ? withTiming(1, { duration: 80 })
@@ -251,8 +304,16 @@ function GalleryActionButtons({
         }}
         onFocus={() => setPlusFocused(true)}
         onBlur={() => setPlusFocused(false)}
+        {...(Platform.OS === 'web'
+          ? {
+              tabIndex: 0,
+              onKeyDown: handlePlusKeyDown,
+            }
+          : {})}
+        disabled={picking}
         accessibilityRole="button"
-        accessibilityLabel="Add gallery image"
+        accessibilityLabel="Add images from gallery"
+        accessibilityState={{ busy: picking, disabled: picking }}
         testID="gallery-add-image"
       >
         <Animated.View
@@ -261,6 +322,7 @@ function GalleryActionButtons({
             styles.plusButton,
             plusButtonStyle,
             plusFocused && styles.glassButtonFocused,
+            picking && styles.glassButtonDisabled,
           ]}
         >
           <LiquidGlassLayers />
@@ -274,7 +336,9 @@ function GalleryActionButtons({
               style={StyleSheet.absoluteFill}
             />
           </Animated.View>
-          <Feather name="plus" size={22} color="#FFFFFF" />
+          <Animated.View style={plusIconStyle}>
+            <Feather name="plus" size={22} color="#FFFFFF" />
+          </Animated.View>
         </Animated.View>
       </Pressable>
     </View>
@@ -290,6 +354,7 @@ export default function Gallery() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<SelectedGalleryImage[]>([]);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pageProgress = useSharedValue(reduceMotion ? 1 : 0);
 
@@ -333,6 +398,41 @@ export default function Gallery() {
       resetTimer.current = null;
     }, 1500);
   }, [saving]);
+
+  const addGalleryImages = useCallback(async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_SELECTED_IMAGES,
+      quality: 1,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    setSelectedImages((current) => {
+      const existingUris = new Set(current.map((image) => image.uri));
+      const nextImages = result.assets
+        .filter((asset) => !existingUris.has(asset.uri))
+        .map((asset, index) => ({
+          id: asset.assetId ?? `${asset.uri}-${index}`,
+          uri: asset.uri,
+          label: `Image no ${current.length + index + 1}`,
+        }));
+
+      return [...current, ...nextImages].slice(0, MAX_SELECTED_IMAGES);
+    });
+  }, []);
+
+  const galleryRows = useMemo(
+    () => Array.from(
+      { length: Math.max(IMAGE_SLOTS.length, selectedImages.length) },
+      (_, index) => ({
+        number: index + 1,
+        image: selectedImages[index],
+      }),
+    ),
+    [selectedImages],
+  );
 
   if (!loaded) return null;
 
@@ -388,17 +488,20 @@ export default function Gallery() {
           <View style={styles.divider} />
           <View style={styles.sectionHeading}>
             <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>GALLERY IMAGES</Text>
-            <Text style={[styles.sectionHint, { color: colors.mutedForeground }]}>4 slots</Text>
+            <Text style={[styles.sectionHint, { color: colors.mutedForeground }]}>
+              {selectedImages.length > 0 ? `${selectedImages.length} selected` : '4 slots'}
+            </Text>
           </View>
 
           <View style={styles.imageList}>
-            {IMAGE_SLOTS.map((number, index) => (
+            {galleryRows.map(({ number, image }, index) => (
               <GalleryRow
-                key={number}
+                key={image?.id ?? `placeholder-${number}`}
                 number={number}
                 index={index}
                 colors={colors}
                 reduceMotion={reduceMotion}
+                image={image}
               />
             ))}
           </View>
@@ -414,7 +517,12 @@ export default function Gallery() {
             },
           ]}
         >
-          <GalleryActionButtons onPress={saveGallery} saved={saved} saving={saving} />
+          <GalleryActionButtons
+            onPress={saveGallery}
+            onAddImages={addGalleryImages}
+            saved={saved}
+            saving={saving}
+          />
         </View>
       </Animated.View>
     </View>
