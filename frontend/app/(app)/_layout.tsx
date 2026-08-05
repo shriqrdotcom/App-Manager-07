@@ -56,6 +56,11 @@ export default function AppLayout() {
         name="restaurant-location"
         options={{ animation: 'slide_from_right', gestureEnabled: true }}
       />
+      {/* Google Review Link — slides in from the right */}
+      <Stack.Screen
+        name="google-review-link"
+        options={{ animation: 'slide_from_right', gestureEnabled: true }}
+      />
     </Stack>
   );
 }

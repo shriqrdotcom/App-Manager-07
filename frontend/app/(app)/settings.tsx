@@ -442,7 +442,7 @@ export default function Settings() {
   ];
 
   const publicRows: SettingRow[] = [
-    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: () => openRow('Google Review Link') },
+    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: () => router.push('/(app)/google-review-link') },
     { key: 'hero-gallery',  icon: 'image',   color: '#F59E0B', label: 'Hero Image Gallery', onPress: () => openRow('Hero Image Gallery') },
     { key: 'gallery-text',  icon: 'type',    color: '#06B6D4', label: 'Gallery Text',       onPress: () => openRow('Gallery Text') },
     { key: 'about',         icon: 'info',    color: '#EC4899', label: 'Philosophy / About Us', onPress: () => openRow('About') },
