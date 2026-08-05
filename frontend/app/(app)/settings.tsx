@@ -75,7 +75,8 @@ function makeStyles(colors: ThemePalette) {
 
     settingRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
     settingIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-    googleSettingIcon: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2F80ED' },
+    googleSettingIcon: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#4285F4' },
+    googleSettingGlyph: { width: 18, height: 18, lineHeight: 18, textAlign: 'center', textAlignVertical: 'center' },
     rowLabel: { flex: 1, color: colors.foreground, fontSize: 14.5, fontWeight: '500' },
     rowValue: { color: colors.mutedForeground, fontSize: 13, marginRight: 6 },
 
@@ -1023,7 +1024,7 @@ function Section({ title, rows, colors, styles }: { title: string; rows: Setting
             <TouchableOpacity style={styles.settingRow} onPress={r.onPress} activeOpacity={0.7} testID={`setting-${r.key}`}>
               <View style={[styles.settingIcon, r.brandIcon === 'google' ? styles.googleSettingIcon : { backgroundColor: r.color }]}>
                 {r.brandIcon === 'google' ? (
-                  <FontAwesome6 name="google" size={17} color="#FFFFFF" />
+                  <FontAwesome6 name="google" size={17} color="#FFFFFF" style={styles.googleSettingGlyph} />
                 ) : r.icon ? (
                   <Feather name={r.icon} size={14} color="#fff" />
                 ) : null}
