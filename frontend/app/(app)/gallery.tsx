@@ -409,8 +409,8 @@ export default function Gallery() {
             styles.bottomBar,
             {
               paddingBottom: insets.bottom + 16,
-              backgroundColor: colors.background,
-              borderTopColor: colors.border,
+              backgroundColor: 'transparent',
+              borderTopColor: 'transparent',
             },
           ]}
         >
@@ -717,17 +717,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 18,
     paddingTop: 12,
-    borderTopWidth: 1,
   },
   actionGroup: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
   },
   saveActionWrap: {
+    flex: 1,
+    minWidth: 0,
     position: 'relative',
   },
   actionGlow: {
@@ -760,8 +762,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   saveButton: {
-    width: 164,
-    height: 48,
+    width: '100%',
+    height: 46,
     paddingHorizontal: 18,
   },
   plusButton: {
