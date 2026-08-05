@@ -10,3 +10,4 @@
 - [Expo animated sheet interaction](expo-animated-sheet-interaction.md) — Keep the backdrop press target separate from the Animated.View sheet for reliable typed dismissal across web and native.
 - [Expo Go tunnel port](expo-go-tunnel-port.md) — The Expo Go tunnel must own port 5000 while running; stop the web preview before starting it to avoid an interactive port prompt.
 - [Expo Go demo boundary](expo-go-demo-boundary.md) — Enable the existing demo provider from the Expo Go workflow only; keep production auth and New Architecture enabled by default.
+- [Expo Go Replit proxy](expo-go-replit-proxy.md) — Prefer Replit's Expo dev domain through EXPO_PACKAGER_PROXY_URL when ngrok tunnels disconnect or expire.
