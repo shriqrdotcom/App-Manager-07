@@ -316,39 +316,6 @@ function makeStyles(colors: ThemePalette) {
       lineHeight: 16,
       marginTop: 3,
     },
-    googleReviewInfoCard: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      gap: 12,
-      padding: 16,
-      marginTop: 2,
-      borderRadius: 16,
-      backgroundColor: colors.muted,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    googleReviewInfoIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.accent,
-    },
-    googleReviewInfoCopy: {
-      flex: 1,
-    },
-    googleReviewInfoTitle: {
-      color: colors.foreground,
-      fontSize: 14,
-      fontWeight: '800',
-      marginBottom: 5,
-    },
-    googleReviewInfoDescription: {
-      color: colors.mutedForeground,
-      fontSize: 11.5,
-      lineHeight: 17,
-    },
   });
 }
 
@@ -1015,18 +982,6 @@ export default function Settings() {
                 Paste the Google review link from your Business Profile. It should begin with https://.
               </Text>
             )}
-
-            <View style={styles.googleReviewInfoCard}>
-              <View style={styles.googleReviewInfoIcon}>
-                <Feather name="info" size={18} color={colors.foreground} />
-              </View>
-              <View style={styles.googleReviewInfoCopy}>
-                <Text style={styles.googleReviewInfoTitle}>Where this link will be used</Text>
-                <Text style={styles.googleReviewInfoDescription}>
-                  Once saved, this URL will power the Google Review button shown to your guests.
-                </Text>
-              </View>
-            </View>
 
             <View style={styles.emailSheetActions}>
               <TouchableOpacity
