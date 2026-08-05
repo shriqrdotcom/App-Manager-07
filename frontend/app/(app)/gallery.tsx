@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -38,6 +39,8 @@ type SelectedGalleryImage = {
   label: string;
 };
 
+type GallerySlots = (SelectedGalleryImage | undefined)[];
+
 type GalleryState = {
   heroTitle: string;
   imageCount: number;
@@ -49,12 +52,14 @@ function GalleryRow({
   colors,
   reduceMotion,
   image,
+  onOpenActions,
 }: {
   number: number;
   index: number;
   colors: ThemePalette;
   reduceMotion: boolean;
   image?: SelectedGalleryImage;
+  onOpenActions: () => void;
 }) {
   const progress = useSharedValue(reduceMotion ? 1 : 0);
 
@@ -100,7 +105,94 @@ function GalleryRow({
       <Text style={[styles.imageLabel, { color: colors.foreground }]}>
         {image?.label ?? `Image no ${number}`}
       </Text>
+
+      <Pressable
+        onPress={onOpenActions}
+        style={styles.editButton}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Edit options for image ${number}`}
+        testID={`gallery-row-edit-${number}`}
+      >
+        <Feather name="edit-2" size={16} color="#AEB4BA" />
+      </Pressable>
     </Animated.View>
+  );
+}
+
+function GalleryImageActionSheet({
+  visible,
+  rowNumber,
+  hasImage,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  visible: boolean;
+  rowNumber: number;
+  hasImage: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <View style={styles.actionModalRoot}>
+        <Pressable
+          style={styles.actionModalBackdrop}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close image options"
+        />
+        <View style={styles.actionSheet} accessibilityViewIsModal>
+          <View style={styles.actionSheetHandle} />
+          <Text style={styles.actionSheetTitle}>Image no {rowNumber}</Text>
+          <Text style={styles.actionSheetSubtitle}>
+            {hasImage ? 'Update or remove this gallery image' : 'Add an image to this gallery slot'}
+          </Text>
+
+          <Pressable
+            onPress={onEdit}
+            style={({ pressed }) => [styles.actionOption, pressed && styles.actionOptionPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit image ${rowNumber}`}
+            testID={`gallery-row-edit-option-${rowNumber}`}
+          >
+            <View style={styles.actionOptionIcon}>
+              <Feather name="edit-2" size={17} color="#FFFFFF" />
+            </View>
+            <Text style={styles.actionOptionText}>Edit</Text>
+            <Feather name="chevron-right" size={18} color="#8A8A8E" />
+          </Pressable>
+
+          <Pressable
+            onPress={onDelete}
+            disabled={!hasImage}
+            style={({ pressed }) => [
+              styles.actionOption,
+              styles.deleteOption,
+              pressed && styles.actionOptionPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete image ${rowNumber}`}
+            accessibilityState={{ disabled: !hasImage }}
+            testID={`gallery-row-delete-option-${rowNumber}`}
+          >
+            <View style={[styles.actionOptionIcon, styles.deleteOptionIcon]}>
+              <Feather name="trash-2" size={17} color="#FFFFFF" />
+            </View>
+            <Text style={[styles.actionOptionText, styles.deleteOptionText]}>Delete</Text>
+            <Feather name="chevron-right" size={18} color="#8A8A8E" />
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -354,7 +446,8 @@ export default function Gallery() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<SelectedGalleryImage[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GallerySlots>([]);
+  const [actionRow, setActionRow] = useState<number | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pageProgress = useSharedValue(reduceMotion ? 1 : 0);
 
@@ -409,29 +502,79 @@ export default function Gallery() {
 
     if (result.canceled || !result.assets?.length) return;
 
-    setSelectedImages((current) => {
-      const existingUris = new Set(current.map((image) => image.uri));
-      const nextImages = result.assets
-        .filter((asset) => !existingUris.has(asset.uri))
-        .map((asset, index) => ({
-          id: asset.assetId ?? `${asset.uri}-${index}`,
-          uri: asset.uri,
-          label: `Image no ${current.length + index + 1}`,
-        }));
+    setGalleryImages((current) => {
+      const next = [...current];
+      const existingUris = new Set(
+        current.filter((image): image is SelectedGalleryImage => Boolean(image)).map((image) => image.uri),
+      );
+      const emptySlots = next
+        .map((image, index) => (image ? -1 : index))
+        .filter((index) => index >= 0);
 
-      return [...current, ...nextImages].slice(0, MAX_SELECTED_IMAGES);
+      result.assets
+        .filter((asset) => !existingUris.has(asset.uri))
+        .slice(0, MAX_SELECTED_IMAGES - current.filter(Boolean).length)
+        .forEach((asset, assetIndex) => {
+          const targetIndex = emptySlots[assetIndex] ?? next.length;
+          if (targetIndex >= MAX_SELECTED_IMAGES) return;
+          next[targetIndex] = {
+            id: `${asset.uri}-${targetIndex}`,
+            uri: asset.uri,
+            label: `Image no ${targetIndex + 1}`,
+          };
+        });
+
+      return next.slice(0, MAX_SELECTED_IMAGES);
     });
   }, []);
 
+  const editGalleryImage = useCallback(async (rowNumber: number) => {
+    setActionRow(null);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: false,
+      selectionLimit: 1,
+      quality: 1,
+    });
+
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    const slotIndex = rowNumber - 1;
+    setGalleryImages((current) => {
+      const next = [...current];
+      next[slotIndex] = {
+        id: `${asset.uri}-${slotIndex}`,
+        uri: asset.uri,
+        label: `Image no ${rowNumber}`,
+      };
+      return next.slice(0, MAX_SELECTED_IMAGES);
+    });
+  }, []);
+
+  const deleteGalleryImage = useCallback(() => {
+    if (actionRow === null) return;
+
+    setGalleryImages((current) => {
+      const next = [...current];
+      next[actionRow - 1] = undefined;
+      while (next.length > IMAGE_SLOTS.length && !next[next.length - 1]) {
+        next.pop();
+      }
+      return next;
+    });
+    setActionRow(null);
+  }, [actionRow]);
+
   const galleryRows = useMemo(
     () => Array.from(
-      { length: Math.max(IMAGE_SLOTS.length, selectedImages.length) },
+      { length: Math.max(IMAGE_SLOTS.length, galleryImages.length) },
       (_, index) => ({
         number: index + 1,
-        image: selectedImages[index],
+        image: galleryImages[index],
       }),
     ),
-    [selectedImages],
+    [galleryImages],
   );
 
   if (!loaded) return null;
@@ -489,7 +632,9 @@ export default function Gallery() {
           <View style={styles.sectionHeading}>
             <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>GALLERY IMAGES</Text>
             <Text style={[styles.sectionHint, { color: colors.mutedForeground }]}>
-              {selectedImages.length > 0 ? `${selectedImages.length} selected` : '4 slots'}
+              {galleryImages.filter(Boolean).length > 0
+                ? `${galleryImages.filter(Boolean).length} selected`
+                : '4 slots'}
             </Text>
           </View>
 
@@ -502,6 +647,7 @@ export default function Gallery() {
                 colors={colors}
                 reduceMotion={reduceMotion}
                 image={image}
+                onOpenActions={() => setActionRow(number)}
               />
             ))}
           </View>
@@ -524,6 +670,17 @@ export default function Gallery() {
             saving={saving}
           />
         </View>
+
+        <GalleryImageActionSheet
+          visible={actionRow !== null}
+          rowNumber={actionRow ?? 1}
+          hasImage={actionRow !== null && Boolean(galleryImages[actionRow - 1])}
+          onClose={() => setActionRow(null)}
+          onEdit={() => {
+            if (actionRow !== null) void editGalleryImage(actionRow);
+          }}
+          onDelete={deleteGalleryImage}
+        />
       </Animated.View>
     </View>
   );
@@ -773,6 +930,17 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
   },
+  editButton: {
+    width: 34,
+    height: 34,
+    marginLeft: 'auto',
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
   imageThumb: {
     width: 68,
     height: 56,
@@ -818,6 +986,88 @@ const styles = StyleSheet.create({
   imageLabel: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  actionModalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  actionModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.58)',
+  },
+  actionSheet: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 28,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    backgroundColor: '#1B1C1C',
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: 'rgba(255,255,255,0.13)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 12,
+  },
+  actionSheetHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    marginBottom: 18,
+    backgroundColor: 'rgba(255,255,255,0.28)',
+  },
+  actionSheetTitle: {
+    color: '#F5F5F5',
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  actionSheetSubtitle: {
+    color: '#8A8A8E',
+    fontSize: 12,
+    marginTop: 5,
+    marginBottom: 18,
+  },
+  actionOption: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: '#252627',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  actionOptionPressed: {
+    opacity: 0.72,
+    transform: [{ scale: 0.985 }],
+  },
+  actionOptionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3B82F6',
+  },
+  actionOptionText: {
+    flex: 1,
+    color: '#F5F5F5',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  deleteOption: {
+    marginTop: 10,
+  },
+  deleteOptionIcon: {
+    backgroundColor: '#B4232F',
+  },
+  deleteOptionText: {
+    color: '#FFB8BE',
   },
   bottomBar: {
     position: 'absolute',
