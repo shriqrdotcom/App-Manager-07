@@ -109,12 +109,12 @@ function makeStyles(colors: ThemePalette) {
       backgroundColor: 'rgba(0,0,0,0.72)',
     },
     emailSheet: {
-      backgroundColor: '#000000',
+      backgroundColor: colors.card,
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
       borderWidth: 1,
       borderBottomWidth: 0,
-      borderColor: '#2B2B2B',
+      borderColor: colors.border,
       paddingHorizontal: 20,
       paddingTop: 10,
       paddingBottom: 20,
@@ -126,9 +126,9 @@ function makeStyles(colors: ThemePalette) {
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: '#2C2C34',
+      backgroundColor: colors.muted,
       borderWidth: 1,
-      borderColor: '#3D3D46',
+      borderColor: colors.border,
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 2,
@@ -138,7 +138,7 @@ function makeStyles(colors: ThemePalette) {
       width: 38,
       height: 4,
       borderRadius: 2,
-      backgroundColor: '#595959',
+      backgroundColor: colors.mutedForeground,
       marginBottom: 22,
     },
     emailSheetHeader: {
@@ -151,31 +151,31 @@ function makeStyles(colors: ThemePalette) {
       width: 48,
       height: 48,
       borderRadius: 16,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
     },
     emailSheetEyebrow: {
-      color: '#8C8C8C',
+      color: colors.mutedForeground,
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1.5,
       marginBottom: 5,
     },
     emailSheetTitle: {
-      color: '#FFFFFF',
+      color: colors.foreground,
       fontSize: 25,
       fontWeight: '800',
       letterSpacing: -0.6,
     },
     emailSheetSubtitle: {
-      color: '#A3A3A3',
+      color: colors.mutedForeground,
       fontSize: 13,
       lineHeight: 19,
       marginTop: 5,
     },
     emailSectionLabel: {
-      color: '#8C8C8C',
+      color: colors.mutedForeground,
       fontSize: 10,
       fontWeight: '800',
       letterSpacing: 1.4,
@@ -184,9 +184,9 @@ function makeStyles(colors: ThemePalette) {
     currentEmailCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#111111',
+      backgroundColor: colors.muted,
       borderWidth: 1,
-      borderColor: '#2B2B2B',
+      borderColor: colors.border,
       borderRadius: 16,
       padding: 14,
       marginBottom: 22,
@@ -195,26 +195,26 @@ function makeStyles(colors: ThemePalette) {
       width: 34,
       height: 34,
       borderRadius: 11,
-      backgroundColor: '#242424',
+      backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
       marginRight: 11,
     },
     currentEmailText: {
       flex: 1,
-      color: '#FFFFFF',
+      color: colors.foreground,
       fontSize: 14,
       fontWeight: '700',
     },
     activePill: {
       borderWidth: 1,
-      borderColor: '#474747',
+      borderColor: colors.border,
       borderRadius: 999,
       paddingHorizontal: 9,
       paddingVertical: 5,
     },
     activePillText: {
-      color: '#FFFFFF',
+      color: colors.foreground,
       fontSize: 9,
       fontWeight: '800',
       letterSpacing: 0.8,
@@ -222,19 +222,19 @@ function makeStyles(colors: ThemePalette) {
     emailInputWrap: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#111111',
+      backgroundColor: colors.muted,
       borderWidth: 1,
-      borderColor: '#3A3A3A',
+      borderColor: colors.border,
       borderRadius: 16,
       paddingHorizontal: 14,
       minHeight: 54,
     },
     emailInputWrapInvalid: {
-      borderColor: '#FFFFFF',
+      borderColor: colors.foreground,
     },
     emailInput: {
       flex: 1,
-      color: '#FFFFFF',
+      color: colors.foreground,
       fontSize: 15,
       paddingVertical: 14,
       paddingHorizontal: 10,
@@ -243,17 +243,17 @@ function makeStyles(colors: ThemePalette) {
       width: 26,
       height: 26,
       borderRadius: 13,
-      backgroundColor: '#303030',
+      backgroundColor: colors.accent,
       alignItems: 'center',
       justifyContent: 'center',
     },
     emailError: {
-      color: '#FFFFFF',
+      color: colors.foreground,
       fontSize: 11,
       marginTop: 8,
     },
     emailHint: {
-      color: '#777777',
+      color: colors.mutedForeground,
       fontSize: 11,
       lineHeight: 16,
       marginTop: 9,
@@ -265,7 +265,7 @@ function makeStyles(colors: ThemePalette) {
       width: '100%',
       minHeight: 58,
       borderRadius: 14,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'row',
@@ -275,7 +275,7 @@ function makeStyles(colors: ThemePalette) {
       opacity: 0.45,
     },
     emailSaveText: {
-      color: '#000000',
+      color: colors.primaryForeground,
       fontSize: 14,
       fontWeight: '800',
     },
@@ -594,13 +594,13 @@ export default function Settings() {
               accessibilityLabel="Close contact email editor"
               testID="contact-email-close"
             >
-              <Feather name="x" size={24} color="#FFFFFF" />
+              <Feather name="x" size={24} color={colors.foreground} />
             </TouchableOpacity>
             <View style={styles.emailSheetHandle} />
 
             <View style={styles.emailSheetHeader}>
               <View style={styles.emailSheetIcon}>
-                <Feather name="mail" size={22} color="#000000" />
+                <Feather name="mail" size={22} color={colors.primaryForeground} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.emailSheetEyebrow}>RESTAURANT PROFILE</Text>
@@ -614,7 +614,7 @@ export default function Settings() {
             <Text style={styles.emailSectionLabel}>CURRENT ADDRESS</Text>
             <View style={styles.currentEmailCard}>
               <View style={styles.currentEmailIcon}>
-                <Feather name="check" size={16} color="#FFFFFF" />
+                <Feather name="check" size={16} color={colors.foreground} />
               </View>
               <Text style={styles.currentEmailText} numberOfLines={1}>{contactEmail}</Text>
               <View style={styles.activePill}>
@@ -624,7 +624,7 @@ export default function Settings() {
 
             <Text style={styles.emailSectionLabel}>CHANGE EMAIL</Text>
             <View style={[styles.emailInputWrap, emailError && styles.emailInputWrapInvalid]}>
-              <Feather name="at-sign" size={17} color="#8C8C8C" />
+              <Feather name="at-sign" size={17} color={colors.mutedForeground} />
               <TextInput
                 value={emailDraft}
                 onChangeText={(value) => {
@@ -632,11 +632,11 @@ export default function Settings() {
                   if (emailError) setEmailError(null);
                 }}
                 placeholder="hello@restaurant.com"
-                placeholderTextColor="#666666"
+                placeholderTextColor={colors.mutedForeground}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                selectionColor="#FFFFFF"
+                selectionColor={colors.foreground}
                 style={styles.emailInput}
                 testID="contact-email-input"
                 accessibilityLabel="New restaurant contact email"
@@ -651,7 +651,7 @@ export default function Settings() {
                   accessibilityLabel="Clear email"
                   hitSlop={8}
                 >
-                  <Feather name="x" size={13} color="#FFFFFF" />
+                  <Feather name="x" size={13} color={colors.foreground} />
                 </TouchableOpacity>
               )}
             </View>
@@ -671,7 +671,7 @@ export default function Settings() {
                 activeOpacity={0.8}
                 testID="contact-email-save"
               >
-                <Feather name="check" size={16} color="#000000" />
+                <Feather name="check" size={16} color={colors.primaryForeground} />
                 <Text style={styles.emailSaveText}>Save Email</Text>
               </TouchableOpacity>
             </View>
@@ -704,13 +704,13 @@ export default function Settings() {
               accessibilityLabel="Close mobile number editor"
               testID="mobile-number-close"
             >
-              <Feather name="x" size={24} color="#FFFFFF" />
+              <Feather name="x" size={24} color={colors.foreground} />
             </TouchableOpacity>
             <View style={styles.emailSheetHandle} />
 
             <View style={styles.emailSheetHeader}>
               <View style={styles.emailSheetIcon}>
-                <Feather name="phone" size={22} color="#000000" />
+                <Feather name="phone" size={22} color={colors.primaryForeground} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.emailSheetEyebrow}>RESTAURANT PROFILE</Text>
@@ -724,7 +724,7 @@ export default function Settings() {
             <Text style={styles.emailSectionLabel}>CURRENT NUMBER</Text>
             <View style={styles.currentEmailCard}>
               <View style={styles.currentEmailIcon}>
-                <Feather name="check" size={16} color="#FFFFFF" />
+                <Feather name="check" size={16} color={colors.foreground} />
               </View>
               <Text style={styles.currentEmailText} numberOfLines={1}>{contactPhone}</Text>
               <View style={styles.activePill}>
@@ -734,7 +734,7 @@ export default function Settings() {
 
             <Text style={styles.emailSectionLabel}>CHANGE NUMBER</Text>
             <View style={[styles.emailInputWrap, phoneError && styles.emailInputWrapInvalid]}>
-              <Feather name="phone" size={17} color="#8C8C8C" />
+              <Feather name="phone" size={17} color={colors.mutedForeground} />
               <TextInput
                 value={phoneDraft}
                 onChangeText={(value) => {
@@ -742,11 +742,11 @@ export default function Settings() {
                   if (phoneError) setPhoneError(null);
                 }}
                 placeholder="+91 90000 12345"
-                placeholderTextColor="#666666"
+                placeholderTextColor={colors.mutedForeground}
                 keyboardType="phone-pad"
                 autoCapitalize="none"
                 autoCorrect={false}
-                selectionColor="#FFFFFF"
+                selectionColor={colors.foreground}
                 style={styles.emailInput}
                 testID="mobile-number-input"
                 accessibilityLabel="New restaurant mobile number"
@@ -761,7 +761,7 @@ export default function Settings() {
                   accessibilityLabel="Clear mobile number"
                   hitSlop={8}
                 >
-                  <Feather name="x" size={13} color="#FFFFFF" />
+                  <Feather name="x" size={13} color={colors.foreground} />
                 </TouchableOpacity>
               )}
             </View>
@@ -781,7 +781,7 @@ export default function Settings() {
                 activeOpacity={0.8}
                 testID="mobile-number-save"
               >
-                <Feather name="check" size={16} color="#000000" />
+                <Feather name="check" size={16} color={colors.primaryForeground} />
                 <Text style={styles.emailSaveText}>Save Number</Text>
               </TouchableOpacity>
             </View>
