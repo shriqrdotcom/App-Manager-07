@@ -325,10 +325,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   heroPanel: {
-    height: '56%',
-    minHeight: 390,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+    paddingBottom: 10,
   },
   backButton: {
     width: 38,
