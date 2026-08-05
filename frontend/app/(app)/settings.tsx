@@ -120,10 +120,10 @@ function makeStyles(colors: ThemePalette) {
     emailCloseButton: {
       position: 'absolute',
       alignSelf: 'center',
-      top: -58,
-      width: 58,
-      height: 58,
-      borderRadius: 29,
+      top: -48,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       backgroundColor: '#2C2C34',
       borderWidth: 1,
       borderColor: '#3D3D46',
@@ -542,7 +542,7 @@ export default function Settings() {
               accessibilityLabel="Close contact email editor"
               testID="contact-email-close"
             >
-              <Feather name="x" size={30} color="#FFFFFF" />
+              <Feather name="x" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={styles.emailSheetHandle} />
 
