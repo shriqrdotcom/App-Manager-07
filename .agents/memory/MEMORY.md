@@ -12,3 +12,4 @@
 - [Expo Go demo boundary](expo-go-demo-boundary.md) — Enable the existing demo provider from the Expo Go workflow only; keep production auth and New Architecture enabled by default.
 - [Expo Go Replit proxy](expo-go-replit-proxy.md) — Prefer Replit's Expo dev domain through EXPO_PACKAGER_PROXY_URL when ngrok tunnels disconnect or expire.
 - [Settings editor sheets](settings-editor-sheets.md) — Settings values that are edited in place should use the existing animated bottom-sheet pattern instead of a standalone route.
+- [Swipe save control](swipe-save-control.md) — Save confirmations use a Gesture Handler/Reanimated spring swipe with reduced-motion and accessibility activation paths.

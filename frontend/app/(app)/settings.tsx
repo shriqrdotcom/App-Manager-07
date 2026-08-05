@@ -11,6 +11,7 @@ import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, SearchBar } from '@/src/components/ui';
 import { storage } from '@/src/utils/storage';
+import SwipeSaveControl from '@/src/components/SwipeSaveControl';
 
 const TAB_INDEX = 4;
 const CONTACT_EMAIL_STORAGE_KEY = 'restaurant_contact_email_v1';
@@ -323,7 +324,7 @@ type StylesType = ReturnType<typeof makeStyles>;
 
 export default function Settings() {
   const { bootstrap, selectedRestaurant, logout } = useApp();
-  const { preference, colors } = useTheme();
+  const { preference, resolvedTheme, colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
@@ -353,6 +354,7 @@ export default function Settings() {
   const [googleReviewDraft, setGoogleReviewDraft] = useState('');
   const [googleReviewError, setGoogleReviewError] = useState<string | null>(null);
   const [googleReviewSheetVisible, setGoogleReviewSheetVisible] = useState(false);
+  const [googleReviewSheetSession, setGoogleReviewSheetSession] = useState(0);
   const googleReviewSheetProgress = useSharedValue(0);
   const googleReviewSheetAnimatedStyle = useAnimatedStyle(() => ({
     opacity: googleReviewSheetProgress.value,
@@ -472,6 +474,7 @@ export default function Settings() {
   const openGoogleReviewLink = () => {
     setGoogleReviewDraft(googleReviewUrl);
     setGoogleReviewError(null);
+    setGoogleReviewSheetSession((session) => session + 1);
     setGoogleReviewSheetVisible(true);
     googleReviewSheetProgress.value = 0;
     googleReviewSheetProgress.value = withTiming(1, { duration: 280 });
@@ -984,18 +987,14 @@ export default function Settings() {
             )}
 
             <View style={styles.emailSheetActions}>
-              <TouchableOpacity
-                style={[
-                  styles.emailSaveButton,
-                  !isValidGoogleReviewUrl(googleReviewDraft) && styles.emailSaveButtonDisabled,
-                ]}
-                onPress={saveGoogleReviewLink}
-                activeOpacity={0.8}
+              <SwipeSaveControl
+                enabled={isValidGoogleReviewUrl(googleReviewDraft)}
+                colors={colors}
+                resolvedTheme={resolvedTheme}
+                onConfirm={saveGoogleReviewLink}
+                resetKey={googleReviewSheetSession}
                 testID="google-review-url-save"
-              >
-                <Feather name="check" size={16} color={colors.primaryForeground} />
-                <Text style={styles.emailSaveText}>Save Review Link</Text>
-              </TouchableOpacity>
+              />
             </View>
           </Animated.View>
         </View>
