@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../providers/ThemeProvider';
@@ -41,7 +43,8 @@ type Props = {
 export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
   // Active colours derived from theme
   const ACTIVE_BG = colors.border;
@@ -74,6 +77,80 @@ export default function BottomNavigation({ activeIndex, onTabPress }: Props) {
         {TABS.map((tab, index) => {
           const active = isActive(tab, index);
           const color = active ? ACTIVE_ICON_COLOR : INACTIVE_COLOR;
+
+          if (active) {
+            return (
+              <View key={tab.key} style={styles.tab}>
+                <View style={styles.activeControlRow}>
+                  <TouchableOpacity
+                    testID={`tab-${tab.key}`}
+                    onPress={() => handlePress(tab, index)}
+                    activeOpacity={0.78}
+                    style={styles.activeTabButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={tab.label}
+                  >
+                    <View style={styles.activeIconWrap}>
+                      <BlurView
+                        intensity={isDark ? 38 : 28}
+                        tint={isDark ? 'dark' : 'light'}
+                        style={StyleSheet.absoluteFill}
+                        pointerEvents="none"
+                      />
+                      <LinearGradient
+                        colors={isDark
+                          ? ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0.12)']
+                          : ['rgba(255,255,255,0.82)', 'rgba(255,255,255,0.42)', 'rgba(255,255,255,0.66)']}
+                        locations={[0, 0.54, 1]}
+                        start={{ x: 0.08, y: 0 }}
+                        end={{ x: 0.92, y: 1 }}
+                        style={StyleSheet.absoluteFill}
+                        pointerEvents="none"
+                      />
+                      {tab.iconFamily === 'feather' ? (
+                        <Feather name={tab.icon as keyof typeof Feather.glyphMap} size={ICON_SIZE} color={color} />
+                      ) : (
+                        <MaterialCommunityIcons
+                          name={tab.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                          size={ICON_SIZE}
+                          color={color}
+                        />
+                      )}
+                    </View>
+                    <Text style={[styles.label, styles.activeLabel, { color: ACTIVE_COLOR }]}>{tab.label}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => router.push('/add-order')}
+                    activeOpacity={0.82}
+                    testID="bottom-nav-add"
+                    accessibilityRole="button"
+                    accessibilityLabel="Create manual order"
+                  >
+                    <BlurView
+                      intensity={isDark ? 42 : 30}
+                      tint={isDark ? 'dark' : 'light'}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
+                    <LinearGradient
+                      colors={isDark
+                        ? ['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0.14)']
+                        : ['rgba(255,255,255,0.82)', 'rgba(255,255,255,0.44)', 'rgba(255,255,255,0.68)']}
+                      locations={[0, 0.55, 1]}
+                      start={{ x: 0.08, y: 0 }}
+                      end={{ x: 0.92, y: 1 }}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
+                    <Feather name="plus" size={18} color={colors.foreground} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          }
+
           return (
             <TouchableOpacity
               key={tab.key}
@@ -117,6 +194,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 14,
+  },
+  activeControlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  activeTabButton: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  activeIconWrap: {
+    width: 36,
+    height: 24,
+    overflow: 'hidden',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  activeLabel: {
+    fontSize: 9.5,
+  },
+  addButton: {
+    width: 28,
+    height: 28,
+    overflow: 'hidden',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
   },
   label: { fontSize: 10.5, fontWeight: '600' },
 });
