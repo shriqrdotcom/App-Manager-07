@@ -139,15 +139,6 @@ export default function ThemeSettings() {
           </View>
         </View>
 
-        {/* Info note */}
-        <View style={styles.section}>
-          <View style={styles.noteCard}>
-            <Feather name="info" size={13} color={colors.info} />
-            <Text style={styles.noteText}>
-              The preview updates immediately and your choice is saved.
-            </Text>
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -295,21 +286,4 @@ const createStyles = (colors: ThemePalette) => StyleSheet.create({
     backgroundColor: '#8B5CF6',
   },
 
-  // Note
-  noteCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-  },
-  noteText: {
-    flex: 1,
-    color: colors.mutedForeground,
-    fontSize: 12,
-    lineHeight: 17,
-  },
 });
