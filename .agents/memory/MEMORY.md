@@ -8,3 +8,4 @@
 - [Mobile bootstrap contract](mobile-bootstrap-contract.md) — Backend omits user.id and returns permanent restaurant uid; identity comes from the verified Better Auth session.
 - [Mobile session boundary](mobile-session-boundary.md) — Recheck the current Better Auth user after async bootstrap, SecureStore, selection, and logout transitions.
 - [Expo animated sheet interaction](expo-animated-sheet-interaction.md) — Keep the backdrop press target separate from the Animated.View sheet for reliable typed dismissal across web and native.
+- [Expo Go tunnel port](expo-go-tunnel-port.md) — The Expo Go tunnel must own port 5000 while running; stop the web preview before starting it to avoid an interactive port prompt.

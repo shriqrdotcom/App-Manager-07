@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "exzibo-manager",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "updates": {
       "url": "https://u.expo.dev/b83e1161-1f19-4391-becc-dd1e87b9e7f9"
     },
