@@ -233,22 +233,6 @@ export default function Gallery() {
           </View>
 
           <View style={styles.heroPanelContent}>
-            <View style={[styles.heroBox, { backgroundColor: '#FFFFFF' }]}>
-              <View style={styles.heroTopRow}>
-                <View style={styles.heroIcon}>
-                  <Feather name="image" size={18} color="#FFFFFF" />
-                </View>
-                <View style={styles.heroCopy}>
-                  <Text style={styles.heroTitle}>Gallery</Text>
-                  <Text style={styles.heroSubtitle}>Your public image collection</Text>
-                </View>
-                <View style={styles.heroStatus}>
-                  <View style={styles.heroStatusDot} />
-                  <Text style={styles.heroStatusText}>LIVE</Text>
-                </View>
-              </View>
-            </View>
-
             <Text style={styles.heroSectionLabel}>FEATURED IMAGE</Text>
             <View style={styles.mapCard} accessibilityLabel="Featured gallery image preview">
               <View style={styles.mapTexture} />
