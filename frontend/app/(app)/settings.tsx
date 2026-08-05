@@ -117,6 +117,20 @@ function makeStyles(colors: ThemePalette) {
       paddingTop: 10,
       paddingBottom: 20,
     },
+    emailCloseButton: {
+      position: 'absolute',
+      alignSelf: 'center',
+      top: -58,
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      backgroundColor: '#2C2C34',
+      borderWidth: 1,
+      borderColor: '#3D3D46',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 2,
+    },
     emailSheetHandle: {
       alignSelf: 'center',
       width: 38,
@@ -243,27 +257,11 @@ function makeStyles(colors: ThemePalette) {
       marginTop: 9,
     },
     emailSheetActions: {
-      flexDirection: 'row',
-      gap: 10,
       marginTop: 26,
     },
-    emailCancelButton: {
-      flex: 1,
-      minHeight: 52,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: '#343434',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    emailCancelText: {
-      color: '#B3B3B3',
-      fontSize: 14,
-      fontWeight: '700',
-    },
     emailSaveButton: {
-      flex: 1.35,
-      minHeight: 52,
+      width: '100%',
+      minHeight: 58,
       borderRadius: 14,
       backgroundColor: '#FFFFFF',
       alignItems: 'center',
@@ -536,6 +534,16 @@ export default function Settings() {
             style={[styles.emailSheet, { paddingBottom: insets.bottom + 20 }, emailSheetAnimatedStyle]}
             testID="contact-email-sheet"
           >
+            <TouchableOpacity
+              style={styles.emailCloseButton}
+              onPress={closeContactEmail}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Close contact email editor"
+              testID="contact-email-close"
+            >
+              <Feather name="x" size={30} color="#FFFFFF" />
+            </TouchableOpacity>
             <View style={styles.emailSheetHandle} />
 
             <View style={styles.emailSheetHeader}>
@@ -603,14 +611,6 @@ export default function Settings() {
 
             <View style={styles.emailSheetActions}>
               <TouchableOpacity
-                style={styles.emailCancelButton}
-                onPress={closeContactEmail}
-                activeOpacity={0.8}
-                testID="contact-email-cancel"
-              >
-                <Text style={styles.emailCancelText}>Not now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
                 style={[
                   styles.emailSaveButton,
                   !isValidEmail(emailDraft) && styles.emailSaveButtonDisabled,
@@ -620,7 +620,7 @@ export default function Settings() {
                 testID="contact-email-save"
               >
                 <Feather name="check" size={16} color="#000000" />
-                <Text style={styles.emailSaveText}>Save email</Text>
+                <Text style={styles.emailSaveText}>Save Email</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
