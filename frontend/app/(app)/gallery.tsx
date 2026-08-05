@@ -217,58 +217,64 @@ export default function Gallery() {
       />
 
       <Animated.View style={[styles.screen, pageStyle]}>
-        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-          <Pressable
-            onPress={() => router.back()}
-            style={styles.backButton}
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={12}
-          >
-            <Feather name="arrow-left" size={21} color={colors.foreground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Gallery</Text>
-          <View style={styles.headerSpacer} />
+        <View style={styles.heroPanel}>
+          <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            <Pressable
+              onPress={() => router.back()}
+              style={[styles.backButton, styles.lightBackButton]}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              hitSlop={12}
+            >
+              <Feather name="arrow-left" size={21} color="#18181B" />
+            </Pressable>
+            <Text style={[styles.headerTitle, styles.lightHeaderTitle]}>Gallery</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
+          <View style={styles.heroPanelContent}>
+            <View style={[styles.heroBox, { backgroundColor: '#FFFFFF' }]}>
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroIcon}>
+                  <Feather name="image" size={18} color="#FFFFFF" />
+                </View>
+                <View style={styles.heroCopy}>
+                  <Text style={styles.heroTitle}>Gallery</Text>
+                  <Text style={styles.heroSubtitle}>Your public image collection</Text>
+                </View>
+                <View style={styles.heroStatus}>
+                  <View style={styles.heroStatusDot} />
+                  <Text style={styles.heroStatusText}>LIVE</Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.heroSectionLabel}>FEATURED IMAGE</Text>
+            <View style={styles.mapCard} accessibilityLabel="Featured gallery image preview">
+              <View style={styles.mapTexture} />
+              <View style={[styles.mapRoad, styles.mapRoadOne]} />
+              <View style={[styles.mapRoad, styles.mapRoadTwo]} />
+              <View style={[styles.mapRoad, styles.mapRoadThree]} />
+              <View style={[styles.mapBlock, styles.mapBlockOne]} />
+              <View style={[styles.mapBlock, styles.mapBlockTwo]} />
+              <View style={[styles.mapBlock, styles.mapBlockThree]} />
+              <View style={styles.featuredImageShape}>
+                <Feather name="image" size={25} color="#A9B0B7" />
+              </View>
+              <Text style={styles.featuredLabel}>Gallery cover</Text>
+            </View>
+          </View>
         </View>
 
         <ScrollView
+          style={styles.galleryScroll}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
-            styles.content,
+            styles.galleryContent,
             { paddingBottom: insets.bottom + 112 },
           ]}
         >
-          <View style={[styles.heroBox, { backgroundColor: '#FFFFFF' }]}>
-            <View style={styles.heroTopRow}>
-              <View style={styles.heroIcon}>
-                <Feather name="image" size={18} color="#FFFFFF" />
-              </View>
-              <View style={styles.heroCopy}>
-                <Text style={styles.heroTitle}>Gallery</Text>
-                <Text style={styles.heroSubtitle}>Your public image collection</Text>
-              </View>
-              <View style={styles.heroStatus}>
-                <View style={styles.heroStatusDot} />
-                <Text style={styles.heroStatusText}>LIVE</Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>FEATURED IMAGE</Text>
-          <View style={styles.mapCard} accessibilityLabel="Featured gallery image preview">
-            <View style={styles.mapTexture} />
-            <View style={[styles.mapRoad, styles.mapRoadOne]} />
-            <View style={[styles.mapRoad, styles.mapRoadTwo]} />
-            <View style={[styles.mapRoad, styles.mapRoadThree]} />
-            <View style={[styles.mapBlock, styles.mapBlockOne]} />
-            <View style={[styles.mapBlock, styles.mapBlockTwo]} />
-            <View style={[styles.mapBlock, styles.mapBlockThree]} />
-            <View style={styles.featuredImageShape}>
-              <Feather name="image" size={25} color="#A9B0B7" />
-            </View>
-            <Text style={styles.featuredLabel}>Gallery cover</Text>
-          </View>
-
+          <View style={styles.divider} />
           <View style={styles.sectionHeading}>
             <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>GALLERY IMAGES</Text>
             <Text style={[styles.sectionHint, { color: colors.mutedForeground }]}>4 slots</Text>
@@ -318,6 +324,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
   },
+  heroPanel: {
+    height: '56%',
+    minHeight: 390,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+  },
   backButton: {
     width: 38,
     height: 38,
@@ -328,6 +340,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
+  lightBackButton: {
+    backgroundColor: '#F1F1F3',
+    borderColor: '#E4E4E7',
+  },
   headerTitle: {
     flex: 1,
     marginLeft: 13,
@@ -335,12 +351,23 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
+  lightHeaderTitle: {
+    color: '#18181B',
+  },
   headerSpacer: {
     width: 38,
   },
-  content: {
+  heroPanelContent: {
     paddingHorizontal: 20,
     paddingTop: 4,
+    gap: 10,
+  },
+  galleryScroll: {
+    flex: 1,
+  },
+  galleryContent: {
+    paddingHorizontal: 20,
+    paddingTop: 0,
     gap: 12,
   },
   heroBox: {
@@ -349,6 +376,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 15,
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E4E4E7',
     shadowColor: '#000000',
     shadowOpacity: 0.16,
     shadowRadius: 12,
@@ -404,6 +433,19 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginLeft: 2,
     marginTop: 4,
+  },
+  heroSectionLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginLeft: 2,
+    marginTop: 2,
+  },
+  divider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#343638',
   },
   sectionHeading: {
     flexDirection: 'row',
