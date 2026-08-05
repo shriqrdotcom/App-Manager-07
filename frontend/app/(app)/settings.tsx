@@ -14,6 +14,8 @@ import { storage } from '@/src/utils/storage';
 
 const TAB_INDEX = 4;
 const CONTACT_EMAIL_STORAGE_KEY = 'restaurant_contact_email_v1';
+const CONTACT_PHONE_STORAGE_KEY = 'restaurant_contact_phone_v1';
+const DEFAULT_CONTACT_PHONE = '+91 90000 12345';
 
 type SettingRow = {
   key: string;
@@ -301,17 +303,34 @@ export default function Settings() {
     opacity: emailSheetProgress.value,
     transform: [{ translateY: (1 - emailSheetProgress.value) * 420 }],
   }));
+  const [contactPhone, setContactPhone] = useState(DEFAULT_CONTACT_PHONE);
+  const [phoneDraft, setPhoneDraft] = useState(DEFAULT_CONTACT_PHONE);
+  const [phoneSheetVisible, setPhoneSheetVisible] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const phoneSheetProgress = useSharedValue(0);
+  const phoneSheetAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: phoneSheetProgress.value,
+    transform: [{ translateY: (1 - phoneSheetProgress.value) * 420 }],
+  }));
 
   useEffect(() => {
     const fallbackEmail = user?.email ?? 'demo@exzibo.com';
     setContactEmail(fallbackEmail);
     setEmailDraft(fallbackEmail);
+    setContactPhone(DEFAULT_CONTACT_PHONE);
+    setPhoneDraft(DEFAULT_CONTACT_PHONE);
 
     let active = true;
     void storage.getItem(CONTACT_EMAIL_STORAGE_KEY, fallbackEmail).then((saved) => {
       if (active && typeof saved === 'string' && saved.trim()) {
         setContactEmail(saved);
         setEmailDraft(saved);
+      }
+    });
+    void storage.getItem(CONTACT_PHONE_STORAGE_KEY, DEFAULT_CONTACT_PHONE).then((saved) => {
+      if (active && typeof saved === 'string' && saved.trim()) {
+        setContactPhone(saved);
+        setPhoneDraft(saved);
       }
     });
 
@@ -365,6 +384,39 @@ export default function Settings() {
     setTimeout(() => setToast(null), 1800);
   };
 
+  const openMobileNumber = () => {
+    setPhoneDraft(contactPhone);
+    setPhoneError(null);
+    setPhoneSheetVisible(true);
+    phoneSheetProgress.value = 0;
+    phoneSheetProgress.value = withTiming(1, { duration: 280 });
+  };
+
+  const closeMobileNumber = useCallback(() => {
+    phoneSheetProgress.value = withTiming(0, { duration: 220 }, (finished) => {
+      if (finished) runOnJS(setPhoneSheetVisible)(false);
+    });
+  }, [phoneSheetProgress]);
+
+  const isValidPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 7 && /^[+\d\s().-]+$/.test(value.trim());
+  };
+
+  const saveMobileNumber = async () => {
+    const nextPhone = phoneDraft.trim();
+    if (!isValidPhone(nextPhone)) {
+      setPhoneError('Enter a valid contact number with at least 7 digits.');
+      return;
+    }
+
+    setContactPhone(nextPhone);
+    await storage.setItem(CONTACT_PHONE_STORAGE_KEY, nextPhone);
+    closeMobileNumber();
+    setToast('Mobile number updated');
+    setTimeout(() => setToast(null), 1800);
+  };
+
   const accountRows: SettingRow[] = [
     { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => router.push('/(app)/notification-settings') },
     {
@@ -381,7 +433,7 @@ export default function Settings() {
   const restRows: SettingRow[] = [
     { key: 'hours',    icon: 'clock',    color: '#22C55E', label: 'Timing',          value: '11am · 11pm', onPress: () => router.push('/(app)/timing-settings') },
     { key: 'email',    icon: 'mail',     color: '#3B82F6', label: 'Contact Email',    value: contactEmail, onPress: openContactEmail },
-    { key: 'phone',    icon: 'phone',    color: '#22C55E', label: 'Mobile Number',    value: '+91 90000 12345', onPress: () => openRow('Mobile Number') },
+    { key: 'phone',    icon: 'phone',    color: '#22C55E', label: 'Mobile Number',    value: contactPhone, onPress: openMobileNumber },
     { key: 'location', icon: 'map-pin',  color: '#8B5CF6', label: 'Restaurant Location', value: 'Bandra West',    onPress: () => openRow('Restaurant Location') },
   ];
 
@@ -621,6 +673,116 @@ export default function Settings() {
               >
                 <Feather name="check" size={16} color="#000000" />
                 <Text style={styles.emailSaveText}>Save Email</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Mobile number editor */}
+      <Modal
+        visible={phoneSheetVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeMobileNumber}
+      >
+        <View style={styles.emailModalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeMobileNumber}
+            accessibilityLabel="Close mobile number editor"
+          />
+          <Animated.View
+            style={[styles.emailSheet, { paddingBottom: insets.bottom + 20 }, phoneSheetAnimatedStyle]}
+            testID="mobile-number-sheet"
+          >
+            <TouchableOpacity
+              style={styles.emailCloseButton}
+              onPress={closeMobileNumber}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Close mobile number editor"
+              testID="mobile-number-close"
+            >
+              <Feather name="x" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.emailSheetHandle} />
+
+            <View style={styles.emailSheetHeader}>
+              <View style={styles.emailSheetIcon}>
+                <Feather name="phone" size={22} color="#000000" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emailSheetEyebrow}>RESTAURANT PROFILE</Text>
+                <Text style={styles.emailSheetTitle}>Mobile number</Text>
+                <Text style={styles.emailSheetSubtitle}>
+                  Keep your restaurant&apos;s phone line ready for guest calls.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CURRENT NUMBER</Text>
+            <View style={styles.currentEmailCard}>
+              <View style={styles.currentEmailIcon}>
+                <Feather name="check" size={16} color="#FFFFFF" />
+              </View>
+              <Text style={styles.currentEmailText} numberOfLines={1}>{contactPhone}</Text>
+              <View style={styles.activePill}>
+                <Text style={styles.activePillText}>ACTIVE</Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CHANGE NUMBER</Text>
+            <View style={[styles.emailInputWrap, phoneError && styles.emailInputWrapInvalid]}>
+              <Feather name="phone" size={17} color="#8C8C8C" />
+              <TextInput
+                value={phoneDraft}
+                onChangeText={(value) => {
+                  setPhoneDraft(value);
+                  if (phoneError) setPhoneError(null);
+                }}
+                placeholder="+91 90000 12345"
+                placeholderTextColor="#666666"
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor="#FFFFFF"
+                style={styles.emailInput}
+                testID="mobile-number-input"
+                accessibilityLabel="New restaurant mobile number"
+              />
+              {phoneDraft.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setPhoneDraft('');
+                    setPhoneError(null);
+                  }}
+                  style={styles.emailInputClear}
+                  accessibilityLabel="Clear mobile number"
+                  hitSlop={8}
+                >
+                  <Feather name="x" size={13} color="#FFFFFF" />
+                </TouchableOpacity>
+              )}
+            </View>
+            {phoneError ? (
+              <Text style={styles.emailError}>{phoneError}</Text>
+            ) : (
+              <Text style={styles.emailHint}>This is where guests can reach your restaurant directly.</Text>
+            )}
+
+            <View style={styles.emailSheetActions}>
+              <TouchableOpacity
+                style={[
+                  styles.emailSaveButton,
+                  !isValidPhone(phoneDraft) && styles.emailSaveButtonDisabled,
+                ]}
+                onPress={saveMobileNumber}
+                activeOpacity={0.8}
+                testID="mobile-number-save"
+              >
+                <Feather name="check" size={16} color="#000000" />
+                <Text style={styles.emailSaveText}>Save Number</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
