@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
@@ -79,7 +80,37 @@ function GalleryRow({
   );
 }
 
-function GallerySaveButton({
+function LiquidGlassLayers() {
+  return (
+    <>
+      <BlurView
+        intensity={36}
+        tint="dark"
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.045)', 'rgba(255,255,255,0.12)']}
+        locations={[0, 0.5, 1]}
+        start={{ x: 0.08, y: 0 }}
+        end={{ x: 0.92, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <LinearGradient
+        colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0)', 'rgba(255,255,255,0.065)']}
+        locations={[0, 0.42, 1]}
+        start={{ x: 0.08, y: 0 }}
+        end={{ x: 0.82, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <View style={styles.glassNoise} pointerEvents="none" />
+    </>
+  );
+}
+
+function GalleryActionButtons({
   onPress,
   saved,
   saving,
@@ -89,8 +120,13 @@ function GallerySaveButton({
   saving: boolean;
 }) {
   const pressedProgress = useSharedValue(0);
+  const plusPressedProgress = useSharedValue(0);
+  const saveHoverProgress = useSharedValue(0);
+  const plusHoverProgress = useSharedValue(0);
   const savedProgress = useSharedValue(saved ? 1 : 0);
   const reduceMotion = useReducedMotion();
+  const [saveFocused, setSaveFocused] = useState(false);
+  const [plusFocused, setPlusFocused] = useState(false);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -107,50 +143,141 @@ function GallerySaveButton({
       : withTiming(0, { duration: 160 });
   }, [reduceMotion, saved, savedProgress]);
 
-  const buttonStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: 1 - pressedProgress.value * 0.025 },
-      { scale: 1 + savedProgress.value * 0.018 },
-    ],
+  const saveButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 - pressedProgress.value * 0.03 }],
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: savedProgress.value * 0.32,
-    transform: [{ scale: 1 + savedProgress.value * 0.1 }],
+  const plusButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 - plusPressedProgress.value * 0.03 }],
+  }));
+
+  const saveHoverStyle = useAnimatedStyle(() => ({
+    opacity: saveHoverProgress.value * 0.16,
+  }));
+
+  const plusHoverStyle = useAnimatedStyle(() => ({
+    opacity: plusHoverProgress.value * 0.16,
+  }));
+
+  const saveReflectionStyle = useAnimatedStyle(() => ({
+    opacity: 0.12 + saveHoverProgress.value * 0.16,
+    transform: [{ translateX: saveHoverProgress.value * 12 }],
+  }));
+
+  const plusReflectionStyle = useAnimatedStyle(() => ({
+    opacity: 0.12 + plusHoverProgress.value * 0.16,
+    transform: [{ translateX: plusHoverProgress.value * 8 }],
+  }));
+
+  const savedGlowStyle = useAnimatedStyle(() => ({
+    opacity: savedProgress.value * 0.3,
+    transform: [{ scale: 1 + savedProgress.value * 0.08 }],
   }));
 
   return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={() => {
-        pressedProgress.value = withSpring(1, { damping: 18, stiffness: 300 });
-      }}
-      onPressOut={() => {
-        pressedProgress.value = withSpring(0, { damping: 18, stiffness: 300 });
-      }}
-      disabled={saving}
-      accessibilityRole="button"
-      accessibilityLabel={saved ? 'Gallery applied' : 'Save and apply gallery'}
-      accessibilityState={{ busy: saving, disabled: saving }}
-      testID="gallery-save-apply"
-    >
-      <Animated.View style={[styles.saveGlow, glowStyle]} pointerEvents="none" />
-      <Animated.View style={[styles.saveButton, buttonStyle]}>
-        <LinearGradient
-          colors={['rgba(255,255,255,0.16)', 'rgba(255,255,255,0.045)', 'rgba(255,255,255,0.11)']}
-          locations={[0, 0.52, 1]}
-          start={{ x: 0.08, y: 0 }}
-          end={{ x: 0.92, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <Text style={styles.saveButtonText}>
-          {saved ? 'Applied' : saving ? 'Applying…' : 'Save & Apply'}
-        </Text>
-        <View style={styles.saveButtonIcon}>
-          <Feather name={saved ? 'check' : 'plus'} size={21} color="#FFFFFF" />
-        </View>
-      </Animated.View>
-    </Pressable>
+    <View style={styles.actionGroup}>
+      <View style={styles.saveActionWrap}>
+        <Animated.View style={[styles.actionGlow, savedGlowStyle]} pointerEvents="none" />
+        <Pressable
+          onPress={onPress}
+          onPressIn={() => {
+            pressedProgress.value = reduceMotion
+              ? withTiming(1, { duration: 80 })
+              : withSpring(1, { damping: 18, stiffness: 300 });
+          }}
+          onPressOut={() => {
+            pressedProgress.value = reduceMotion
+              ? withTiming(0, { duration: 80 })
+              : withSpring(0, { damping: 18, stiffness: 300 });
+          }}
+          onHoverIn={() => {
+            saveHoverProgress.value = withTiming(1, { duration: 220 });
+          }}
+          onHoverOut={() => {
+            saveHoverProgress.value = withTiming(0, { duration: 220 });
+          }}
+          onFocus={() => setSaveFocused(true)}
+          onBlur={() => setSaveFocused(false)}
+          disabled={saving}
+          accessibilityRole="button"
+          accessibilityLabel={saved ? 'Gallery applied' : 'Save and apply gallery'}
+          accessibilityState={{ busy: saving, disabled: saving }}
+          testID="gallery-save-apply"
+        >
+          <Animated.View
+            style={[
+              styles.glassButton,
+              styles.saveButton,
+              saveButtonStyle,
+              saveFocused && styles.glassButtonFocused,
+              saving && styles.glassButtonDisabled,
+            ]}
+          >
+            <LiquidGlassLayers />
+            <Animated.View style={[styles.hoverWash, saveHoverStyle]} pointerEvents="none" />
+            <Animated.View style={[styles.glassReflection, saveReflectionStyle]} pointerEvents="none">
+              <LinearGradient
+                colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.13)', 'rgba(255,255,255,0)']}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
+            <Text style={styles.saveButtonText}>
+              {saved ? 'Applied' : saving ? 'Applying…' : 'Save & Apply'}
+            </Text>
+          </Animated.View>
+        </Pressable>
+      </View>
+
+      <Pressable
+        onPress={() => undefined}
+        onPressIn={() => {
+          plusPressedProgress.value = reduceMotion
+            ? withTiming(1, { duration: 80 })
+            : withSpring(1, { damping: 18, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          plusPressedProgress.value = reduceMotion
+            ? withTiming(0, { duration: 80 })
+            : withSpring(0, { damping: 18, stiffness: 300 });
+        }}
+        onHoverIn={() => {
+          plusHoverProgress.value = withTiming(1, { duration: 220 });
+        }}
+        onHoverOut={() => {
+          plusHoverProgress.value = withTiming(0, { duration: 220 });
+        }}
+        onFocus={() => setPlusFocused(true)}
+        onBlur={() => setPlusFocused(false)}
+        accessibilityRole="button"
+        accessibilityLabel="Add gallery image"
+        testID="gallery-add-image"
+      >
+        <Animated.View
+          style={[
+            styles.glassButton,
+            styles.plusButton,
+            plusButtonStyle,
+            plusFocused && styles.glassButtonFocused,
+          ]}
+        >
+          <LiquidGlassLayers />
+          <Animated.View style={[styles.hoverWash, plusHoverStyle]} pointerEvents="none" />
+          <Animated.View style={[styles.glassReflection, plusReflectionStyle]} pointerEvents="none">
+            <LinearGradient
+              colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.13)', 'rgba(255,255,255,0)']}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+          </Animated.View>
+          <Feather name="plus" size={22} color="#FFFFFF" />
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -287,7 +414,7 @@ export default function Gallery() {
             },
           ]}
         >
-          <GallerySaveButton onPress={saveGallery} saved={saved} saving={saving} />
+          <GalleryActionButtons onPress={saveGallery} saved={saved} saving={saving} />
         </View>
       </Animated.View>
     </View>
@@ -589,58 +716,92 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    paddingHorizontal: 20,
+    alignItems: 'center',
+    paddingHorizontal: 24,
     paddingTop: 12,
     borderTopWidth: 1,
   },
-  saveGlow: {
-    position: 'absolute',
-    right: 8,
-    bottom: 8,
-    left: 8,
-    height: 58,
-    borderRadius: 31,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FFFFFF',
-    shadowOpacity: 0.8,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 8,
-  },
-  saveButton: {
-    minHeight: 58,
-    overflow: 'hidden',
-    position: 'relative',
+  actionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 22,
-    borderRadius: 30,
-    backgroundColor: '#242629',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    shadowColor: '#000000',
-    shadowOpacity: 0.32,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 7 },
+    gap: 10,
+  },
+  saveActionWrap: {
+    position: 'relative',
+  },
+  actionGlow: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    bottom: -3,
+    left: -3,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.65,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
     elevation: 5,
+  },
+  glassButton: {
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    backgroundColor: 'rgba(40,42,45,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
+  },
+  saveButton: {
+    width: 164,
+    height: 48,
+    paddingHorizontal: 18,
+  },
+  plusButton: {
+    width: 46,
+    height: 46,
+  },
+  glassButtonFocused: {
+    borderColor: 'rgba(255,255,255,0.72)',
+    shadowColor: '#FFFFFF',
+    shadowOpacity: 0.38,
+    shadowRadius: 11,
+    elevation: 6,
+  },
+  glassButtonDisabled: {
+    opacity: 0.55,
+  },
+  glassNoise: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.035)',
+    opacity: 0.65,
+  },
+  hoverWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.24)',
+  },
+  glassReflection: {
+    position: 'absolute',
+    top: -16,
+    left: -38,
+    width: 36,
+    height: 82,
+    borderRadius: 24,
+    overflow: 'hidden',
+    transform: [{ rotate: '18deg' }],
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.25,
-  },
-  saveButtonIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
 });
 
