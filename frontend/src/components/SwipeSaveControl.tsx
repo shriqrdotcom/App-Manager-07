@@ -293,7 +293,15 @@ export default function SwipeSaveControl({
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
-      <Animated.View style={[styles.reflection, reflectionStyle]} pointerEvents="none" />
+      <Animated.View style={[styles.reflection, reflectionStyle]} pointerEvents="none">
+        <LinearGradient
+          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.11)', 'rgba(255,255,255,0)']}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
       <Animated.View style={[styles.glow, glowStyle]} pointerEvents="none" />
 
       <Animated.Text style={[styles.defaultText, defaultTextStyle]} pointerEvents="none">
@@ -352,10 +360,10 @@ const createStyles = (colors: ThemePalette, resolvedTheme: ResolvedTheme) => Sty
     position: 'absolute',
     top: -18,
     left: -48,
-    width: 52,
+    width: 42,
     height: TRACK_HEIGHT + 36,
     borderRadius: 28,
-    backgroundColor: 'rgba(255,255,255,0.32)',
+    overflow: 'hidden',
     transform: [{ rotate: '18deg' }],
   },
   glow: {
