@@ -15,6 +15,7 @@ import { storage } from '@/src/utils/storage';
 const TAB_INDEX = 4;
 const CONTACT_EMAIL_STORAGE_KEY = 'restaurant_contact_email_v1';
 const CONTACT_PHONE_STORAGE_KEY = 'restaurant_contact_phone_v1';
+const GOOGLE_REVIEW_STORAGE_KEY = 'restaurant_google_review_link_v1';
 const DEFAULT_CONTACT_PHONE = '+91 90000 12345';
 
 type SettingRow = {
@@ -279,6 +280,75 @@ function makeStyles(colors: ThemePalette) {
       fontSize: 14,
       fontWeight: '800',
     },
+
+    googleReviewCurrentCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: colors.muted,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 22,
+      gap: 11,
+    },
+    googleReviewCurrentIcon: {
+      width: 34,
+      height: 34,
+      borderRadius: 11,
+      backgroundColor: '#3B82F6',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    googleReviewCurrentCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    googleReviewCurrentText: {
+      color: colors.foreground,
+      fontSize: 14,
+      lineHeight: 19,
+      fontWeight: '700',
+    },
+    googleReviewCurrentHint: {
+      color: colors.mutedForeground,
+      fontSize: 11,
+      lineHeight: 16,
+      marginTop: 3,
+    },
+    googleReviewInfoCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      padding: 16,
+      marginTop: 2,
+      borderRadius: 16,
+      backgroundColor: colors.muted,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    googleReviewInfoIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.accent,
+    },
+    googleReviewInfoCopy: {
+      flex: 1,
+    },
+    googleReviewInfoTitle: {
+      color: colors.foreground,
+      fontSize: 14,
+      fontWeight: '800',
+      marginBottom: 5,
+    },
+    googleReviewInfoDescription: {
+      color: colors.mutedForeground,
+      fontSize: 11.5,
+      lineHeight: 17,
+    },
   });
 }
 
@@ -312,6 +382,15 @@ export default function Settings() {
     opacity: phoneSheetProgress.value,
     transform: [{ translateY: (1 - phoneSheetProgress.value) * 420 }],
   }));
+  const [googleReviewUrl, setGoogleReviewUrl] = useState('');
+  const [googleReviewDraft, setGoogleReviewDraft] = useState('');
+  const [googleReviewError, setGoogleReviewError] = useState<string | null>(null);
+  const [googleReviewSheetVisible, setGoogleReviewSheetVisible] = useState(false);
+  const googleReviewSheetProgress = useSharedValue(0);
+  const googleReviewSheetAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: googleReviewSheetProgress.value,
+    transform: [{ translateY: (1 - googleReviewSheetProgress.value) * 520 }],
+  }));
 
   useEffect(() => {
     const fallbackEmail = user?.email ?? 'demo@exzibo.com';
@@ -331,6 +410,12 @@ export default function Settings() {
       if (active && typeof saved === 'string' && saved.trim()) {
         setContactPhone(saved);
         setPhoneDraft(saved);
+      }
+    });
+    void storage.getItem(GOOGLE_REVIEW_STORAGE_KEY, '').then((saved) => {
+      if (active && typeof saved === 'string') {
+        setGoogleReviewUrl(saved);
+        setGoogleReviewDraft(saved);
       }
     });
 
@@ -417,6 +502,45 @@ export default function Settings() {
     setTimeout(() => setToast(null), 1800);
   };
 
+  const openGoogleReviewLink = () => {
+    setGoogleReviewDraft(googleReviewUrl);
+    setGoogleReviewError(null);
+    setGoogleReviewSheetVisible(true);
+    googleReviewSheetProgress.value = 0;
+    googleReviewSheetProgress.value = withTiming(1, { duration: 280 });
+  };
+
+  const closeGoogleReviewLink = useCallback(() => {
+    googleReviewSheetProgress.value = withTiming(0, { duration: 220 }, (finished) => {
+      if (finished) runOnJS(setGoogleReviewSheetVisible)(false);
+    });
+  }, [googleReviewSheetProgress]);
+
+  const isValidGoogleReviewUrl = (value: string) => {
+    try {
+      const url = new URL(value.trim());
+      return url.protocol === 'https:' && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
+  };
+
+  const saveGoogleReviewLink = async () => {
+    const nextUrl = googleReviewDraft.trim();
+    if (!isValidGoogleReviewUrl(nextUrl)) {
+      setGoogleReviewError('Enter a secure Google review URL starting with https://.');
+      return;
+    }
+
+    await storage.setItem(GOOGLE_REVIEW_STORAGE_KEY, nextUrl);
+    setGoogleReviewUrl(nextUrl);
+    setGoogleReviewDraft(nextUrl);
+    setGoogleReviewError(null);
+    closeGoogleReviewLink();
+    setToast('Google review link updated');
+    setTimeout(() => setToast(null), 1800);
+  };
+
   const accountRows: SettingRow[] = [
     { key: 'notifications', icon: 'bell',     color: '#EF4444', label: 'Notifications', onPress: () => router.push('/(app)/notification-settings') },
     {
@@ -442,7 +566,7 @@ export default function Settings() {
   ];
 
   const publicRows: SettingRow[] = [
-    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: () => router.push('/(app)/google-review-link') },
+    { key: 'google-review', icon: 'star',    color: '#3B82F6', label: 'Google Review Link', onPress: openGoogleReviewLink },
     { key: 'hero-gallery',  icon: 'image',   color: '#F59E0B', label: 'Hero Image Gallery', onPress: () => openRow('Hero Image Gallery') },
     { key: 'gallery-text',  icon: 'type',    color: '#06B6D4', label: 'Gallery Text',       onPress: () => openRow('Gallery Text') },
     { key: 'about',         icon: 'info',    color: '#EC4899', label: 'Philosophy / About Us', onPress: () => openRow('About') },
@@ -783,6 +907,139 @@ export default function Settings() {
               >
                 <Feather name="check" size={16} color={colors.primaryForeground} />
                 <Text style={styles.emailSaveText}>Save Number</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Google review link editor */}
+      <Modal
+        visible={googleReviewSheetVisible}
+        transparent
+        animationType="none"
+        onRequestClose={closeGoogleReviewLink}
+      >
+        <View style={styles.emailModalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeGoogleReviewLink}
+            accessibilityLabel="Close Google review link editor"
+          />
+          <Animated.View
+            style={[styles.emailSheet, { paddingBottom: insets.bottom + 20 }, googleReviewSheetAnimatedStyle]}
+            testID="google-review-link-sheet"
+          >
+            <TouchableOpacity
+              style={styles.emailCloseButton}
+              onPress={closeGoogleReviewLink}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Close Google review link editor"
+              testID="google-review-link-close"
+            >
+              <Feather name="x" size={24} color={colors.foreground} />
+            </TouchableOpacity>
+            <View style={styles.emailSheetHandle} />
+
+            <View style={styles.emailSheetHeader}>
+              <View style={styles.emailSheetIcon}>
+                <Feather name="star" size={22} color={colors.primaryForeground} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.emailSheetEyebrow}>RESTAURANT PROFILE</Text>
+                <Text style={styles.emailSheetTitle}>Google review link</Text>
+                <Text style={styles.emailSheetSubtitle}>
+                  Give guests a direct path to leave a review for your restaurant.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CURRENT URL</Text>
+            <View style={styles.googleReviewCurrentCard} testID="google-review-current">
+              <View style={styles.googleReviewCurrentIcon}>
+                <Feather name="star" size={16} color="#FFFFFF" />
+              </View>
+              <View style={styles.googleReviewCurrentCopy}>
+                <Text style={styles.googleReviewCurrentText} numberOfLines={2}>
+                  {googleReviewUrl || 'No review link added yet'}
+                </Text>
+                <Text style={styles.googleReviewCurrentHint}>
+                  {googleReviewUrl
+                    ? 'This link is ready to share with guests.'
+                    : 'Add a URL below to activate this setting.'}
+                </Text>
+              </View>
+              <View style={styles.activePill}>
+                <Text style={styles.activePillText}>{googleReviewUrl ? 'ACTIVE' : 'EMPTY'}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.emailSectionLabel}>CHANGE URL</Text>
+            <View style={[styles.emailInputWrap, googleReviewError && styles.emailInputWrapInvalid]}>
+              <Feather name="link" size={17} color={colors.mutedForeground} />
+              <TextInput
+                value={googleReviewDraft}
+                onChangeText={(value) => {
+                  setGoogleReviewDraft(value);
+                  if (googleReviewError) setGoogleReviewError(null);
+                }}
+                placeholder="https://g.page/r/your-restaurant/review"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="url"
+                autoCapitalize="none"
+                autoCorrect={false}
+                selectionColor={colors.foreground}
+                style={styles.emailInput}
+                testID="google-review-url-input"
+                accessibilityLabel="Google review URL"
+              />
+              {googleReviewDraft.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setGoogleReviewDraft('');
+                    setGoogleReviewError(null);
+                  }}
+                  style={styles.emailInputClear}
+                  accessibilityLabel="Clear Google review URL"
+                  hitSlop={8}
+                >
+                  <Feather name="x" size={13} color={colors.foreground} />
+                </TouchableOpacity>
+              )}
+            </View>
+            {googleReviewError ? (
+              <Text style={styles.emailError} testID="google-review-url-error">{googleReviewError}</Text>
+            ) : (
+              <Text style={styles.emailHint}>
+                Paste the Google review link from your Business Profile. It should begin with https://.
+              </Text>
+            )}
+
+            <View style={styles.googleReviewInfoCard}>
+              <View style={styles.googleReviewInfoIcon}>
+                <Feather name="info" size={18} color={colors.foreground} />
+              </View>
+              <View style={styles.googleReviewInfoCopy}>
+                <Text style={styles.googleReviewInfoTitle}>Where this link will be used</Text>
+                <Text style={styles.googleReviewInfoDescription}>
+                  Once saved, this URL will power the Google Review button shown to your guests.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.emailSheetActions}>
+              <TouchableOpacity
+                style={[
+                  styles.emailSaveButton,
+                  !isValidGoogleReviewUrl(googleReviewDraft) && styles.emailSaveButtonDisabled,
+                ]}
+                onPress={saveGoogleReviewLink}
+                activeOpacity={0.8}
+                testID="google-review-url-save"
+              >
+                <Feather name="check" size={16} color={colors.primaryForeground} />
+                <Text style={styles.emailSaveText}>Save Review Link</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
