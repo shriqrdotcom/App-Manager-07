@@ -479,76 +479,42 @@ function FoodImageSection({ colors }: { colors: ThemePalette }) {
         Food image
       </Text>
 
-      <Card
+      <View
         style={{
-          padding: 12,
-          borderRadius: 18,
-          backgroundColor: '#1D1D1D',
+          width: '100%',
+          aspectRatio: 1.6,
+          minHeight: 150,
+          maxHeight: 300,
+          borderRadius: 13,
+          borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.10)',
+          borderStyle: 'dashed',
+          backgroundColor: '#252525',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
         }}
-        testID="food-image-section"
+        testID="food-image-preview"
       >
         <View
           style={{
-            width: '100%',
-            aspectRatio: 1.6,
-            minHeight: 150,
-            maxHeight: 300,
-            borderRadius: 13,
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.10)',
-            borderStyle: 'dashed',
-            backgroundColor: '#252525',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
-          testID="food-image-preview"
-        >
-          <View
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(255,255,255,0.08)',
-            }}
-          >
-            <Feather name="image" size={21} color={colors.mutedForeground} />
-          </View>
-          <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '600' }}>
-            Add food image
-          </Text>
-          <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>
-            JPG or PNG · up to 10 MB
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={{
+            width: 42,
             height: 42,
-            marginTop: 12,
-            borderRadius: 11,
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.14)',
-            backgroundColor: 'rgba(255,255,255,0.06)',
+            borderRadius: 12,
             alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 7,
+            backgroundColor: 'rgba(255,255,255,0.08)',
           }}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel="Select food image"
-          testID="food-image-select"
         >
-          <Feather name="upload" size={15} color={colors.foreground} />
-          <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>
-            Select image
-          </Text>
-        </TouchableOpacity>
-      </Card>
+          <Feather name="image" size={21} color={colors.mutedForeground} />
+        </View>
+        <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '600' }}>
+          Add food image
+        </Text>
+        <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>
+          JPG or PNG · up to 10 MB
+        </Text>
+      </View>
     </View>
   );
 }
