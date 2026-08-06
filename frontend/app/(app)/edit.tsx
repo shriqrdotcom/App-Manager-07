@@ -1,7 +1,15 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View, Switch } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FlatList, Modal, Platform, Pressable, StyleSheet,
+  Text, TouchableOpacity, View, Switch, useWindowDimensions,
+} from 'react-native';
+import Animated, {
+  runOnJS, useAnimatedStyle, useSharedValue,
+  withSpring, withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card, SearchBar } from '@/src/components/ui';
@@ -132,6 +140,7 @@ export default function EditMenu() {
   const [items, setItems] = useState(INITIAL_ITEMS);
   const [combos, setCombos] = useState(INITIAL_COMBOS);
   const [toast, setToast] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 1800); };
 
@@ -170,6 +179,9 @@ export default function EditMenu() {
       return c;
     }));
   };
+
+  const handleEdit = useCallback((item: MenuItem) => { setEditingItem(item); }, []);
+  const handleCloseSheet = useCallback(() => { setEditingItem(null); }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + 64 }}>
@@ -221,7 +233,15 @@ export default function EditMenu() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          renderItem={({ item }) => <ItemCard item={item} onToggle={() => toggleItem(item.id)} colors={colors} styles={styles} />}
+          renderItem={({ item }) => (
+            <ItemCard
+              item={item}
+              onToggle={() => toggleItem(item.id)}
+              onEdit={() => handleEdit(item)}
+              colors={colors}
+              styles={styles}
+            />
+          )}
           ListEmptyComponent={<EmptyState label="No items match your filters" colors={colors} />}
         />
       ) : (
@@ -242,9 +262,248 @@ export default function EditMenu() {
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       )}
+
+      <MenuItemEditSheet item={editingItem} onClose={handleCloseSheet} />
     </View>
   );
 }
+
+// ─── iOS-style Bottom Sheet ────────────────────────────────────────────────────
+
+const SPRING_CONFIG = {
+  damping: 30,
+  stiffness: 220,
+  mass: 0.9,
+  overshootClamping: true,
+};
+
+function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: () => void }) {
+  const { height: screenH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const sheetH = screenH * 0.78;
+
+  const translateY = useSharedValue(sheetH);
+  const overlayOpacity = useSharedValue(0);
+  const cancelScale = useSharedValue(1);
+
+  const isOpen = item !== null;
+
+  // Open / close animations
+  useEffect(() => {
+    if (isOpen) {
+      overlayOpacity.value = withTiming(1, { duration: 220 });
+      translateY.value = withSpring(0, SPRING_CONFIG);
+    }
+  }, [isOpen]);
+
+  const dismiss = useCallback(() => {
+    overlayOpacity.value = withTiming(0, { duration: 200 });
+    translateY.value = withSpring(sheetH, SPRING_CONFIG, () => {
+      runOnJS(onClose)();
+    });
+  }, [sheetH, onClose]);
+
+  // ESC key support (web)
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape' && isOpen) dismiss(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, dismiss]);
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
+
+  const cancelBtnStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cancelScale.value }],
+  }));
+
+  if (!isOpen) return null;
+
+  return (
+    <Modal
+      transparent
+      visible
+      statusBarTranslucent
+      animationType="none"
+      onRequestClose={dismiss}
+      accessible={false}
+    >
+      {/* Dimmed overlay with blur */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: '#000' },
+          overlayStyle,
+        ]}
+        pointerEvents="none"
+      />
+
+      {/* Backdrop blur layer (web uses CSS, native uses BlurView) */}
+      {Platform.OS === 'web' ? (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              // @ts-ignore — web-only style
+              backdropFilter: 'blur(7px)',
+              WebkitBackdropFilter: 'blur(7px)',
+            },
+            overlayStyle,
+          ]}
+          pointerEvents="none"
+        />
+      ) : null}
+
+      {/* Tap-outside-to-dismiss */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={dismiss}
+        accessible={false}
+      />
+
+      {/* Sheet */}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: sheetH,
+            backgroundColor: '#171717',
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            overflow: 'hidden',
+          },
+          sheetStyle,
+        ]}
+        // Prevent taps from falling through to backdrop
+        onStartShouldSetResponder={() => true}
+      >
+        {/* Header row */}
+        <View
+          style={{
+            height: 72,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 24,
+          }}
+        >
+          {/* Cancel — Liquid Glass */}
+          <Animated.View style={cancelBtnStyle}>
+            <Pressable
+              aria-label="Close editor"
+              accessibilityRole="button"
+              accessibilityLabel="Close editor"
+              onPressIn={() => { cancelScale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
+              onPressOut={() => { cancelScale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
+              onPress={dismiss}
+              style={{ width: 56, height: 56, borderRadius: 28, overflow: 'hidden' }}
+            >
+              <LiquidGlassButton />
+            </Pressable>
+          </Animated.View>
+
+          {/* Confirm — iOS Blue */}
+          <Pressable
+            aria-label="Confirm"
+            accessibilityRole="button"
+            accessibilityLabel="Confirm"
+            onPress={dismiss}
+            style={({ pressed }) => [
+              {
+                width: 56, height: 56, borderRadius: 28,
+                backgroundColor: pressed ? '#0070E0' : '#0A84FF',
+                alignItems: 'center', justifyContent: 'center',
+                shadowColor: '#0A84FF',
+                shadowOpacity: 0.5,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 4 },
+              },
+            ]}
+          >
+            <Feather name="check" size={22} color="#fff" />
+          </Pressable>
+        </View>
+
+        {/* Drag handle */}
+        <View style={{ alignItems: 'center', marginTop: -8, marginBottom: 8 }}>
+          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.15)' }} />
+        </View>
+
+        {/* Blank content area — form goes here later */}
+        <View style={{ flex: 1, paddingBottom: insets.bottom }} />
+      </Animated.View>
+    </Modal>
+  );
+}
+
+function LiquidGlassButton() {
+  // Frosted glass cancel button
+  return (
+    <View style={{ width: 56, height: 56, borderRadius: 28, overflow: 'hidden' }}>
+      {Platform.OS !== 'web' ? (
+        <BlurView
+          intensity={28}
+          tint="dark"
+          style={StyleSheet.absoluteFill}
+        />
+      ) : (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              // @ts-ignore — web CSS
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              backgroundColor: 'rgba(255,255,255,0.08)',
+            },
+          ]}
+        />
+      )}
+      {/* Edge highlight border */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            borderRadius: 28,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.22)',
+          },
+        ]}
+      />
+      {/* Inner top highlight */}
+      <View
+        style={{
+          position: 'absolute', top: 0, left: 4, right: 4, height: 1,
+          backgroundColor: 'rgba(255,255,255,0.35)',
+          borderBottomLeftRadius: 1,
+          borderBottomRightRadius: 1,
+        }}
+      />
+      {/* Dark fill */}
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: 'rgba(30,30,30,0.55)', borderRadius: 28 },
+        ]}
+      />
+      {/* X icon centered */}
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Feather name="x" size={20} color="rgba(255,255,255,0.90)" />
+      </View>
+    </View>
+  );
+}
+
+// ─── Supporting components ─────────────────────────────────────────────────────
 
 function EmptyState({ label, colors }: { label: string; colors: ThemePalette }) {
   return (
@@ -264,7 +523,11 @@ function QuickBtn({ icon, label, testID, styles }: { icon: keyof typeof Feather.
   );
 }
 
-function ItemCard({ item, onToggle, colors, styles }: { item: MenuItem; onToggle: () => void; colors: ThemePalette; styles: StylesType }) {
+function ItemCard({
+  item, onToggle, onEdit, colors, styles,
+}: {
+  item: MenuItem; onToggle: () => void; onEdit: () => void; colors: ThemePalette; styles: StylesType;
+}) {
   return (
     <Card style={styles.itemCard} testID={`menu-item-${item.id}`}>
       <View style={styles.imgWrap}>
@@ -298,7 +561,7 @@ function ItemCard({ item, onToggle, colors, styles }: { item: MenuItem; onToggle
           testID={`menu-toggle-${item.id}`}
         />
         <View style={{ flexDirection: 'row', gap: 4 }}>
-          <TouchableOpacity style={styles.miniBtn} testID={`menu-edit-${item.id}`}>
+          <TouchableOpacity style={styles.miniBtn} onPress={onEdit} testID={`menu-edit-${item.id}`}>
             <Feather name="edit-2" size={13} color={colors.foreground} />
           </TouchableOpacity>
         </View>
@@ -311,7 +574,6 @@ function ComboCard({ combo, onToggle, onAction, colors, styles }: { combo: Combo
   const saving = combo.oldPrice - combo.price;
   return (
     <Card style={{ marginHorizontal: 20, gap: 0, overflow: 'hidden', padding: 0 }} testID={`combo-${combo.id}`}>
-      {/* Full-width banner */}
       <View style={styles.comboBanner}>
         <Text style={{ fontSize: 56 }}>{combo.emoji}</Text>
         <View style={styles.comboBannerOverlay}>
@@ -324,7 +586,6 @@ function ComboCard({ combo, onToggle, onAction, colors, styles }: { combo: Combo
         </View>
       </View>
 
-      {/* Info */}
       <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4, gap: 6 }}>
         <Text style={styles.itemCategory} numberOfLines={2}>{combo.items.join(' · ')}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
@@ -336,7 +597,6 @@ function ComboCard({ combo, onToggle, onAction, colors, styles }: { combo: Combo
         </View>
       </View>
 
-      {/* Actions */}
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 14, paddingBottom: 14, paddingTop: 6 }}>
         <TouchableOpacity style={styles.ghostAction} testID={`combo-edit-${combo.id}`}>
           <Feather name="edit-2" size={13} color={colors.foreground} />
