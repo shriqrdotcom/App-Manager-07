@@ -15,7 +15,7 @@
     "validate:release": "node scripts/validate-release.mjs"
   },
   "dependencies": {
-    "@better-auth/core": "1.6.23",
+    "@better-auth/core": "1.6.25",
     "@better-auth/expo": "1.6.23",
     "@expo/metro-runtime": "6.1.2",
     "@expo/vector-icons": "15.1.1",
