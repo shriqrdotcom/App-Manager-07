@@ -17,3 +17,4 @@
 - [Expo ScrollView popovers](expo-scrollview-popovers.md) — Menus rendered absolutely inside a ScrollView can be clipped or painted behind later content; use layout flow plus explicit stacking.
 - [Mobile menu API boundary](mobile-menu-api-boundary.md) — The client uses the versioned `/api/mobile/v1/menu` contract with permanent restaurant UID; combos and restaurant-level gallery need a backend contract before wiring.
 - [Mobile order contract audit](mobile-order-contract-audit.md) — The production backend is not present in this workspace; order endpoints and realtime behavior must not be guessed.
+- [EAS frozen lockfile URLs](eas-frozen-lockfile-urls.md) — EAS dependency installs can fail when yarn.lock contains Replit-local tarball URLs; normalize exact package URLs to public registry equivalents.
