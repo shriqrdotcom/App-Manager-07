@@ -468,17 +468,6 @@ function FoodImageSection({ colors }: { colors: ThemePalette }) {
         paddingTop: 24,
       }}
     >
-      <Text
-        style={{
-          color: colors.foreground,
-          fontSize: 15,
-          fontWeight: '700',
-          marginBottom: 10,
-        }}
-      >
-        Food image
-      </Text>
-
       <View
         style={{
           width: '100%',
