@@ -301,9 +301,6 @@ function ItemCard({ item, onToggle, colors, styles }: { item: MenuItem; onToggle
           <TouchableOpacity style={styles.miniBtn} testID={`menu-edit-${item.id}`}>
             <Feather name="edit-2" size={13} color={colors.foreground} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.miniBtn} testID={`menu-more-${item.id}`}>
-            <Feather name="more-vertical" size={13} color={colors.foreground} />
-          </TouchableOpacity>
         </View>
       </View>
     </Card>
