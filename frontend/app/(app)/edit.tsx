@@ -10,6 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card, SearchBar } from '@/src/components/ui';
@@ -456,12 +457,25 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
 }
 
 function LiquidGlassButton() {
-  // Frosted glass cancel button
+  // Frosted glass cancel button with a restrained reflective surface.
   return (
-    <View style={{ width: 56, height: 56, borderRadius: 28, overflow: 'hidden' }}>
+    <View
+      style={{
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(74,74,80,0.46)',
+        shadowColor: '#000',
+        shadowOpacity: 0.38,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 5 },
+        elevation: 8,
+      }}
+    >
       {Platform.OS !== 'web' ? (
         <BlurView
-          intensity={28}
+          intensity={42}
           tint="dark"
           style={StyleSheet.absoluteFill}
         />
@@ -471,42 +485,50 @@ function LiquidGlassButton() {
             StyleSheet.absoluteFill,
             {
               // @ts-ignore — web CSS
-              backdropFilter: 'blur(20px)',
-              backgroundColor: 'rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(24px)',
+              backgroundColor: 'rgba(255,255,255,0.06)',
             },
           ]}
         />
       )}
-      {/* Edge highlight border */}
+      {/* Soft glass reflection, brighter at the upper-left edge */}
+      <LinearGradient
+        colors={['rgba(255,255,255,0.17)', 'rgba(255,255,255,0.035)', 'rgba(0,0,0,0.15)']}
+        start={{ x: 0.12, y: 0.05 }}
+        end={{ x: 0.88, y: 0.95 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      {/* Edge lighting and a subtle inner rim */}
       <View
         style={[
           StyleSheet.absoluteFill,
           {
             borderRadius: 28,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.22)',
+            borderColor: 'rgba(255,255,255,0.28)',
           },
         ]}
       />
       {/* Inner top highlight */}
       <View
         style={{
-          position: 'absolute', top: 0, left: 4, right: 4, height: 1,
-          backgroundColor: 'rgba(255,255,255,0.35)',
+          position: 'absolute', top: 1, left: 8, right: 8, height: 1,
+          backgroundColor: 'rgba(255,255,255,0.42)',
           borderBottomLeftRadius: 1,
           borderBottomRightRadius: 1,
         }}
       />
-      {/* Dark fill */}
+      {/* Lower glass tint keeps the control legible without flattening the blur */}
       <View
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: 'rgba(30,30,30,0.55)', borderRadius: 28 },
+          { backgroundColor: 'rgba(18,18,20,0.18)', borderRadius: 28 },
         ]}
       />
       {/* X icon centered */}
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Feather name="x" size={20} color="rgba(255,255,255,0.90)" />
+        <Feather name="x" size={21} color="rgba(255,255,255,0.96)" />
       </View>
     </View>
   );
