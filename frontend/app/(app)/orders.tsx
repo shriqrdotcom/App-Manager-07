@@ -222,7 +222,6 @@ export default function Orders() {
               right={
                 <View style={styles.headerActions}>
                   <TouchableOpacity style={styles.iconBtn} testID="orders-search"><Feather name="search" size={18} color={colors.foreground} /></TouchableOpacity>
-                  <TouchableOpacity style={styles.iconBtn} testID="orders-filter"><Feather name="sliders" size={18} color={colors.foreground} /></TouchableOpacity>
                 </View>
               }
             >
