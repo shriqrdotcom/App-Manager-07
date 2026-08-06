@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  AccessibilityInfo, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet,
+  AccessibilityInfo, ActivityIndicator, FlatList, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity, View, Switch, useWindowDimensions,
 } from 'react-native';
 import Animated, {
@@ -15,6 +15,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
 import staticColors from '@/src/constants/colors';
 import { ScreenTitle, Card, SearchBar } from '@/src/components/ui';
+import { useApp } from '@/src/providers/AppProvider';
+import { menuApi } from '@/src/api/menu';
+import type { MenuItem as ApiMenuItem } from '@/src/types/menu';
 
 type MenuItem = {
   id: string; name: string; category: string; price: number;
@@ -134,17 +137,60 @@ type StylesType = ReturnType<typeof makeStyles>;
 
 export default function EditMenu() {
   const { colors } = useTheme();
+  const { selectedRestaurant } = useApp();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const isDemo = process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true';
   const [tab, setTab] = useState<MenuTab>('items');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('all');
-  const [items, setItems] = useState(INITIAL_ITEMS);
-  const [combos, setCombos] = useState(INITIAL_COMBOS);
+  const [items, setItems] = useState<MenuItem[]>(isDemo ? INITIAL_ITEMS : []);
+  const [combos, setCombos] = useState<Combo[]>(isDemo ? INITIAL_COMBOS : []);
   const [toast, setToast] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [loading, setLoading] = useState(!isDemo);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 1800); };
+
+  const mapApiItem = useCallback((item: ApiMenuItem, categories: Map<string, string>): MenuItem => ({
+    id: item.id,
+    name: item.name,
+    category: item.categoryId ? (categories.get(item.categoryId) ?? 'Uncategorized') : 'Uncategorized',
+    price: item.price,
+    veg: item.vegetarian,
+    active: item.available && item.isPublished && !item.isArchived,
+    emoji: item.categoryId ? (categories.get(`${item.categoryId}:emoji`) ?? '🍽️') : '🍽️',
+  }), []);
+
+  const loadMenu = useCallback(async (pullToRefresh = false) => {
+    if (isDemo || !selectedRestaurant) return;
+    if (pullToRefresh) setRefreshing(true);
+    else setLoading(true);
+    setLoadError(null);
+    try {
+      const response = await menuApi.getMenu(selectedRestaurant.uid, {
+        includeArchived: true,
+        limit: 100,
+      });
+      const categories = new Map<string, string>();
+      response.categories.forEach((category) => {
+        categories.set(category.id, category.name);
+        categories.set(`${category.id}:emoji`, category.emoji);
+      });
+      setItems(response.items.map((item) => mapApiItem(item, categories)));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to load the menu. Please try again.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [isDemo, mapApiItem, selectedRestaurant]);
+
+  useEffect(() => {
+    void loadMenu();
+  }, [loadMenu]);
 
   const filteredItems = useMemo(() => items.filter((it) => {
     if (search && !it.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -160,15 +206,22 @@ export default function EditMenu() {
     return true;
   }), [combos, search, status]);
 
-  const toggleItem = (id: string) => {
-    setItems((prev) => prev.map((it) => {
-      if (it.id === id) {
-        const next = { ...it, active: !it.active };
-        showToast(`${it.name} ${next.active ? 'activated' : 'paused'}`);
-        return next;
-      }
-      return it;
-    }));
+  const toggleItem = async (id: string) => {
+    const current = items.find((item) => item.id === id);
+    if (!current) return;
+    const nextActive = !current.active;
+    setItems((prev) => prev.map((it) => it.id === id ? { ...it, active: nextActive } : it));
+    if (isDemo || !selectedRestaurant) {
+      showToast(`${current.name} ${nextActive ? 'activated' : 'paused'}`);
+      return;
+    }
+    try {
+      await menuApi.setAvailability(selectedRestaurant.uid, id, nextActive);
+      showToast(`${current.name} ${nextActive ? 'activated' : 'paused'}`);
+    } catch (error) {
+      setItems((prev) => prev.map((it) => it.id === id ? { ...it, active: current.active } : it));
+      showToast(error instanceof Error ? error.message : 'Unable to update availability.');
+    }
   };
 
   const toggleCombo = (id: string) => {
@@ -182,6 +235,43 @@ export default function EditMenu() {
     }));
   };
 
+  const saveItem = useCallback(async (
+    current: MenuItem,
+    patch: { name: string; description: string; price: number; veg: boolean; imageShape: string },
+  ) => {
+    if (isDemo || !selectedRestaurant) {
+      setItems((prev) => prev.map((item) => item.id === current.id ? {
+        ...item,
+        name: patch.name,
+        price: patch.price,
+        veg: patch.veg,
+      } : item));
+      showToast(`${patch.name} saved`);
+      return;
+    }
+
+    try {
+      const response = await menuApi.updateItem(selectedRestaurant.uid, current.id, {
+        name: patch.name,
+        description: patch.description || null,
+        price: patch.price,
+        veg: patch.veg,
+        imageShape: patch.imageShape,
+      });
+      setItems((prev) => prev.map((item) => item.id === current.id ? {
+        ...item,
+        name: response.item.name,
+        price: response.item.price,
+        veg: response.item.vegetarian,
+        active: response.item.available && response.item.isPublished && !response.item.isArchived,
+      } : item));
+      showToast(`${response.item.name} saved`);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Unable to save menu item.');
+      throw error;
+    }
+  }, [isDemo, selectedRestaurant]);
+
   const handleEdit = useCallback((item: MenuItem) => { setEditingItem(item); }, []);
   const handleCloseSheet = useCallback(() => { setEditingItem(null); }, []);
 
@@ -189,6 +279,14 @@ export default function EditMenu() {
     <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top + 64 }}>
       <ScreenTitle testID="edit-title">Edit Menu</ScreenTitle>
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search dishes or combos" testID="edit-search" />
+      {loadError && (
+        <View style={{ marginHorizontal: 20, marginBottom: 12, padding: 12, borderRadius: 10, backgroundColor: '#7F1D1D', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ color: '#FCA5A5', flex: 1, fontSize: 12 }}>{loadError}</Text>
+          <TouchableOpacity onPress={() => void loadMenu()} accessibilityRole="button" testID="edit-menu-retry">
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Quick actions */}
       <View style={styles.quickRow}>
@@ -233,18 +331,25 @@ export default function EditMenu() {
           testID="edit-items-list"
           data={filteredItems}
           keyExtractor={(i) => i.id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => void loadMenu(true)} tintColor={colors.primary} />
+          }
           contentContainerStyle={{ paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           renderItem={({ item }) => (
             <ItemCard
               item={item}
-              onToggle={() => toggleItem(item.id)}
+              onToggle={() => void toggleItem(item.id)}
               onEdit={() => handleEdit(item)}
               colors={colors}
               styles={styles}
             />
           )}
-          ListEmptyComponent={<EmptyState label="No items match your filters" colors={colors} />}
+          ListEmptyComponent={
+            loading
+              ? <View style={{ padding: 32, alignItems: 'center', gap: 10 }}><ActivityIndicator color={colors.primary} /><Text style={{ color: colors.mutedForeground }}>Loading menu…</Text></View>
+              : <EmptyState label={loadError ? 'Menu unavailable' : 'No items match your filters'} colors={colors} />
+          }
         />
       ) : (
         <FlatList
@@ -254,7 +359,11 @@ export default function EditMenu() {
           contentContainerStyle={{ paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           renderItem={({ item }) => <ComboCard combo={item} onToggle={() => toggleCombo(item.id)} onAction={showToast} colors={colors} styles={styles} />}
-          ListEmptyComponent={<EmptyState label="No combos match your filters" colors={colors} />}
+          ListEmptyComponent={
+            isDemo
+              ? <EmptyState label="No combos match your filters" colors={colors} />
+              : <EmptyState label="Combo offers are not available in the mobile menu API" colors={colors} />
+          }
         />
       )}
 
@@ -265,7 +374,7 @@ export default function EditMenu() {
         </View>
       )}
 
-      <MenuItemEditSheet item={editingItem} onClose={handleCloseSheet} />
+      <MenuItemEditSheet item={editingItem} onClose={handleCloseSheet} onSave={saveItem} />
     </View>
   );
 }
@@ -279,7 +388,18 @@ const SPRING_CONFIG = {
   overshootClamping: true,
 };
 
-function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: () => void }) {
+function MenuItemEditSheet({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: MenuItem | null;
+  onClose: () => void;
+  onSave: (
+    item: MenuItem,
+    patch: { name: string; description: string; price: number; veg: boolean; imageShape: string },
+  ) => Promise<void>;
+}) {
   const { colors } = useTheme();
   const { height: screenH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -295,6 +415,7 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
   const [price, setPrice] = useState('');
   const [foodCategory, setFoodCategory] = useState<'veg' | 'nonveg'>('nonveg');
   const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
+  const [saving, setSaving] = useState(false);
 
   const isOpen = item !== null;
 
@@ -315,7 +436,7 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
       translateY.value = withSpring(0, SPRING_CONFIG);
       controlsTranslateY.value = withSpring(0, SPRING_CONFIG);
     }
-  }, [isOpen]);
+  }, [controlsTranslateY, isOpen, overlayOpacity, translateY]);
 
   const dismiss = useCallback(() => {
     overlayOpacity.value = withTiming(0, { duration: 200 });
@@ -323,7 +444,30 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
     translateY.value = withSpring(sheetH, SPRING_CONFIG, () => {
       runOnJS(onClose)();
     });
-  }, [sheetH, onClose]);
+  }, [controlsTranslateY, onClose, overlayOpacity, sheetH, translateY]);
+
+  const save = useCallback(async () => {
+    if (!item || saving) return;
+    const parsedPrice = Number(price);
+    if (!itemName.trim()) return;
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) return;
+
+    setSaving(true);
+    try {
+      await onSave(item, {
+        name: itemName.trim(),
+        description: description.trim(),
+        price: parsedPrice,
+        veg: foodCategory === 'veg',
+        imageShape: orientation,
+      });
+      dismiss();
+    } catch {
+      // The parent shows a user-safe error toast; keep the sheet open for retry.
+    } finally {
+      setSaving(false);
+    }
+  }, [description, dismiss, foodCategory, item, itemName, onSave, orientation, price, saving]);
 
   // ESC key support (web)
   useEffect(() => {
@@ -335,10 +479,6 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-  }));
-
-  const controlsStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: controlsTranslateY.value }],
   }));
 
   const overlayStyle = useAnimatedStyle(() => ({
@@ -475,12 +615,14 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
         <Pressable
           aria-label="Confirm"
           accessibilityRole="button"
-          accessibilityLabel="Confirm"
-          onPress={dismiss}
+          accessibilityLabel={saving ? 'Saving menu item' : 'Save menu item'}
+          accessibilityState={{ busy: saving, disabled: saving }}
+          onPress={() => void save()}
+          disabled={saving}
           style={({ pressed }) => [
             {
               width: 56, height: 56, borderRadius: 28,
-              backgroundColor: pressed ? '#0070E0' : '#0A84FF',
+              backgroundColor: saving ? '#5B9BE8' : pressed ? '#0070E0' : '#0A84FF',
               alignItems: 'center', justifyContent: 'center',
               shadowColor: '#0A84FF',
               shadowOpacity: 0.5,
@@ -489,7 +631,7 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
             },
           ]}
         >
-          <Feather name="check" size={22} color="#fff" />
+          {saving ? <ActivityIndicator size="small" color="#fff" /> : <Feather name="check" size={22} color="#fff" />}
         </Pressable>
       </Animated.View>
     </Modal>

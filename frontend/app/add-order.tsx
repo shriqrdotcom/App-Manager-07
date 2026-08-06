@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet,
+  ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { router, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/src/providers/AppProvider';
 import { useTheme } from '@/src/providers/ThemeProvider';
+import { menuApi } from '@/src/api/menu';
+import type { MenuCategory, MenuItem } from '@/src/types/menu';
 
 // ---------- Menu data ----------
 type Category = { key: string; label: string; emoji: string; tint: string };
@@ -59,15 +61,76 @@ export default function AddOrderScreen() {
   const insets = useSafeAreaInsets();
   const { state, selectedRestaurant } = useApp();
   const { colors } = useTheme();
+  const isDemo = process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true';
 
   const [customer, setCustomer] = useState('');
   const [tableNo, setTableNo] = useState('');
-  const [category, setCategory] = useState<string>('biryani');
+  const [category, setCategory] = useState<string>('');
   const [cart, setCart] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [placedMsg, setPlacedMsg] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>(
+    isDemo ? CATEGORIES : [],
+  );
+  const [dishes, setDishes] = useState<Dish[]>(
+    isDemo ? DISHES : [],
+  );
+  const [loadingMenu, setLoadingMenu] = useState(!isDemo);
+  const [refreshingMenu, setRefreshingMenu] = useState(false);
+  const [menuError, setMenuError] = useState<string | null>(null);
 
-  const filtered = useMemo(() => DISHES.filter((d) => d.category === category), [category]);
+  const loadMenu = useCallback(async (pullToRefresh = false) => {
+    if (isDemo || !selectedRestaurant) return;
+    if (pullToRefresh) setRefreshingMenu(true);
+    else setLoadingMenu(true);
+    setMenuError(null);
+    try {
+      const response = await menuApi.getMenu(selectedRestaurant.uid, {
+        limit: 100,
+      });
+      const categoryRows: Category[] = response.categories.map((item: MenuCategory) => ({
+        key: item.id,
+        label: item.name,
+        emoji: item.emoji || '🍽️',
+        tint: '#FDE68A',
+      }));
+      const mappedDishes: Dish[] = response.items
+        .filter((item: MenuItem) => item.available && item.isPublished && !item.isArchived)
+        .map((item: MenuItem) => ({
+          id: item.id,
+          name: item.name,
+          category: item.categoryId ?? '',
+          price: item.price,
+          veg: item.vegetarian,
+          source: selectedRestaurant.name,
+          prep: item.preparationTimeMinutes ? `${item.preparationTimeMinutes} mins` : '—',
+          rating: 0,
+          reviews: 0,
+          emoji: item.categoryId
+            ? (categoryRows.find((entry) => entry.key === item.categoryId)?.emoji ?? '🍽️')
+            : '🍽️',
+        }));
+      setCategories(categoryRows);
+      setDishes(mappedDishes);
+      setCategory((current) => current || categoryRows[0]?.key || '');
+      setCart({});
+    } catch (loadError) {
+      setMenuError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'Unable to load the menu. Please try again.',
+      );
+    } finally {
+      setLoadingMenu(false);
+      setRefreshingMenu(false);
+    }
+  }, [isDemo, selectedRestaurant]);
+
+  React.useEffect(() => {
+    void loadMenu();
+  }, [loadMenu]);
+
+  const filtered = useMemo(() => dishes.filter((d) => d.category === category), [category, dishes]);
 
   const add = useCallback((id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 })), []);
   const dec = useCallback((id: string) => setCart((c) => {
@@ -82,7 +145,8 @@ export default function AddOrderScreen() {
 
   const totalItems = Object.values(cart).reduce((s, n) => s + n, 0);
   const totalPrice = Object.entries(cart).reduce((s, [id, n]) => {
-    const dish = DISHES.find((d) => d.id === id); return s + (dish ? dish.price * n : 0);
+    const dish = dishes.find((d) => d.id === id);
+    return s + (dish ? dish.price * n : 0);
   }, 0);
 
   const placeOrder = () => {
@@ -119,6 +183,13 @@ export default function AddOrderScreen() {
         contentContainerStyle={{ paddingBottom: 120 + insets.bottom, gap: 12 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshingMenu}
+            onRefresh={() => void loadMenu(true)}
+            tintColor={colors.primary}
+          />
+        }
         ListHeaderComponent={
           <>
             {/* Customer + Table */}
@@ -156,7 +227,7 @@ export default function AddOrderScreen() {
             <View style={styles.categoryBoard}>
               <Text style={styles.categoryHeading}>What&apos;s on your mind?</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
-                {CATEGORIES.map((c) => {
+                {categories.map((c) => {
                   const active = c.key === category;
                   return (
                     <TouchableOpacity
@@ -179,6 +250,15 @@ export default function AddOrderScreen() {
             {/* Menu section header */}
             <View style={styles.menuHeader}>
               <Text style={[styles.menuHeaderText, { color: colors.foreground }]}>All {filtered.length} Items</Text>
+              {menuError && (
+                <View style={styles.menuErrorRow} testID="add-order-menu-error">
+                  <Feather name="alert-circle" size={13} color="#EF4444" />
+                  <Text style={styles.menuErrorText}>{menuError}</Text>
+                  <TouchableOpacity onPress={() => void loadMenu()} testID="add-order-menu-retry">
+                    <Text style={styles.menuRetryText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </>
         }
@@ -191,8 +271,11 @@ export default function AddOrderScreen() {
           />
         )}
         ListEmptyComponent={
-          <View style={{ padding: 32, alignItems: 'center' }}>
-            <Text style={{ color: colors.mutedForeground }}>No items in this category</Text>
+          <View style={{ padding: 32, alignItems: 'center', gap: 10 }}>
+            {loadingMenu ? <ActivityIndicator color={colors.primary} /> : null}
+            <Text style={{ color: colors.mutedForeground }}>
+              {loadingMenu ? 'Loading menu…' : menuError ? 'Menu unavailable' : 'No items in this category'}
+            </Text>
           </View>
         }
       />
@@ -357,6 +440,9 @@ const styles = StyleSheet.create({
   // Menu section header
   menuHeader: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6 },
   menuHeaderText: { fontSize: 20, fontWeight: '800', letterSpacing: -0.4 },
+  menuErrorRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  menuErrorText: { color: '#F87171', fontSize: 12, flex: 1 },
+  menuRetryText: { color: '#60A5FA', fontSize: 12, fontWeight: '700' },
 
   // Dish card — intentional light food-app card style
   dishCard: {
