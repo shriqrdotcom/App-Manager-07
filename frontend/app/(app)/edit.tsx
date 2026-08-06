@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet,
+  AccessibilityInfo, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet,
   Text, TextInput, TouchableOpacity, View, Switch, useWindowDimensions,
 } from 'react-native';
 import Animated, {
+  Easing,
   runOnJS, useAnimatedStyle, useSharedValue,
   withSpring, withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, type ThemePalette } from '@/src/providers/ThemeProvider';
@@ -632,7 +633,7 @@ function FoodItemDetailsSection({
                 position: 'absolute',
                 top: 42,
                 right: 0,
-                minWidth: 158,
+                width: 136,
                 padding: 10,
                 borderRadius: 12,
                 backgroundColor: colors.card,
@@ -758,60 +759,148 @@ function DietToggle({
   onChange: (value: 'veg' | 'nonveg') => void;
 }) {
   const isVeg = value === 'veg';
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [focusedOption, setFocusedOption] = useState<'veg' | 'nonveg' | null>(null);
+  const selectionProgress = useSharedValue(isVeg ? 0 : 1);
+  const vegPressScale = useSharedValue(1);
+  const nonVegPressScale = useSharedValue(1);
+
+  useEffect(() => {
+    let mounted = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setReduceMotion(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReduceMotion,
+    );
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    selectionProgress.value = withTiming(isVeg ? 0 : 1, {
+      duration: reduceMotion ? 0 : 210,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [isVeg, reduceMotion, selectionProgress]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: selectionProgress.value * 54 }],
+  }));
+  const vegIconStyle = useAnimatedStyle(() => ({
+    opacity: 0.58 + (1 - selectionProgress.value) * 0.42,
+    transform: [{ scale: 0.97 + (1 - selectionProgress.value) * 0.03 }],
+  }));
+  const nonVegIconStyle = useAnimatedStyle(() => ({
+    opacity: 0.58 + selectionProgress.value * 0.42,
+    transform: [{ scale: 0.97 + selectionProgress.value * 0.03 }],
+  }));
+  const vegPressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: vegPressScale.value }],
+  }));
+  const nonVegPressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: nonVegPressScale.value }],
+  }));
+  const pressDuration = reduceMotion ? 0 : 90;
 
   return (
-    <TouchableOpacity
-      onPress={() => onChange(isVeg ? 'nonveg' : 'veg')}
-      activeOpacity={0.85}
-      accessibilityRole="switch"
-      accessibilityLabel="Toggle vegetarian item"
-      accessibilityState={{ checked: isVeg }}
-      testID="food-item-diet-toggle"
+    <View
       style={{
+        width: 112,
+        height: 52,
+        padding: 4,
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 7,
-        flexShrink: 0,
+        gap: 4,
+        borderRadius: 13,
+        backgroundColor: colors.muted,
+        borderWidth: 1,
+        borderColor: colors.border,
       }}
+      testID="food-item-diet-toggle"
     >
-      <Text
-        style={{
-          color: isVeg ? '#4ADE80' : colors.mutedForeground,
-          fontSize: 10,
-          fontWeight: '800',
-          letterSpacing: 0.7,
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            position: 'absolute',
+            top: 4,
+            left: 4,
+            width: 50,
+            height: 44,
+            borderRadius: 10,
+            backgroundColor: colors.primary,
+            borderWidth: 1,
+            borderColor: colors.primary,
+          },
+          indicatorStyle,
+        ]}
+      />
+      <Pressable
+        onPress={() => onChange('veg')}
+        onPressIn={() => {
+          vegPressScale.value = withTiming(0.97, { duration: pressDuration });
         }}
-      >
-        {isVeg ? 'VEG' : 'NON-VEG'}
-      </Text>
-      <View
+        onPressOut={() => {
+          vegPressScale.value = withTiming(1, { duration: pressDuration });
+        }}
+        onFocus={() => setFocusedOption('veg')}
+        onBlur={() => setFocusedOption(null)}
+        accessibilityRole="radio"
+        accessibilityLabel="Vegetarian"
+        accessibilityHint="Select vegetarian food category"
+        accessibilityState={{ selected: isVeg }}
         style={{
-          width: 42,
-          height: 24,
-          padding: 3,
-          borderRadius: 999,
+          width: 50,
+          height: 44,
+          borderRadius: 10,
+          alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isVeg ? '#16A34A' : colors.accent,
-          borderWidth: 1,
-          borderColor: isVeg ? '#22C55E' : colors.border,
+          borderWidth: focusedOption === 'veg' ? 2 : 1,
+          borderColor: focusedOption === 'veg' ? '#4ADE80' : 'transparent',
         }}
+        testID="food-item-diet-veg"
       >
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            backgroundColor: '#F5F5F5',
-            alignSelf: isVeg ? 'flex-end' : 'flex-start',
-            shadowColor: '#000',
-            shadowOpacity: 0.2,
-            shadowRadius: 3,
-            shadowOffset: { width: 0, height: 1 },
-            elevation: 2,
-          }}
-        />
-      </View>
-    </TouchableOpacity>
+        <Animated.View style={vegPressStyle}>
+          <Animated.View style={vegIconStyle}>
+            <FontAwesome6 name="leaf" size={19} color="#4ADE80" />
+          </Animated.View>
+        </Animated.View>
+      </Pressable>
+      <Pressable
+        onPress={() => onChange('nonveg')}
+        onPressIn={() => {
+          nonVegPressScale.value = withTiming(0.97, { duration: pressDuration });
+        }}
+        onPressOut={() => {
+          nonVegPressScale.value = withTiming(1, { duration: pressDuration });
+        }}
+        onFocus={() => setFocusedOption('nonveg')}
+        onBlur={() => setFocusedOption(null)}
+        accessibilityRole="radio"
+        accessibilityLabel="Non-vegetarian"
+        accessibilityHint="Select non-vegetarian food category"
+        accessibilityState={{ selected: !isVeg }}
+        style={{
+          width: 50,
+          height: 44,
+          borderRadius: 10,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: focusedOption === 'nonveg' ? 2 : 1,
+          borderColor: focusedOption === 'nonveg' ? '#FB7185' : 'transparent',
+        }}
+        testID="food-item-diet-nonveg"
+      >
+        <Animated.View style={nonVegPressStyle}>
+          <Animated.View style={nonVegIconStyle}>
+            <FontAwesome6 name="drumstick-bite" size={18} color="#FB7185" />
+          </Animated.View>
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 }
 
