@@ -248,76 +248,76 @@ export default function SwipeSaveControl({
       : {};
 
   return (
-    <View
-      {...(webInteractionProps as Record<string, unknown>)}
-      style={[styles.track, focused && styles.trackFocused, !enabled && styles.trackDisabled]}
-      onLayout={(event) => {
-        const width = event.nativeEvent.layout.width;
-        setTrackWidth(width);
-        trackWidthSV.value = width;
-      }}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      accessible
-      focusable
-      accessibilityRole="button"
-      accessibilityLabel={successState ? 'Review link saved' : 'Swipe right to save review link'}
-      accessibilityHint={successState ? undefined : 'Drag the Google logo to the right to save'}
-      accessibilityState={{ disabled: !enabled, busy: successState }}
-      accessibilityActions={[{ name: 'activate', label: 'Save review link' }]}
-      onAccessibilityAction={(event) => {
-        if (event.nativeEvent.actionName === 'activate') completeFromAccessibility();
-      }}
-      onAccessibilityTap={completeFromAccessibility}
-      testID={testID}
-    >
-      <BlurView
-        intensity={28}
-        tint={resolvedTheme === 'dark' ? 'dark' : 'light'}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <LinearGradient
-        colors={['rgba(255,255,255,0.13)', 'rgba(255,255,255,0.025)', 'rgba(255,255,255,0.07)']}
-        locations={[0, 0.48, 1]}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <Animated.View style={[styles.fill, fillStyle]} pointerEvents="none">
-        <LinearGradient
-          colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.055)']}
-          start={{ x: 0, y: 0.2 }}
-          end={{ x: 1, y: 0.8 }}
+    <GestureDetector gesture={pan}>
+      <View
+        {...(webInteractionProps as Record<string, unknown>)}
+        style={[styles.track, focused && styles.trackFocused, !enabled && styles.trackDisabled]}
+        onLayout={(event) => {
+          const width = event.nativeEvent.layout.width;
+          setTrackWidth(width);
+          trackWidthSV.value = width;
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        accessible
+        focusable
+        accessibilityRole="button"
+        accessibilityLabel={successState ? 'Review link saved' : 'Swipe right to save review link'}
+        accessibilityHint={successState ? undefined : 'Drag the Google logo to the right to save'}
+        accessibilityState={{ disabled: !enabled, busy: successState }}
+        accessibilityActions={[{ name: 'activate', label: 'Save review link' }]}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === 'activate') completeFromAccessibility();
+        }}
+        onAccessibilityTap={completeFromAccessibility}
+        testID={testID}
+      >
+        <BlurView
+          intensity={28}
+          tint={resolvedTheme === 'dark' ? 'dark' : 'light'}
           style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
-      </Animated.View>
-      <Animated.View style={[styles.reflection, reflectionStyle]} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.11)', 'rgba(255,255,255,0)']}
-          locations={[0, 0.5, 1]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
+          colors={['rgba(255,255,255,0.13)', 'rgba(255,255,255,0.025)', 'rgba(255,255,255,0.07)']}
+          locations={[0, 0.48, 1]}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
           style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
-      </Animated.View>
-      <Animated.View style={[styles.glow, glowStyle]} pointerEvents="none" />
+        <Animated.View style={[styles.fill, fillStyle]} pointerEvents="none">
+          <LinearGradient
+            colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.055)']}
+            start={{ x: 0, y: 0.2 }}
+            end={{ x: 1, y: 0.8 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        <Animated.View style={[styles.reflection, reflectionStyle]} pointerEvents="none">
+          <LinearGradient
+            colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.11)', 'rgba(255,255,255,0)']}
+            locations={[0, 0.5, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+        <Animated.View style={[styles.glow, glowStyle]} pointerEvents="none" />
 
-      <Animated.Text style={[styles.defaultText, defaultTextStyle]} pointerEvents="none">
-        Swipe to Save
-      </Animated.Text>
-      <Animated.View style={[styles.successContent, successTextStyle]} pointerEvents="none">
-        <Feather name="check" size={16} color="#FFFFFF" />
-        <Text style={styles.successText}>Saved</Text>
-      </Animated.View>
+        <Animated.Text style={[styles.defaultText, defaultTextStyle]} pointerEvents="none">
+          Swipe to Save
+        </Animated.Text>
+        <Animated.View style={[styles.successContent, successTextStyle]} pointerEvents="none">
+          <Feather name="check" size={16} color="#FFFFFF" />
+          <Text style={styles.successText}>Saved</Text>
+        </Animated.View>
 
-      <GestureDetector gesture={pan}>
         <Animated.View style={[styles.knob, knobStyle]}>
           <FontAwesome6 name="google" size={23} color="#4285F4" />
         </Animated.View>
-      </GestureDetector>
-    </View>
+      </View>
+    </GestureDetector>
   );
 }
 
