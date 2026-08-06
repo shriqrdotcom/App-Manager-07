@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FlatList, Modal, Platform, Pressable, StyleSheet,
-  Text, TouchableOpacity, View, Switch, useWindowDimensions,
+  FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet,
+  Text, TextInput, TouchableOpacity, View, Switch, useWindowDimensions,
 } from 'react-native';
 import Animated, {
   runOnJS, useAnimatedStyle, useSharedValue,
@@ -288,8 +288,26 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
   const controlsTranslateY = useSharedValue(sheetH + 84);
   const overlayOpacity = useSharedValue(0);
   const cancelScale = useSharedValue(1);
+  const [available, setAvailable] = useState(true);
+  const [itemName, setItemName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [foodCategory, setFoodCategory] = useState<'veg' | 'nonveg'>('nonveg');
+  const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('horizontal');
 
   const isOpen = item !== null;
+
+  useEffect(() => {
+    if (!item) return;
+    setAvailable(item.active);
+    setItemName(item.name);
+    setSlug(item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    setDescription('');
+    setPrice(String(item.price));
+    setFoodCategory(item.veg ? 'veg' : 'nonveg');
+    setOrientation('horizontal');
+  }, [item]);
 
   // Open / close animations
   useEffect(() => {
@@ -395,8 +413,32 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
         // Prevent taps from falling through to backdrop
         onStartShouldSetResponder={() => true}
       >
-        {/* Food image structure only — upload behavior comes later */}
-        <FoodImageSection colors={colors} />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 24,
+          }}
+        >
+          <FoodImageSection colors={colors} />
+          <FoodItemDetailsSection
+            colors={colors}
+            available={available}
+            onAvailableChange={setAvailable}
+            itemName={itemName}
+            onItemNameChange={setItemName}
+            slug={slug}
+            onSlugChange={setSlug}
+            description={description}
+            onDescriptionChange={setDescription}
+            price={price}
+            onPriceChange={setPrice}
+            foodCategory={foodCategory}
+            onFoodCategoryChange={setFoodCategory}
+            orientation={orientation}
+            onOrientationChange={setOrientation}
+          />
+        </ScrollView>
       </Animated.View>
 
       {/* Floating controls. Their bottom edge stays 28px above the panel,
@@ -503,6 +545,318 @@ function FoodImageSection({ colors }: { colors: ThemePalette }) {
         <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>
           JPG or PNG · up to 10 MB
         </Text>
+      </View>
+    </View>
+  );
+}
+
+type FoodItemDetailsProps = {
+  colors: ThemePalette;
+  available: boolean;
+  onAvailableChange: (value: boolean) => void;
+  itemName: string;
+  onItemNameChange: (value: string) => void;
+  slug: string;
+  onSlugChange: (value: string) => void;
+  description: string;
+  onDescriptionChange: (value: string) => void;
+  price: string;
+  onPriceChange: (value: string) => void;
+  foodCategory: 'veg' | 'nonveg';
+  onFoodCategoryChange: (value: 'veg' | 'nonveg') => void;
+  orientation: 'horizontal' | 'vertical';
+  onOrientationChange: (value: 'horizontal' | 'vertical') => void;
+};
+
+function FoodItemDetailsSection({
+  colors,
+  available,
+  onAvailableChange,
+  itemName,
+  onItemNameChange,
+  slug,
+  onSlugChange,
+  description,
+  onDescriptionChange,
+  price,
+  onPriceChange,
+  foodCategory,
+  onFoodCategoryChange,
+  orientation,
+  onOrientationChange,
+}: FoodItemDetailsProps) {
+  const { width } = useWindowDimensions();
+  const twoColumns = width >= 620;
+
+  return (
+    <View
+      style={{
+        width: '100%',
+        maxWidth: 720,
+        alignSelf: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 24,
+        gap: 16,
+      }}
+      testID="food-item-details"
+    >
+      <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: '800' }}>
+        Food item details
+      </Text>
+
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 52,
+          paddingHorizontal: 14,
+          borderRadius: 13,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.card,
+        }}
+      >
+        <View style={{ gap: 3 }}>
+          <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '700' }}>
+            Available
+          </Text>
+          <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>
+            Show this item on the menu
+          </Text>
+        </View>
+        <Switch
+          value={available}
+          onValueChange={onAvailableChange}
+          trackColor={{ true: '#22C55E', false: colors.accent }}
+          thumbColor={available ? '#FFFFFF' : colors.mutedForeground}
+          testID="food-item-available"
+        />
+      </View>
+
+      <View style={{ flexDirection: twoColumns ? 'row' : 'column', gap: 14 }}>
+        <View style={{ flex: 1 }}>
+          <FormField
+            colors={colors}
+            label="Item name"
+            value={itemName}
+            onChangeText={onItemNameChange}
+            placeholder="e.g. Truffle Beef Carpaccio"
+            testID="food-item-name"
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <FormField
+            colors={colors}
+            label="Price"
+            value={price}
+            onChangeText={onPriceChange}
+            placeholder="0"
+            keyboardType="decimal-pad"
+            prefix="₹"
+            testID="food-item-price"
+          />
+        </View>
+      </View>
+
+      <FormField
+        colors={colors}
+        label="URL slug"
+        value={slug}
+        onChangeText={onSlugChange}
+        placeholder="truffle-beef-carpaccio"
+        helperText="Used in the public URL for this menu item."
+        testID="food-item-slug"
+      />
+
+      <View style={{ gap: 7 }}>
+        <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>
+          Description
+        </Text>
+        <TextInput
+          value={description}
+          onChangeText={onDescriptionChange}
+          placeholder="Add a short description of this dish"
+          placeholderTextColor={colors.mutedForeground}
+          multiline
+          textAlignVertical="top"
+          style={{
+            minHeight: 92,
+            paddingHorizontal: 12,
+            paddingVertical: 11,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.card,
+            color: colors.foreground,
+            fontSize: 13,
+          }}
+          testID="food-item-description"
+        />
+      </View>
+
+      <View style={{ flexDirection: twoColumns ? 'row' : 'column', gap: 14 }}>
+        <ChoiceGroup
+          colors={colors}
+          label="Category"
+          options={[
+            { label: 'Veg', value: 'veg' },
+            { label: 'Non-Veg', value: 'nonveg' },
+          ]}
+          value={foodCategory}
+          onChange={onFoodCategoryChange}
+          testID="food-item-category"
+        />
+        <ChoiceGroup
+          colors={colors}
+          label="Image orientation"
+          options={[
+            { label: 'Horizontal', value: 'horizontal' },
+            { label: 'Vertical', value: 'vertical' },
+          ]}
+          value={orientation}
+          onChange={onOrientationChange}
+          testID="food-item-orientation"
+        />
+      </View>
+    </View>
+  );
+}
+
+function FormField({
+  colors,
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  helperText,
+  keyboardType,
+  prefix,
+  testID,
+}: {
+  colors: ThemePalette;
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+  helperText?: string;
+  keyboardType?: 'default' | 'decimal-pad';
+  prefix?: string;
+  testID?: string;
+}) {
+  return (
+    <View style={{ gap: 7 }}>
+      <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>
+        {label}
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          minHeight: 44,
+          paddingHorizontal: 12,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.card,
+        }}
+      >
+        {prefix && (
+          <Text style={{ color: colors.mutedForeground, fontSize: 13, marginRight: 6 }}>
+            {prefix}
+          </Text>
+        )}
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={colors.mutedForeground}
+          keyboardType={keyboardType}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            color: colors.foreground,
+            fontSize: 13,
+            paddingVertical: 10,
+          }}
+          testID={testID}
+        />
+      </View>
+      {helperText && (
+        <Text style={{ color: colors.mutedForeground, fontSize: 11, lineHeight: 16 }}>
+          {helperText}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function ChoiceGroup<T extends string>({
+  colors,
+  label,
+  options,
+  value,
+  onChange,
+  testID,
+}: {
+  colors: ThemePalette;
+  label: string;
+  options: { label: string; value: T }[];
+  value: T;
+  onChange: (value: T) => void;
+  testID?: string;
+}) {
+  return (
+    <View style={{ flex: 1, gap: 7 }}>
+      <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: '700' }}>
+        {label}
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          padding: 3,
+          borderRadius: 12,
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+        testID={testID}
+      >
+        {options.map((option) => {
+          const selected = option.value === value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              onPress={() => onChange(option.value)}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                minHeight: 36,
+                paddingHorizontal: 7,
+                borderRadius: 9,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: selected ? colors.primary : 'transparent',
+              }}
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              accessibilityLabel={option.label}
+            >
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: selected ? colors.primaryForeground : colors.mutedForeground,
+                  fontSize: 11.5,
+                  fontWeight: '700',
+                }}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
