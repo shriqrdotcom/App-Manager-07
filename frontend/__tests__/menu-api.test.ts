@@ -62,4 +62,59 @@ describe('menuApi', () => {
       }),
     );
   });
+
+  it('uploads gallery data through the verified item-scoped operation', async () => {
+    await menuApi.addGallery(
+      '1234567890',
+      '8f7d7d7d-7d7d-4d7d-8d7d-7d7d7d7d7d7d',
+      'data:image/jpeg;base64,ZmFrZQ==',
+      { altText: 'Garlic naan', position: 2 },
+    );
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      '/api/mobile/v1/menu?operation=addGallery&itemId=8f7d7d7d-7d7d-4d7d-8d7d-7d7d7d7d7d7d',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          restaurantUid: '1234567890',
+          dataUrl: 'data:image/jpeg;base64,ZmFrZQ==',
+          altText: 'Garlic naan',
+          position: 2,
+        }),
+      }),
+    );
+  });
+
+  it('replaces the item cover through the verified item-scoped operation', async () => {
+    await menuApi.replaceImage(
+      '1234567890',
+      '8f7d7d7d-7d7d-4d7d-8d7d-7d7d7d7d7d7d',
+      'data:image/png;base64,ZmFrZQ==',
+      'vertical',
+    );
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      '/api/mobile/v1/menu?operation=replaceImage&itemId=8f7d7d7d-7d7d-4d7d-8d7d-7d7d7d7d7d7d',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          restaurantUid: '1234567890',
+          dataUrl: 'data:image/png;base64,ZmFrZQ==',
+          imageShape: 'vertical',
+        }),
+      }),
+    );
+  });
+
+  it('deletes gallery images by gallery ID without trusting a client restaurant UUID', async () => {
+    await menuApi.deleteGallery('1234567890', 'gallery-123');
+
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      '/api/mobile/v1/menu?operation=deleteGallery&galleryId=gallery-123',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ restaurantUid: '1234567890' }),
+      }),
+    );
+  });
 });

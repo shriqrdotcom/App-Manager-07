@@ -9,6 +9,7 @@ import Animated, {
   withSpring, withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -138,6 +139,7 @@ type StylesType = ReturnType<typeof makeStyles>;
 export default function EditMenu() {
   const { colors } = useTheme();
   const { selectedRestaurant } = useApp();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const isDemo = process.env.EXPO_PUBLIC_PREVIEW_DEMO === 'true';
@@ -341,6 +343,7 @@ export default function EditMenu() {
               item={item}
               onToggle={() => void toggleItem(item.id)}
               onEdit={() => handleEdit(item)}
+                onGallery={() => router.push({ pathname: '/(app)/gallery', params: { itemId: item.id } })}
               colors={colors}
               styles={styles}
             />
@@ -1285,9 +1288,14 @@ function QuickBtn({ icon, label, testID, styles }: { icon: keyof typeof Feather.
 }
 
 function ItemCard({
-  item, onToggle, onEdit, colors, styles,
+  item, onToggle, onEdit, onGallery, colors, styles,
 }: {
-  item: MenuItem; onToggle: () => void; onEdit: () => void; colors: ThemePalette; styles: StylesType;
+  item: MenuItem;
+  onToggle: () => void;
+  onEdit: () => void;
+  onGallery: () => void;
+  colors: ThemePalette;
+  styles: StylesType;
 }) {
   return (
     <Card style={styles.itemCard} testID={`menu-item-${item.id}`}>
@@ -1322,6 +1330,15 @@ function ItemCard({
           testID={`menu-toggle-${item.id}`}
         />
         <View style={{ flexDirection: 'row', gap: 4 }}>
+          <TouchableOpacity
+            style={styles.miniBtn}
+            onPress={onGallery}
+            accessibilityRole="button"
+            accessibilityLabel={`Open gallery for ${item.name}`}
+            testID={`menu-gallery-${item.id}`}
+          >
+            <Feather name="image" size={13} color={colors.foreground} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.miniBtn} onPress={onEdit} testID={`menu-edit-${item.id}`}>
             <Feather name="edit-2" size={13} color={colors.foreground} />
           </TouchableOpacity>
