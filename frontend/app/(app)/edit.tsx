@@ -578,6 +578,7 @@ function FoodItemDetailsSection({
   onOrientationChange,
 }: FoodItemDetailsProps) {
   const { width } = useWindowDimensions();
+  const [dietMenuOpen, setDietMenuOpen] = useState(false);
   const twoColumns = width >= 620;
 
   return (
@@ -603,11 +604,59 @@ function FoodItemDetailsSection({
         <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: '800' }}>
           Food item details
         </Text>
-        <DietToggle
-          colors={colors}
-          value={foodCategory}
-          onChange={onFoodCategoryChange}
-        />
+        <View style={{ position: 'relative', zIndex: 10 }}>
+          <TouchableOpacity
+            onPress={() => setDietMenuOpen((open) => !open)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Open dietary preference menu"
+            accessibilityState={{ expanded: dietMenuOpen }}
+            testID="food-item-diet-menu"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: colors.card,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Feather name="more-vertical" size={18} color={colors.foreground} />
+          </TouchableOpacity>
+
+          {dietMenuOpen && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 42,
+                right: 0,
+                minWidth: 158,
+                padding: 10,
+                borderRadius: 12,
+                backgroundColor: colors.card,
+                borderWidth: 1,
+                borderColor: colors.border,
+                shadowColor: '#000',
+                shadowOpacity: 0.35,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+              testID="food-item-diet-menu-content"
+            >
+              <DietToggle
+                colors={colors}
+                value={foodCategory}
+                onChange={(nextValue) => {
+                  onFoodCategoryChange(nextValue);
+                  setDietMenuOpen(false);
+                }}
+              />
+            </View>
+          )}
+        </View>
       </View>
 
       <View style={{ flexDirection: twoColumns ? 'row' : 'column', gap: 14 }}>
