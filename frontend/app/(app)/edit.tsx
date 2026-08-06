@@ -288,7 +288,6 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
   const controlsTranslateY = useSharedValue(sheetH + 84);
   const overlayOpacity = useSharedValue(0);
   const cancelScale = useSharedValue(1);
-  const [available, setAvailable] = useState(true);
   const [itemName, setItemName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -300,7 +299,6 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
 
   useEffect(() => {
     if (!item) return;
-    setAvailable(item.active);
     setItemName(item.name);
     setSlug(item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     setDescription('');
@@ -423,8 +421,6 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
           <FoodImageSection colors={colors} />
           <FoodItemDetailsSection
             colors={colors}
-            available={available}
-            onAvailableChange={setAvailable}
             itemName={itemName}
             onItemNameChange={setItemName}
             slug={slug}
@@ -552,8 +548,6 @@ function FoodImageSection({ colors }: { colors: ThemePalette }) {
 
 type FoodItemDetailsProps = {
   colors: ThemePalette;
-  available: boolean;
-  onAvailableChange: (value: boolean) => void;
   itemName: string;
   onItemNameChange: (value: string) => void;
   slug: string;
@@ -570,8 +564,6 @@ type FoodItemDetailsProps = {
 
 function FoodItemDetailsSection({
   colors,
-  available,
-  onAvailableChange,
   itemName,
   onItemNameChange,
   slug,
@@ -603,36 +595,6 @@ function FoodItemDetailsSection({
       <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: '800' }}>
         Food item details
       </Text>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 52,
-          paddingHorizontal: 14,
-          borderRadius: 13,
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.card,
-        }}
-      >
-        <View style={{ gap: 3 }}>
-          <Text style={{ color: colors.foreground, fontSize: 14, fontWeight: '700' }}>
-            Available
-          </Text>
-          <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>
-            Show this item on the menu
-          </Text>
-        </View>
-        <Switch
-          value={available}
-          onValueChange={onAvailableChange}
-          trackColor={{ true: '#22C55E', false: colors.accent }}
-          thumbColor={available ? '#FFFFFF' : colors.mutedForeground}
-          testID="food-item-available"
-        />
-      </View>
 
       <View style={{ flexDirection: twoColumns ? 'row' : 'column', gap: 14 }}>
         <View style={{ flex: 1 }}>
