@@ -592,9 +592,23 @@ function FoodItemDetailsSection({
       }}
       testID="food-item-details"
     >
-      <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: '800' }}>
-        Food item details
-      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}
+      >
+        <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: '800' }}>
+          Food item details
+        </Text>
+        <DietToggle
+          colors={colors}
+          value={foodCategory}
+          onChange={onFoodCategoryChange}
+        />
+      </View>
 
       <View style={{ flexDirection: twoColumns ? 'row' : 'column', gap: 14 }}>
         <View style={{ flex: 1 }}>
@@ -682,6 +696,73 @@ function FoodItemDetailsSection({
         />
       </View>
     </View>
+  );
+}
+
+function DietToggle({
+  colors,
+  value,
+  onChange,
+}: {
+  colors: ThemePalette;
+  value: 'veg' | 'nonveg';
+  onChange: (value: 'veg' | 'nonveg') => void;
+}) {
+  const isVeg = value === 'veg';
+
+  return (
+    <TouchableOpacity
+      onPress={() => onChange(isVeg ? 'nonveg' : 'veg')}
+      activeOpacity={0.85}
+      accessibilityRole="switch"
+      accessibilityLabel="Toggle vegetarian item"
+      accessibilityState={{ checked: isVeg }}
+      testID="food-item-diet-toggle"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 7,
+        flexShrink: 0,
+      }}
+    >
+      <Text
+        style={{
+          color: isVeg ? '#4ADE80' : colors.mutedForeground,
+          fontSize: 10,
+          fontWeight: '800',
+          letterSpacing: 0.7,
+        }}
+      >
+        {isVeg ? 'VEG' : 'NON-VEG'}
+      </Text>
+      <View
+        style={{
+          width: 42,
+          height: 24,
+          padding: 3,
+          borderRadius: 999,
+          justifyContent: 'center',
+          backgroundColor: isVeg ? '#16A34A' : colors.accent,
+          borderWidth: 1,
+          borderColor: isVeg ? '#22C55E' : colors.border,
+        }}
+      >
+        <View
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 9,
+            backgroundColor: '#F5F5F5',
+            alignSelf: isVeg ? 'flex-end' : 'flex-start',
+            shadowColor: '#000',
+            shadowOpacity: 0.2,
+            shadowRadius: 3,
+            shadowOffset: { width: 0, height: 1 },
+            elevation: 2,
+          }}
+        />
+      </View>
+    </TouchableOpacity>
   );
 }
 
