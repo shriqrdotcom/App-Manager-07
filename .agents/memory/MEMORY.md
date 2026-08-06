@@ -14,3 +14,4 @@
 - [Settings editor sheets](settings-editor-sheets.md) — Settings values that are edited in place should use the existing animated bottom-sheet pattern instead of a standalone route.
 - [Swipe save control](swipe-save-control.md) — Save confirmations use a Gesture Handler/Reanimated spring swipe with reduced-motion and accessibility activation paths.
 - [Gallery row actions](gallery-row-actions.md) — Keep gallery image rows slot-stable so Edit/Delete never renumbers neighboring images.
+- [Expo ScrollView popovers](expo-scrollview-popovers.md) — Menus rendered absolutely inside a ScrollView can be clipped or painted behind later content; use layout flow plus explicit stacking.
