@@ -283,6 +283,7 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
   const sheetH = screenH * 0.78;
 
   const translateY = useSharedValue(sheetH);
+  const controlsTranslateY = useSharedValue(sheetH + 84);
   const overlayOpacity = useSharedValue(0);
   const cancelScale = useSharedValue(1);
 
@@ -293,11 +294,13 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
     if (isOpen) {
       overlayOpacity.value = withTiming(1, { duration: 220 });
       translateY.value = withSpring(0, SPRING_CONFIG);
+      controlsTranslateY.value = withSpring(0, SPRING_CONFIG);
     }
   }, [isOpen]);
 
   const dismiss = useCallback(() => {
     overlayOpacity.value = withTiming(0, { duration: 200 });
+    controlsTranslateY.value = withSpring(sheetH + 84, SPRING_CONFIG);
     translateY.value = withSpring(sheetH, SPRING_CONFIG, () => {
       runOnJS(onClose)();
     });
@@ -313,6 +316,10 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
+  }));
+
+  const controlsStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: controlsTranslateY.value }],
   }));
 
   const overlayStyle = useAnimatedStyle(() => ({
@@ -352,7 +359,6 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
             {
               // @ts-ignore — web-only style
               backdropFilter: 'blur(7px)',
-              WebkitBackdropFilter: 'blur(7px)',
             },
             overlayStyle,
           ]}
@@ -367,7 +373,8 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
         accessible={false}
       />
 
-      {/* Sheet */}
+      {/* Blank editor page. The controls intentionally sit outside this panel,
+          matching the floating iOS sheet presentation in the reference. */}
       <Animated.View
         style={[
           {
@@ -381,65 +388,68 @@ function MenuItemEditSheet({ item, onClose }: { item: MenuItem | null; onClose: 
             borderTopRightRadius: 32,
             overflow: 'hidden',
           },
-          sheetStyle,
+          controlsStyle,
         ]}
         // Prevent taps from falling through to backdrop
         onStartShouldSetResponder={() => true}
       >
-        {/* Header row */}
-        <View
-          style={{
-            height: 72,
+        {/* Blank content area — form goes here later */}
+        <View style={{ flex: 1, paddingBottom: insets.bottom }} />
+      </Animated.View>
+
+      {/* Floating controls. Their bottom edge stays 28px above the panel,
+          leaving the deliberate gap visible in the reference image. */}
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            left: 24,
+            right: 24,
+            bottom: sheetH + 28,
+            height: 56,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            paddingHorizontal: 24,
-          }}
-        >
-          {/* Cancel — Liquid Glass */}
-          <Animated.View style={cancelBtnStyle}>
-            <Pressable
-              aria-label="Close editor"
-              accessibilityRole="button"
-              accessibilityLabel="Close editor"
-              onPressIn={() => { cancelScale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
-              onPressOut={() => { cancelScale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
-              onPress={dismiss}
-              style={{ width: 56, height: 56, borderRadius: 28, overflow: 'hidden' }}
-            >
-              <LiquidGlassButton />
-            </Pressable>
-          </Animated.View>
-
-          {/* Confirm — iOS Blue */}
+          },
+          sheetStyle,
+        ]}
+        pointerEvents="box-none"
+      >
+        {/* Cancel — Liquid Glass */}
+        <Animated.View style={cancelBtnStyle}>
           <Pressable
-            aria-label="Confirm"
+            aria-label="Close editor"
             accessibilityRole="button"
-            accessibilityLabel="Confirm"
+            accessibilityLabel="Close editor"
+            onPressIn={() => { cancelScale.value = withSpring(0.97, { damping: 20, stiffness: 400 }); }}
+            onPressOut={() => { cancelScale.value = withSpring(1, { damping: 20, stiffness: 400 }); }}
             onPress={dismiss}
-            style={({ pressed }) => [
-              {
-                width: 56, height: 56, borderRadius: 28,
-                backgroundColor: pressed ? '#0070E0' : '#0A84FF',
-                alignItems: 'center', justifyContent: 'center',
-                shadowColor: '#0A84FF',
-                shadowOpacity: 0.5,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 4 },
-              },
-            ]}
+            style={{ width: 56, height: 56, borderRadius: 28, overflow: 'hidden' }}
           >
-            <Feather name="check" size={22} color="#fff" />
+            <LiquidGlassButton />
           </Pressable>
-        </View>
+        </Animated.View>
 
-        {/* Drag handle */}
-        <View style={{ alignItems: 'center', marginTop: -8, marginBottom: 8 }}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.15)' }} />
-        </View>
-
-        {/* Blank content area — form goes here later */}
-        <View style={{ flex: 1, paddingBottom: insets.bottom }} />
+        {/* Confirm — iOS Blue */}
+        <Pressable
+          aria-label="Confirm"
+          accessibilityRole="button"
+          accessibilityLabel="Confirm"
+          onPress={dismiss}
+          style={({ pressed }) => [
+            {
+              width: 56, height: 56, borderRadius: 28,
+              backgroundColor: pressed ? '#0070E0' : '#0A84FF',
+              alignItems: 'center', justifyContent: 'center',
+              shadowColor: '#0A84FF',
+              shadowOpacity: 0.5,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 4 },
+            },
+          ]}
+        >
+          <Feather name="check" size={22} color="#fff" />
+        </Pressable>
       </Animated.View>
     </Modal>
   );
@@ -462,7 +472,6 @@ function LiquidGlassButton() {
             {
               // @ts-ignore — web CSS
               backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
               backgroundColor: 'rgba(255,255,255,0.08)',
             },
           ]}
